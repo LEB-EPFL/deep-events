@@ -1,0 +1,40 @@
+imagefile= r'C:\Users\roumba\Documents\Software\deep-events\Video 1\Brightfield\220915_cos7_mitostaygold1_w1Brightfield.ome.tif'
+csvfile = r'C:\Users\roumba\Documents\Software\deep-events\Video 1\Brightfield\labels1b.csv'
+
+from PIL import Image
+import pandas as pd
+import numpy as np
+
+img = Image.open(imagefile)
+#tiffarray = np.array(img)
+
+data = pd.read_csv(csvfile)
+#data.columns
+
+
+datacrop= data.iloc[0:6,1:4] #crop index based not row based?
+
+#frame= datacrop['axis-0']
+#y= datacrop['axis-1']
+#x= datacrop['axis-2']
+
+frame1=int(datacrop['axis-0'].min())
+frame2=int(datacrop['axis-0'].max())
+ymean = datacrop['axis-1'].mean()
+xmean = datacrop['axis-2'].mean()
+ycrop1=ymean+128
+ycrop2=ymean-128
+xcrop1=xmean+128
+xcrop2=xmean-128
+
+
+dataar=np.zeros((frame2-frame1+1, 256, 256))
+
+for dataarindex, frame in enumerate(range (frame1, frame2)):
+    img.seek(frame-1) #starts from 0 I think?
+    box = (xcrop2, ycrop2, xcrop1, ycrop1) #choose dimensions of box
+    imcrop= img.crop(box)
+    
+    dataar[dataarindex, :, :] = np.array(imcrop)
+    
+print(dataar.shape)
