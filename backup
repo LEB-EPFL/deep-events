@@ -38,3 +38,4 @@ for dataarindex, frame in enumerate(range (frame1, frame2)):
     dataar[dataarindex, :, :] = np.array(imcrop)
     
 print(dataar.shape)
+
