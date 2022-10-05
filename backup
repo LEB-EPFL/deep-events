@@ -12,30 +12,66 @@ data = pd.read_csv(csvfile)
 #data.columns
 
 
-datacrop= data.iloc[0:6,1:4] #crop index based not row based?
+length=len(data)-1
+list=[]
+list1=[]
+for excelindex in range(0,length):
+    framedataline1= data.iloc[excelindex,1] 
+    framedataline2= data.iloc[excelindex+1,1] 
+    framediff= abs(framedataline2-framedataline1)
 
-#frame= datacrop['axis-0']
-#y= datacrop['axis-1']
-#x= datacrop['axis-2']
+    ydistancedataline1= data.iloc[excelindex,2]
+    ydistancedataline2= data.iloc[excelindex+1,2]
+    ydistancediff= abs(ydistancedataline2-ydistancedataline1)
 
-frame1=int(datacrop['axis-0'].min())
-frame2=int(datacrop['axis-0'].max())
-ymean = datacrop['axis-1'].mean()
-xmean = datacrop['axis-2'].mean()
-ycrop1=ymean+128
-ycrop2=ymean-128
-xcrop1=xmean+128
-xcrop2=xmean-128
+    xdistancedataline1= data.iloc[excelindex,2]
+    xdistancedataline2= data.iloc[excelindex+1,2]
+    xdistancediff= abs(xdistancedataline2-xdistancedataline1)
+
+    if framediff < 3 and ydistancediff <  10 and xdistancediff < 10 :
+        list1.append(excelindex)
+        if excelindex == length-1:
+            list1.append(excelindex+1)
+            list.append(list1)
+    else:
+        list1.append(excelindex)
+        list.append(list1)
+        list1=[]
+
+l=len(list)
 
 
-dataar=np.zeros((frame2-frame1+1, 256, 256))
+divisionlist=[]
+for indexlist in range(0, l):
+    l1=len(list[indexlist])
+    divisionlist=[]
 
-for dataarindex, frame in enumerate(range (frame1, frame2)):
-    img.seek(frame-1) #starts from 0 I think?
-    box = (xcrop2, ycrop2, xcrop1, ycrop1) #choose dimensions of box
-    imcrop= img.crop(box)
+    for indexlist1 in range(0,l1):
+        divisionlist.append(list[indexlist][indexlist1])
+        minlist=divisionlist[0]
+        maxlist=divisionlist[indexlist1]
+
+    datacrop= data.iloc[minlist:maxlist,1:4]
+    frame1=int(datacrop['axis-0'].min())
+    frame2=int(datacrop['axis-0'].max())
+    ymean = datacrop['axis-1'].mean()
+    xmean = datacrop['axis-2'].mean()
+    ycrop1=ymean+128
+    ycrop2=ymean-128
+    xcrop1=xmean+128
+    xcrop2=xmean-128
+    dataar=np.zeros((frame2-frame1+1, 256, 256))
+
+    for frameindex, framenumber in enumerate(range (frame1, frame2)):
+        img.seek(framenumber-1) #starts from 0 I think?
+        box = (xcrop2, ycrop2, xcrop1, ycrop1) #choose dimensions of box
+        imcrop= img.crop(box)
     
-    dataar[dataarindex, :, :] = np.array(imcrop)
-    
-print(dataar.shape)
+        dataar[frameindex, :, :] = np.array(imcrop)
+
+    import imageio
+    currname = f'image_{indexlist}.tiff'
+    #imageio.mimwrite("image.tiff", dataar)
+    imageio.mimwrite(currname, dataar)
+
 
