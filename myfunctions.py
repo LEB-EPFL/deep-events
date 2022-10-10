@@ -110,3 +110,13 @@ def image_crop_save_gauss(l,list_of_divisions, data, img):
         currname_crop_gauss = f'image_{index_list}gauss.tiff'
         imageio.mimwrite(currname_crop_gauss, dataar_gauss)
     return dataar_gauss 
+
+def get_gaussian(mu, sigma, size):
+    mu = ((mu[1]+0.5-0.5*size[1])/(size[1]*0.5), (mu[0]+0.5-0.5*size[0])/(size[0]*0.5))
+    sigma = (sigma[0]/size[0], sigma[1]/size[1])
+    mvn = tfp.distributions.MultivariateNormalDiag(loc=mu, scale_diag=sigma)
+    x,y = tf.cast(tf.linspace(-1,1,size[0]),tf.float32), tf.cast(tf.linspace(-1,1,size[1]), tf.float32)
+    # meshgrid as a list of [x,y] coordinates
+    coords = tf.reshape(tf.stack(tf.meshgrid(x,y),axis=-1),(-1,2)).numpy()
+    gauss = mvn.prob(coords)
+    return tf.reshape(gauss, size)
