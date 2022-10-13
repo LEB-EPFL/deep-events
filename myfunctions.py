@@ -74,7 +74,7 @@ def image_crop_save(l,list_of_divisions, data, img):
         
             dataar[frame_index, :, :] = np.array(imcrop)
         currname_crop = f'image_{index_list}.tiff'
-        imageio.mimwrite(currname_crop, dataar)
+        imageio.mimwrite(currname_crop, (dataar*254).astype(np.uint8))
     return dataar    
 
 
@@ -108,7 +108,7 @@ def image_crop_save_gauss(l,list_of_divisions, data, img):
         
             dataar_gauss[frame_index, :, :] = np.array(imcrop)
         currname_crop_gauss = f'image_{index_list}gauss.tiff'
-        imageio.mimwrite(currname_crop_gauss, dataar_gauss)
+        imageio.mimwrite(currname_crop_gauss, (dataar_gauss*254).astype(np.uint8))
     return dataar_gauss 
 
 def get_gaussian(mu, sigma, size):
