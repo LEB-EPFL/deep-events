@@ -45,7 +45,7 @@ def event_separation(data):
     return all_event_lines
 
 
-def image_crop_save(l,list_of_divisions, data, img):   
+def image_crop_save(l,list_of_divisions, data, img, outputname):   
     division_list=[]
     for index_list in range(0, l):
         l1=len(list_of_divisions[index_list])
@@ -81,12 +81,12 @@ def image_crop_save(l,list_of_divisions, data, img):
             imcrop= img.crop(box)
         
             dataar[frame_index, :, :] = np.array(imcrop)
-        currname_crop = f'image_{index_list}.tiff'
+        currname_crop = f'{outputname}_{index_list}.tiff'
         imageio.mimwrite(currname_crop, (dataar).astype(np.uint16))   
 
 
 
-def image_crop_save_gauss(l,list_of_divisions, data, img):   
+def image_crop_save_gauss(l,list_of_divisions, data, img, outputname):   
     division_list=[]
     for index_list in range(0, l):
         l1=len(list_of_divisions[index_list])
@@ -122,7 +122,7 @@ def image_crop_save_gauss(l,list_of_divisions, data, img):
             imcrop= img.crop(box)
         
             dataar_gauss[frame_index, :, :] = np.array(imcrop)
-        currname_crop_gauss = f'image_{index_list}gauss.tiff'
+        currname_crop_gauss = f'{outputname}_{index_list}gauss.tiff'
 
         imageio.mimwrite(currname_crop_gauss, (dataar_gauss).astype(np.uint8))
 
@@ -135,3 +135,57 @@ def get_gaussian(mu, sigma, size):
     coords = tf.reshape(tf.stack(tf.meshgrid(x,y),axis=-1),(-1,2)).numpy()
     gauss = mvn.prob(coords)
     return tf.reshape(gauss, size)
+
+
+def image_crop_negative(l,list_of_divisions, data, img, outputname):
+    division_list=[]
+    for index_list in range(0, l):
+        l1=len(list_of_divisions[index_list])
+        division_list=[]
+
+        for index_list1 in range(0,l1):
+            division_list.append(list_of_divisions[index_list][index_list1])
+            minlist=division_list[0]
+            maxlist=division_list[index_list1]
+
+        data_croped_after_event= data.iloc[minlist:maxlist,1:4]
+        
+        frame_number_max=int(data_croped_after_event['axis-0'].max())
+        if frame_number_max<90:
+            frame1_after=frame_number_max
+            frame2_after=frame_number_max+10
+            ymean_after = data_croped_after_event['axis-1'].mean()
+            xmean_after = data_croped_after_event['axis-2'].mean()
+            y_moved_lower=ymean_after+64
+            y_moved_upper=ymean_after+320
+            x_moved_lower=xmean_after+64
+            x_moved_upper=xmean_after+320
+            if y_moved_upper>2048 and x_moved_upper>2048:
+                y_moved_lower=ymean_after-320
+                y_moved_upper=ymean_after-64
+                x_moved_lower=xmean_after-320
+                x_moved_upper=xmean_after-64
+            elif y_moved_upper<2048 and x_moved_upper>2048:
+                y_moved_lower=ymean_after+64
+                y_moved_upper=ymean_after+320
+                x_moved_lower=xmean_after-320
+                x_moved_upper=xmean_after-64
+            elif y_moved_upper>2048 and x_moved_upper<2048:
+                y_moved_lower=ymean_after-320
+                y_moved_upper=ymean_after-64
+                x_moved_lower=xmean_after+64
+                x_moved_upper=xmean_after+320
+
+
+
+            dataar_a=np.zeros((frame2_after-frame1_after, 256, 256))
+
+            for frame_index_a, frame_number_a in enumerate(range (frame1_after, frame2_after)):
+                img.seek(frame_number_a) #starts from 0 I think?
+                box_a = (x_moved_lower, y_moved_lower, x_moved_upper, y_moved_upper) #choose dimensions of box
+                imcrop= img.crop(box_a)
+                
+                dataar_a[frame_index_a, :, :] = np.array(imcrop)
+        
+            currname_crop_a = f'{outputname}_{index_list}_neg.tiff' 
+            imageio.mimwrite(currname_crop_a, (dataar_a).astype(np.uint16))
