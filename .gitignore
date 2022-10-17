@@ -130,3 +130,5 @@ dmypy.json
 
 
 Videos/
+training_data/
+original_data/
