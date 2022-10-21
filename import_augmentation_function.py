@@ -3,8 +3,6 @@ import pandas as pd
 import numpy as np
 from glob import glob
 from os import path
-from scipy import signal
-from pathlib import Path
 from sklearn.model_selection import train_test_split
 from albumentations import Compose, Rotate, RandomRotate90, HorizontalFlip, Flip, ElasticTransform, GaussNoise, RandomCrop, Resize
 from myfunctions import augStack, augImg
