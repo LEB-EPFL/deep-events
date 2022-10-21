@@ -6,7 +6,6 @@ from os import path
 from scipy import signal
 from pathlib import Path
 from sklearn.model_selection import train_test_split
-from skimage.color import label2rgb
 from albumentations import Compose, Rotate, RandomRotate90, HorizontalFlip, Flip, ElasticTransform, GaussNoise, RandomCrop, Resize
 from myfunctions import augStack, augImg
 import matplotlib.pyplot as plt 
