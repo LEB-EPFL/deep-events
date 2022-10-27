@@ -194,7 +194,7 @@ def image_crop_negative(l,list_of_divisions, data, img, outputname):
 ## AUGMENTATION OF DATA (I need to go through this again) ##
 
 def augImg(input_img, output_img, transform, **kwargs):
-    input_mask = (input_img>0).astype(np.uint8)
+    #input_mask = (input_img>0).astype(np.uint8)
     transformed = transform(image=input_img, image0=output_img)
     
     aug_input_img, aug_output_img= transformed['image'], transformed['image0']
