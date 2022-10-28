@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 
 
 def import_fun(joinpath, fdir, imdir):
+        ## this creates one aray of 3 columns and fills it will all the images ##
     all_image_array=np.zeros((256,256))[None, :, :]
     all_image_array_gauss=np.zeros((256,256))[None, :, :]
 
@@ -21,18 +22,21 @@ def import_fun(joinpath, fdir, imdir):
         if 'gauss' in number_gauss:
             img_gauss = Image.open(joined_image_path)
             image_array_gauss = np.zeros((img_gauss.n_frames,256,256))
-            for i in range(img_gauss.n_frames-1):
+            for i in range(0, img_gauss.n_frames-1):
                 img_gauss.seek(i)
                 image_array_gauss[i,:,:] = np.array(img_gauss)
             all_image_array_gauss = np.concatenate([all_image_array_gauss, image_array_gauss])
         else:
             img = Image.open(joined_image_path)
             image_array = np.zeros((img.n_frames,256,256))
-            for i in range(img.n_frames-1):
+            for i in range(0,img.n_frames-1):
                 img.seek(i)
                 image_array[i,:,:] = np.array(img)
             all_image_array = np.concatenate([all_image_array, image_array])
+    all_image_array= np.delete(all_image_array, 1, axis=0) #removes the elements in the first axis which were just zeros
+    all_image_array_gauss= np.delete(all_image_array_gauss, 1, axis=0)
     return all_image_array, all_image_array_gauss
+
 
 def aug_fun(data_set_test_trainvalid_ratio, imarray, imarray_gauss, img_size):
     data_split_state = None   # Random split on each call
