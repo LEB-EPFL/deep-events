@@ -50,7 +50,7 @@ def aug_fun(data_set_test_trainvalid_ratio, imarray, imarray_gauss, img_size):
 
 
 
-def import_aug_fun(joinpath, fdir, imdir, data_set_test_trainvalid_ratio,img_size):
+def import_aug_fun(joinpath, fdir, imdir):
         ## this should conserve memory##
     all_image_array_gauss=np.zeros((256,256))[None, :, :]
     all_image_array=np.zeros((256,256))[None, :, :]
