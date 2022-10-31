@@ -89,4 +89,4 @@ def import_aug_fun(joinpath, fdir, imdir, data_set_test_trainvalid_ratio,img_siz
         
     all_image_array= np.delete(all_image_array, 1, axis=0) #removes the elements in the first axis which were just zeros
     all_image_array_gauss= np.delete(all_image_array_gauss, 1, axis=0)
-    return all_image_array, all_image_array_gauss
+    return all_image_array_gauss_aug, all_image_array_gauss_val, all_image_array_aug, all_image_array_val
