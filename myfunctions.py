@@ -211,3 +211,20 @@ def augStack(input_data, output_data, transform, **kwargs):
     for i in tqdm(range(input_data.shape[0]), total=input_data.shape[0]):
         aug_input_data[i], aug_output_data[i]= augImg(input_data[i], output_data[i], transform, **kwargs)
     return aug_input_data, aug_output_data
+
+
+def augImg_one(input_img, transform, **kwargs):
+    #input_mask = (input_img>0).astype(np.uint8)
+    transformed = transform(image=input_img)
+    aug_input_img= transformed['image']
+    
+    # aug_fission_coords = preprocessing.fissionCoords(aug_labels, aug_output_img)
+    # aug_output_img, aug_fission_props = preprocessing.prepareProc(aug_output_img, coords=aug_fission_coords, **kwargs)
+    return aug_input_img.astype(np.uint8)
+
+def augStack_one(input_data, transform, **kwargs):
+    aug_input_data = np.zeros(input_data.shape, dtype=np.uint8)
+    
+    for i in tqdm(range(input_data.shape[0]), total=input_data.shape[0]):
+        aug_input_data[i] = augImg_one(input_data[i],  transform, **kwargs)
+    return aug_input_data
