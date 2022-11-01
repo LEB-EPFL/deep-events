@@ -207,7 +207,7 @@ def augImg(input_img, output_img, transform, **kwargs):
 def augStack(input_data, output_data, transform, **kwargs):
     aug_input_data = np.zeros(input_data.shape, dtype=np.uint8)
     aug_output_data = np.zeros(output_data.shape, dtype=np.float32)
-    
+
     for i in tqdm(range(input_data.shape[0]), total=input_data.shape[0]):
         aug_input_data[i], aug_output_data[i]= augImg(input_data[i], output_data[i], transform, **kwargs)
     return aug_input_data, aug_output_data

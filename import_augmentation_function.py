@@ -38,13 +38,11 @@ def import_fun(joinpath, fdir, imdir):
     return all_image_array, all_image_array_gauss
 
 
-def aug_fun(data_set_test_trainvalid_ratio, imarray, imarray_gauss, img_size):
-    data_split_state = None   # Random split on each call
-    augmentation_data, validation_data, augmentation_data_gauss, validation_data_gauss =  train_test_split(imarray, imarray_gauss, 
-                                                                                                       test_size=data_set_test_trainvalid_ratio, random_state=data_split_state)
+def aug_fun(augmentation_data, augmentation_data_gauss):
+    
     transform = Compose([RandomRotate90(p=0.5), HorizontalFlip(p=0.5), Flip(p=0.5)])
     aug_data, aug_data_gauss= augStack(augmentation_data, augmentation_data_gauss, transform, sigma=8)
-    return aug_data, aug_data_gauss, validation_data, validation_data_gauss
+    return aug_data, aug_data_gauss
 
 
 
