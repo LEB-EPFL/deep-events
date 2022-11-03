@@ -16,25 +16,24 @@ def import_fun(joinpath, fdir, imdir):
     all_image_array_gauss=np.zeros((256,256))[None, :, :]
 
     for image_file in os.listdir(joinpath):
-        image, date, cell_type, bf_fl, index, number_gauss  = image_file.split('_')
+        # image, date, cell_type, bf_fl, index, number_gauss  = image_file.split('_')
         joined_image_path = os.path.join(fdir, imdir, image_file)
-
-        if 'gauss' in number_gauss:
+        if 'gauss' in image_file:
             img_gauss = Image.open(joined_image_path)
             image_array_gauss = np.zeros((img_gauss.n_frames,256,256))
-            for i in range(0, img_gauss.n_frames-1):
+            for i in range(0, img_gauss.n_frames):
                 img_gauss.seek(i)
                 image_array_gauss[i,:,:] = np.array(img_gauss)
             all_image_array_gauss = np.concatenate([all_image_array_gauss, image_array_gauss])
         else:
             img = Image.open(joined_image_path)
             image_array = np.zeros((img.n_frames,256,256))
-            for i in range(0,img.n_frames-1):
+            for i in range(0,img.n_frames):
                 img.seek(i)
                 image_array[i,:,:] = np.array(img)
             all_image_array = np.concatenate([all_image_array, image_array])
-    all_image_array= np.delete(all_image_array, 1, axis=0) #removes the elements in the first axis which were just zeros
-    all_image_array_gauss= np.delete(all_image_array_gauss, 1, axis=0)
+    all_image_array= np.delete(all_image_array, 0, axis=0) #removes the elements in the first axis which were just zeros
+    all_image_array_gauss= np.delete(all_image_array_gauss, 0, axis=0)
     return all_image_array, all_image_array_gauss
 
 
@@ -106,13 +105,13 @@ def normalization_fun(data_val, data_aug, data_gauss_val, data_gauss_aug,k):
     data_gauss_aug_norm= data_gauss_aug
     data_val_norm = data_val 
     data_gauss_val_norm= data_gauss_val
+    # k is the bit of data that we want to set to background and this should be reconsidered since maybe just quoting a number isn't very productive #
+    kk=1/(1-k)
 
     for framenumber in range(np.size(data_val, 0)):
-        # k is the bit of data that we want to set to background and this should be reconsidered since maybe just quoting a number isn't very productive#
-        kk=1/(1-k)
 
         # validation data #
-        data_vall = (data_val[framenumber])/(np.max(data_val))                                               
+        data_vall = (data_val[framenumber])/(np.max(data_val[framenumber]))                                           
         data_vall = data_vall-k
         data_vall[data_vall < 0] = 0   
         data_val_norm[framenumber] = data_vall*kk
@@ -137,3 +136,23 @@ def normalization_fun(data_val, data_aug, data_gauss_val, data_gauss_aug,k):
         data_gauss_aug_norm[framenumber] = data_gauss_augg*kk  
     
     return data_val_norm, data_aug_norm, data_gauss_val_norm, data_gauss_aug_norm
+
+def normalization_fun_one(data_first, data_second, k):
+    data_val_norm = data_first
+    data_gauss_val_norm= data_second
+    # k is the bit of data that we want to set to background and this should be reconsidered since maybe just quoting a number isn't very productive #
+    kk=1/(1-k)
+
+    for framenumber in range(np.size(data_first, 0)):
+
+        # validation data #
+        data_vall = (data_first[framenumber])/(np.max(data_first[framenumber]))                                             
+        data_vall = data_vall-k
+        data_vall[data_vall < 0] = 0   
+        data_val_norm[framenumber] = data_vall*kk
+
+        data_gauss_vall = (data_second[framenumber])/(np.max(data_second)) 
+        data_gauss_vall = data_gauss_vall-k
+        data_gauss_vall[data_gauss_vall < 0] = 0     
+        data_gauss_val_norm[framenumber] = data_gauss_vall*kk   
+    return data_val_norm, data_gauss_val_norm                     

@@ -12,6 +12,7 @@ from scipy import signal
 import tensorflow_probability as tfp
 import tensorflow as tf
 from tqdm import tqdm
+import tifffile
 
 
 def event_separation(data):
@@ -82,7 +83,7 @@ def image_crop_save(l,list_of_divisions, data, img, outputname):
         
             dataar[frame_index, :, :] = np.array(imcrop)
         currname_crop = f'{outputname}_{index_list}.tiff'
-        imageio.mimwrite(currname_crop, (dataar).astype(np.uint16))   
+        tifffile.imwrite(currname_crop, (dataar).astype(np.uint16), photometric='minisblack')   
 
 
 
@@ -124,7 +125,7 @@ def image_crop_save_gauss(l,list_of_divisions, data, img, outputname):
             dataar_gauss[frame_index, :, :] = np.array(imcrop)
         currname_crop_gauss = f'{outputname}_{index_list}gauss.tiff'
 
-        imageio.mimwrite(currname_crop_gauss, (dataar_gauss).astype(np.uint8))
+        tifffile.imwrite(currname_crop_gauss, (dataar_gauss).astype(np.uint8), photometric='minisblack')
 
 def get_gaussian(mu, sigma, size):
     mu = ((mu[1]+0.5-0.5*size[1])/(size[1]*0.5), (mu[0]+0.5-0.5*size[0])/(size[0]*0.5))
