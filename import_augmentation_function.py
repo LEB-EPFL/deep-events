@@ -98,3 +98,43 @@ def import_aug_fun(joinpath, fdir, imdir):
     all_image_array= np.delete(all_image_array, 1, axis=0) #removes the elements in the first axis which were just zeros
     all_image_array_gauss= np.delete(all_image_array_gauss, 1, axis=0)
     return all_data_aug, all_data_gauss_aug, all_image_array, all_image_array_gauss
+
+
+    
+def normalization_fun(data_val, data_aug, data_gauss_val, data_gauss_aug):
+    data_aug_norm = data_aug 
+    data_gauss_aug_norm= data_gauss_aug
+    data_val_norm = data_val 
+    data_gauss_val_norm= data_gauss_val
+
+    for framenumber in range(np.size(data_val, 0)):
+        # k is the bit of data that we want to set to background and this should be reconsidered since maybe just quoting a number isn't very productive#
+        k=0.1 
+        kk=1/(1-k)
+
+        # validation data #
+        data_vall = (data_val[framenumber])/(np.max(data_val))                                               
+        data_vall = data_vall-k
+        data_vall[data_vall < 0] = 0   
+        data_val_norm[framenumber] = data_vall*kk
+
+        data_gauss_vall = (data_gauss_val[framenumber])/(np.max(data_gauss_val)) 
+        data_gauss_vall = data_gauss_vall-k
+        data_gauss_vall[data_gauss_vall < 0] = 0     
+        data_gauss_val_norm[framenumber] = data_gauss_vall*kk                                             
+    
+
+    for framenumber in range(np.size(data_aug,0)):
+
+        # augmentation data #
+        data_augg = (data_aug[framenumber])/(np.max(data_aug))                                               
+        data_augg = data_augg-k
+        data_augg[data_augg < 0] = 0   
+        data_aug_norm[framenumber] = data_augg*kk
+
+        data_gauss_augg = (data_gauss_aug[framenumber])/(np.max(data_gauss_aug))
+        data_gauss_augg = data_gauss_augg-k
+        data_gauss_augg[data_gauss_augg < 0] = 0     
+        data_gauss_aug_norm[framenumber] = data_gauss_augg*kk  
+    
+    return data_val_norm, data_aug_norm, data_gauss_val_norm, data_gauss_aug_norm
