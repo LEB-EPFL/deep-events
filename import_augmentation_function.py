@@ -101,7 +101,7 @@ def import_aug_fun(joinpath, fdir, imdir):
 
 
     
-def normalization_fun(data_val, data_aug, data_gauss_val, data_gauss_aug):
+def normalization_fun(data_val, data_aug, data_gauss_val, data_gauss_aug,k):
     data_aug_norm = data_aug 
     data_gauss_aug_norm= data_gauss_aug
     data_val_norm = data_val 
@@ -109,7 +109,6 @@ def normalization_fun(data_val, data_aug, data_gauss_val, data_gauss_aug):
 
     for framenumber in range(np.size(data_val, 0)):
         # k is the bit of data that we want to set to background and this should be reconsidered since maybe just quoting a number isn't very productive#
-        k=0.1 
         kk=1/(1-k)
 
         # validation data #
