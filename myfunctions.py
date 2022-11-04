@@ -189,7 +189,8 @@ def image_crop_negative(l,list_of_divisions, data, img, outputname):
                 dataar_a[frame_index_a, :, :] = np.array(imcrop)
         
             currname_crop_a = f'{outputname}_{index_list}_neg.tiff' 
-            imageio.mimwrite(currname_crop_a, (dataar_a).astype(np.uint16))
+            tifffile.imwrite(currname_crop_a, (dataar_a).astype(np.uint8), photometric='minisblack')
+
 
 
 ## AUGMENTATION OF DATA (I need to go through this again) ##
@@ -229,3 +230,23 @@ def augStack_one(input_data, transform, **kwargs):
     for i in tqdm(range(input_data.shape[0]), total=input_data.shape[0]):
         aug_input_data[i] = augImg_one(input_data[i],  transform, **kwargs)
     return aug_input_data
+
+def poi(datacsv,input_name, sigma_trial, size_trial):
+    points_of_interest= np.zeros((100, 2048, 2048))
+
+    for row_number in tqdm(range(0, len(datacsv))):
+        framenumber_in_row= int(datacsv.loc[row_number, 'axis-0'])
+        fission_ycoord = int(datacsv.loc[row_number, 'axis-1'])
+        fission_xcoord = int(datacsv.loc[row_number, 'axis-2'])
+        fission_coords=(fission_ycoord,fission_xcoord)
+        gaussian_points=get_gaussian(fission_coords,sigma_trial,size_trial)                                     #gets gaussian points at a single frame
+        gaussian_points = gaussian_points.numpy()                                                               #convers tensor into numpy array
+        gaussian_points = gaussian_points/np.max(gaussian_points)                                               #divides by the max 
+        gaussian_points[gaussian_points < 0.1] = 0                                                              #sets background to zero
+        gaussian_points = gaussian_points/np.max(gaussian_points)                                               #divides by max again
+        points_of_interest[framenumber_in_row] = points_of_interest[framenumber_in_row] + gaussian_points       #adds the gaussian intensity in the empty file 
+
+
+    
+    tifffile.imwrite(input_name, (points_of_interest*254).astype(np.uint8))
+    return
