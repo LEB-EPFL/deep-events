@@ -18,6 +18,7 @@ def import_fun(joinpath, fdir, imdir):
     for image_file in os.listdir(joinpath):
         # image, date, cell_type, bf_fl, index, number_gauss  = image_file.split('_')
         joined_image_path = os.path.join(fdir, imdir, image_file)
+        
         if 'gauss' in image_file:
             img_gauss = Image.open(joined_image_path)
             image_array_gauss = np.zeros((img_gauss.n_frames,256,256))
@@ -32,6 +33,7 @@ def import_fun(joinpath, fdir, imdir):
                 img.seek(i)
                 image_array[i,:,:] = np.array(img)
             all_image_array = np.concatenate([all_image_array, image_array])
+
     all_image_array= np.delete(all_image_array, 0, axis=0) #removes the elements in the first axis which were just zeros
     all_image_array_gauss= np.delete(all_image_array_gauss, 0, axis=0)
     return all_image_array, all_image_array_gauss
