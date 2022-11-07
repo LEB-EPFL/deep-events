@@ -37,9 +37,8 @@ def import_fun(joinpath, fdir, imdir):
     return all_image_array, all_image_array_gauss
 
 
-def aug_fun(augmentation_data, augmentation_data_gauss):
+def aug_fun(augmentation_data, augmentation_data_gauss, transform):
     
-    transform = Compose([RandomRotate90(p=0.5), HorizontalFlip(p=0.5), Flip(p=0.5)])
     aug_data, aug_data_gauss= augStack(augmentation_data, augmentation_data_gauss, transform, sigma=8)
     return aug_data, aug_data_gauss
 
