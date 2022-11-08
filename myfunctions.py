@@ -2,11 +2,10 @@ from PIL import Image
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import plotly.io
 import plotly.express as px
 from scipy import ndimage as ndi
-import tensorflow
-import imageio
+from pathlib import Path
+from os import path
 from skimage.segmentation import flood, flood_fill
 from scipy import signal
 import tensorflow_probability as tfp
@@ -46,7 +45,7 @@ def event_separation(data):
     return all_event_lines
 
 
-def image_crop_save(l,list_of_divisions, data, img, outputname):   
+def image_crop_save(l,list_of_divisions, data, img, outputname, foldname):   
     division_list=[]
     for index_list in range(0, l):
         l1=len(list_of_divisions[index_list])
@@ -83,11 +82,12 @@ def image_crop_save(l,list_of_divisions, data, img, outputname):
         
             dataar[frame_index, :, :] = np.array(imcrop)
         currname_crop = f'{outputname}_{index_list}.tiff'
-        tifffile.imwrite(currname_crop, (dataar).astype(np.uint16), photometric='minisblack')   
+        savepath=os.path.join(foldname,currname_crop)
+        tifffile.imwrite(savepath, (dataar).astype(np.uint16), photometric='minisblack')   
 
 
 
-def image_crop_save_gauss(l,list_of_divisions, data, img, outputname):   
+def image_crop_save_gauss(l,list_of_divisions, data, img, outputname, s, foldname):   
     division_list=[]
     for index_list in range(0, l):
         l1=len(list_of_divisions[index_list])
@@ -123,8 +123,9 @@ def image_crop_save_gauss(l,list_of_divisions, data, img, outputname):
             imcrop= img.crop(box)
         
             dataar_gauss[frame_index, :, :] = np.array(imcrop)
-        currname_crop_gauss = f'{outputname}_{index_list}gauss.tiff'
-        tifffile.imwrite(currname_crop_gauss, (dataar_gauss).astype(np.uint8), photometric='minisblack')
+        currname_crop_gauss = f'{outputname}_{index_list}gauss{s}.tiff'
+        savepath=os.path.join(foldname,currname_crop_gauss)
+        tifffile.imwrite(savepath, (dataar_gauss).astype(np.uint8), photometric='minisblack')
 
 def get_gaussian(mu, sigma, size):
     mu = ((mu[1]+0.5-0.5*size[1])/(size[1]*0.5), (mu[0]+0.5-0.5*size[0])/(size[0]*0.5))
@@ -137,7 +138,7 @@ def get_gaussian(mu, sigma, size):
     return tf.reshape(gauss, size)
 
 
-def image_crop_negative(l,list_of_divisions, data, img, outputname):
+def image_crop_negative(l,list_of_divisions, data, img, outputname,foldname):
     division_list=[]
     for index_list in range(0, l):
         l1=len(list_of_divisions[index_list])
@@ -188,7 +189,8 @@ def image_crop_negative(l,list_of_divisions, data, img, outputname):
                 dataar_a[frame_index_a, :, :] = np.array(imcrop)
         
             currname_crop_a = f'{outputname}_{index_list}_neg.tiff' 
-            tifffile.imwrite(currname_crop_a, (dataar_a).astype(np.uint8), photometric='minisblack')
+            savepath=os.path.join(foldname,currname_crop_a)
+            tifffile.imwrite(savepath, (dataar_a).astype(np.uint8), photometric='minisblack')
 
 
 
