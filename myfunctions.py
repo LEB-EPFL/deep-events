@@ -123,7 +123,7 @@ def image_crop_save_gauss(l,list_of_divisions, data, img, outputname, s, foldnam
             imcrop= img.crop(box)
         
             dataar_gauss[frame_index, :, :] = np.array(imcrop)
-        currname_crop_gauss = f'{outputname}_{index_list}gauss{s}.tiff'
+        currname_crop_gauss = f'{outputname}_{index_list}gauss_{s}.tiff'
         savepath=os.path.join(foldname,currname_crop_gauss)
         tifffile.imwrite(savepath, (dataar_gauss).astype(np.uint8), photometric='minisblack')
 

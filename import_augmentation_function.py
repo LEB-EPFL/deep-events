@@ -20,6 +20,7 @@ def import_fun(joinpath, fdir, imdir):
         joined_image_path = os.path.join(fdir, imdir, image_file)
         
         if 'gauss' in image_file:
+            i,d,ct,dy,n,ng,sigma = image_file.split('_')
             img_gauss = Image.open(joined_image_path)
             image_array_gauss = np.zeros((img_gauss.n_frames,256,256))
             for i in range(0, img_gauss.n_frames):
@@ -36,7 +37,7 @@ def import_fun(joinpath, fdir, imdir):
 
     all_image_array= np.delete(all_image_array, 0, axis=0) #removes the elements in the first axis which were just zeros
     all_image_array_gauss= np.delete(all_image_array_gauss, 0, axis=0)
-    return all_image_array, all_image_array_gauss
+    return all_image_array, all_image_array_gauss,sigma
 
 
 def aug_fun(augmentation_data, augmentation_data_gauss, transform):
