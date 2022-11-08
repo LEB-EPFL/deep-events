@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 from scipy import ndimage as ndi
 from pathlib import Path
+import os
 from os import path
-from skimage.segmentation import flood, flood_fill
 from scipy import signal
 import tensorflow_probability as tfp
 import tensorflow as tf
@@ -82,7 +82,7 @@ def image_crop_save(l,list_of_divisions, data, img, outputname, foldname):
         
             dataar[frame_index, :, :] = np.array(imcrop)
         currname_crop = f'{outputname}_{index_list}.tiff'
-        savepath=os.path.join(foldname,currname_crop)
+        savepath= os.path.join(foldname,currname_crop)
         tifffile.imwrite(savepath, (dataar).astype(np.uint16), photometric='minisblack')   
 
 
@@ -190,7 +190,7 @@ def image_crop_negative(l,list_of_divisions, data, img, outputname,foldname):
         
             currname_crop_a = f'{outputname}_{index_list}_neg.tiff' 
             savepath=os.path.join(foldname,currname_crop_a)
-            tifffile.imwrite(savepath, (dataar_a).astype(np.uint8), photometric='minisblack')
+            tifffile.imwrite(savepath, (dataar_a).astype(np.uint16), photometric='minisblack')
 
 
 
