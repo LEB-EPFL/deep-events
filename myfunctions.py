@@ -230,8 +230,8 @@ def augStack_one(input_data, transform, **kwargs):
         aug_input_data[i] = augImg_one(input_data[i],  transform, **kwargs)
     return aug_input_data
 
-def poi(datacsv,input_name, sigma_trial, size_trial):
-    points_of_interest= np.zeros((100, 2048, 2048))
+def poi(datacsv,input_name, sigma_trial, size_trial,total_frames):
+    points_of_interest= np.zeros((total_frames, 2048, 2048))
 
     for row_number in tqdm(range(0, len(datacsv))):
         framenumber_in_row= int(datacsv.loc[row_number, 'axis-0'])
