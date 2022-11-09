@@ -10,7 +10,7 @@ from myfunctions import augStack, augImg, augStack_one, augImg_one
 import matplotlib.pyplot as plt 
 import random
 
-def import_fun(joinpath, fdir, imdir):
+def import_fun(joinpath, fdir, imdir,sigma_chosen):
         ## this creates one aray of 3 columns and fills it will all the images ##
     all_image_array=np.zeros((256,256))[None, :, :]
     all_image_array_gauss=np.zeros((256,256))[None, :, :]
@@ -20,13 +20,16 @@ def import_fun(joinpath, fdir, imdir):
         joined_image_path = os.path.join(fdir, imdir, image_file)
         
         if 'gauss' in image_file:
-            i,d,ct,dy,n,ng,sigma = image_file.split('_')
-            img_gauss = Image.open(joined_image_path)
-            image_array_gauss = np.zeros((img_gauss.n_frames,256,256))
-            for i in range(0, img_gauss.n_frames):
-                img_gauss.seek(i)
-                image_array_gauss[i,:,:] = np.array(img_gauss)
-            all_image_array_gauss = np.concatenate([all_image_array_gauss, image_array_gauss])
+            i,d,ct,dy,n,sigma,ng = image_file.split('_')
+            s= [int(k) for k in sigma if k.isdigit()]
+            sigma=s[0]
+            if sigma==sigma_chosen:
+                img_gauss = Image.open(joined_image_path)
+                image_array_gauss = np.zeros((img_gauss.n_frames,256,256))
+                for i in range(0, img_gauss.n_frames):
+                    img_gauss.seek(i)
+                    image_array_gauss[i,:,:] = np.array(img_gauss)
+                all_image_array_gauss = np.concatenate([all_image_array_gauss, image_array_gauss])
         else:
             img = Image.open(joined_image_path)
             image_array = np.zeros((img.n_frames,256,256))
