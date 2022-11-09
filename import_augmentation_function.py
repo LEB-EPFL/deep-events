@@ -40,7 +40,7 @@ def import_fun(joinpath, fdir, imdir,sigma_chosen):
 
     all_image_array= np.delete(all_image_array, 0, axis=0) #removes the elements in the first axis which were just zeros
     all_image_array_gauss= np.delete(all_image_array_gauss, 0, axis=0)
-    return all_image_array, all_image_array_gauss,sigma
+    return all_image_array, all_image_array_gauss
 
 
 def aug_fun(augmentation_data, augmentation_data_gauss, transform):
