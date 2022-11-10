@@ -1,0 +1,10 @@
+    uuid                              pos/neg    bf/fl    cell type    microscope    dye                 date
+--  --------------------------------  ---------  -------  -----------  ------------  ----------------  ------
+ 0  b2d33e205a8c40098120b2f5cb6fb37b  pos        bf       cos7         ZEISS         mtstaygold        220915
+ 1  8077fceb7cb44d59b9beb00c0645e45e  pos        fl       cos7         ZEISS         mtstaygold        220915
+ 2  988159750d06426f910ea55c4e8f94c4  neg        fl       cos7         iSIM          mtstaygold        220921
+ 3  adbbfe33e7e542f290f467be7453b350  pos        fl       cos7         iSIM          mtstaygold        220921
+ 4  6579d75fd0f8434785b9985eddd1d174  pos        fl       U2OS         iSIM          mtstaygold        220922
+ 5  3634244ec72b484a944ea4712a0f2a6b  pos        bf       cos7         ZEISS         mitotrackergreen  220927
+ 6  aad0de6fca1f4e26ac0d5f948f5d4e7f  pos        fl       cos7         ZEISS         mitotrackergreen  220927
+ 7  1cae7724fb5849cd8dcac25fffdea616  pos        fl       U2OS         iSIM          mtstaygold        220928

@@ -132,3 +132,6 @@ dmypy.json
 Videos/
 training_data/
 original_data/
+Modelsref_f8_c9_b16/
+*.h5
+*.tiff
