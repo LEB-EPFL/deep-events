@@ -7,24 +7,31 @@ from albumentations import Compose, Rotate, RandomRotate90, HorizontalFlip, Flip
 import os
 from os import path
 import random as r
-from import_augmentation_function import import_fun, aug_fun, import_aug_fun, normalization_fun, normalization_fun_one
+from import_augmentation_function import import_fun, aug_fun, import_fun_neg, normalization_fun_one
 import tensorflow as tf 
 
 data_ratio= 0.1
 data_split_state = None
 
 
-def load_aug_train(files_dir, images_dir, sigma, number_of_augmentations):
+def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmentations):
     date, dye, cell_type, microscope, bf_fl, pos_neg = images_dir.split('_')
     joined_path = os.path.join(files_dir, images_dir)
+    joined_path_neg = os.path.join(files_dir, images_neg_dir)
+
     all_image_array, all_image_array_gauss= import_fun(joined_path, files_dir, images_dir,sigma)
+    all_image_array_neg, all_image_array_gauss_neg = import_fun_neg(joined_path_neg,files_dir, images_neg_dir)
+
+    all_image_array = np.concatenate((all_image_array,all_image_array_neg))
+    all_image_array_gauss = np.concatenate((all_image_array_gauss,all_image_array_gauss_neg))
+
     norm_image_array, norm_image_array_gauss = normalization_fun_one(all_image_array, all_image_array_gauss, 0.1)
-    print(np.shape(norm_image_array))
-    print(np.shape(norm_image_array_gauss))
+
     augmentation_data, data_val, augmentation_data_gauss, data_gauss_val =  train_test_split(norm_image_array, norm_image_array_gauss,
                                                                                                        test_size=data_ratio, random_state=data_split_state)
     data_aug = augmentation_data
     data_gauss_aug = augmentation_data_gauss
+    
     for j in range(number_of_augmentations):
         transform = Compose([Rotate(limit=45, p=0.5), RandomRotate90(p=0.5), HorizontalFlip(p=0.5), Flip(p=0.5), VerticalFlip(p=0.5)])
         augment_data, augment_data_gauss = aug_fun(augmentation_data, augmentation_data_gauss,transform)
