@@ -33,7 +33,7 @@ def event_separation(data):
         xdistancedataline2= data.iloc[excelindex+1,2]
         xdistancediff= abs(xdistancedataline2-xdistancedataline1)
 
-        if framediff < 10 and ydistancediff <  10 and xdistancediff < 10 :
+        if framediff < 10 and ydistancediff <  15 and xdistancediff < 15 :
             single_divison_events.append(excelindex)
             if excelindex == length_of_file-1:
                 single_divison_events.append(excelindex+1)
@@ -146,11 +146,12 @@ def image_crop_negative(l,list_of_divisions, data, img, outputname,foldname):
 
         for index_list1 in range(0,l1):
             division_list.append(list_of_divisions[index_list][index_list1])
-            minlist=division_list[0]
-            maxlist=division_list[index_list1]
+        print(division_list)
+        minlist=division_list[0]
+        maxlist=division_list[index_list1]
 
         data_croped_after_event= data.iloc[minlist:maxlist,1:4]
-        
+        print(data_croped_after_event)
         frame_number_max=int(data_croped_after_event['axis-0'].max())
         if frame_number_max<90:
             frame1_after=frame_number_max
