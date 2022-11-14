@@ -7,6 +7,7 @@ from albumentations import Compose, Rotate, RandomRotate90, HorizontalFlip, Flip
 import os
 from os import path
 import random as r
+import imageio
 from import_augmentation_function import import_fun, aug_fun, import_fun_neg, normalization_fun_one
 import tensorflow as tf 
 
@@ -97,13 +98,13 @@ def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmen
         model[model_name] = create_model(nb_filters, firstConvSize)
         history[model_name] = train_model(model[model_name], data_aug, data_gauss_aug, b, data_ratio)
     
-    # name1=f'{cell_type}_{microscope}_{bf_fl}_data_val.tiff'
-    # name2=f'{cell_type}_{microscope}_{bf_fl}_data_gauss_val.tiff'
+    name1=f'{cell_type}_{microscope}_{bf_fl}_data_val.tiff'
+    name2=f'{cell_type}_{microscope}_{bf_fl}_data_gauss_val.tiff'
     # name3=f'{cell_type}_{microscope}_{bf_fl}_data_aug.tiff'
     # name4=f'{cell_type}_{microscope}_{bf_fl}_data_gauss_aug.tiff'
 
-    # imageio.mimwrite(name1, (data_val).astype(np.float64))
-    # imageio.mimwrite(name2, (data_gauss_val).astype(np.float64))
+    imageio.mimwrite(name1, (data_val).astype(np.float64))
+    imageio.mimwrite(name2, (data_gauss_val).astype(np.float64))
     # imageio.mimwrite(name3, (data_aug).astype(np.float64))
     # imageio.mimwrite(name4, (data_gauss_aug).astype(np.float64))
 
