@@ -35,6 +35,7 @@ def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmen
     
     for j in range(number_of_augmentations):
         transform = Compose([Rotate(limit=45, p=0.5), RandomRotate90(p=0.5), HorizontalFlip(p=0.5), Flip(p=0.5), VerticalFlip(p=0.5)])
+        print(j)
         augment_data, augment_data_gauss = aug_fun(augmentation_data, augmentation_data_gauss,transform)
         data_aug = np.concatenate((data_aug, augment_data))
         data_gauss_aug = np.concatenate((data_gauss_aug,augment_data_gauss))
