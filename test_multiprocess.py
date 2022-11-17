@@ -8,7 +8,7 @@ import os
 from os import path
 import random as r
 import imageio
-from import_augmentation_function import import_fun, aug_fun, import_fun_neg, normalization_fun_one
+from import_augmentation_function import import_fun, aug_fun, import_fun_neg, normalization_fun, normalization_fun_g
 import tensorflow as tf 
 
 data_ratio= 0.1
@@ -26,7 +26,8 @@ def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmen
     all_image_array = np.concatenate((all_image_array,all_image_array_neg))
     all_image_array_gauss = np.concatenate((all_image_array_gauss,all_image_array_gauss_neg))
 
-    norm_image_array, norm_image_array_gauss = normalization_fun_one(all_image_array, all_image_array_gauss, 0.1)
+    norm_image_array= normalization_fun(all_image_array, 0.1)
+    norm_image_array_gauss = normalization_fun_g(all_image_array_gauss, 0.1)
 
     augmentation_data, data_val, augmentation_data_gauss, data_gauss_val =  train_test_split(norm_image_array, norm_image_array_gauss,
                                                                                                        test_size=data_ratio, random_state=data_split_state)
@@ -81,11 +82,12 @@ def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmen
     data_aug= np.delete(data_aug, z_list, axis=0)
 
     base_dir = r'C:\Users\roumba\Documents\Software\deep-events'
-    data_path = base_dir+ r'\Norm_data'
     model_path = base_dir + '\Models'
+
     gpu = tf.config.list_physical_devices('GPU')[0]
     tf.config.experimental.set_memory_growth(gpu, True)
     gpu = tf.device('GPU:0/') 
+
     with gpu:
         print(gpu)
         nb_filters = 8

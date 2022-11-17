@@ -105,46 +105,45 @@ def import_aug_fun(joinpath, fdir, imdir):
 
 
     
-def normalization_fun(data_val, data_aug, data_gauss_val, data_gauss_aug,k):
-    data_aug_norm = data_aug 
-    data_gauss_aug_norm= data_gauss_aug
-    data_val_norm = data_val 
-    data_gauss_val_norm= data_gauss_val
-    # k is the bit of data that we want to set to background and this should be reconsidered since maybe just quoting a number isn't very productive #
-    kk=1/(1-k)
+# def normalization_fun(data_val, data_aug, data_gauss_val, data_gauss_aug,k):
+#     data_aug_norm = data_aug 
+#     data_gauss_aug_norm= data_gauss_aug
+#     data_val_norm = data_val 
+#     data_gauss_val_norm= data_gauss_val
+#     # k is the bit of data that we want to set to background and this should be reconsidered since maybe just quoting a number isn't very productive #
+#     kk=1/(1-k)
 
-    for framenumber in range(np.size(data_val, 0)):
+#     for framenumber in range(np.size(data_val, 0)):
 
-        # validation data #
-        data_vall = (data_val[framenumber])/(np.max(data_val[framenumber]))                                           
-        data_vall = data_vall-k
-        data_vall[data_vall < 0] = 0   
-        data_val_norm[framenumber] = data_vall*kk
+#         # validation data #
+#         data_vall = (data_val[framenumber])/(np.max(data_val[framenumber]))                                           
+#         data_vall = data_vall-k
+#         data_vall[data_vall < 0] = 0   
+#         data_val_norm[framenumber] = data_vall*kk
 
-        data_gauss_vall = (data_gauss_val[framenumber])/(np.max(data_gauss_val)) 
-        data_gauss_vall = data_gauss_vall-k
-        data_gauss_vall[data_gauss_vall < 0] = 0     
-        data_gauss_val_norm[framenumber] = data_gauss_vall*kk                                             
+#         data_gauss_vall = (data_gauss_val[framenumber])/(np.max(data_gauss_val)) 
+#         data_gauss_vall = data_gauss_vall-k
+#         data_gauss_vall[data_gauss_vall < 0] = 0     
+#         data_gauss_val_norm[framenumber] = data_gauss_vall*kk                                             
     
 
-    for framenumber in range(np.size(data_aug,0)):
+#     for framenumber in range(np.size(data_aug,0)):
 
-        # augmentation data #
-        data_augg = (data_aug[framenumber])/(np.max(data_aug))                                               
-        data_augg = data_augg-k
-        data_augg[data_augg < 0] = 0   
-        data_aug_norm[framenumber] = data_augg*kk
+#         # augmentation data #
+#         data_augg = (data_aug[framenumber])/(np.max(data_aug))                                               
+#         data_augg = data_augg-k
+#         data_augg[data_augg < 0] = 0   
+#         data_aug_norm[framenumber] = data_augg*kk
 
-        data_gauss_augg = (data_gauss_aug[framenumber])/(np.max(data_gauss_aug))
-        data_gauss_augg = data_gauss_augg-k
-        data_gauss_augg[data_gauss_augg < 0] = 0     
-        data_gauss_aug_norm[framenumber] = data_gauss_augg*kk  
+#         data_gauss_augg = (data_gauss_aug[framenumber])/(np.max(data_gauss_aug))
+#         data_gauss_augg = data_gauss_augg-k
+#         data_gauss_augg[data_gauss_augg < 0] = 0     
+#         data_gauss_aug_norm[framenumber] = data_gauss_augg*kk  
     
-    return data_val_norm, data_aug_norm, data_gauss_val_norm, data_gauss_aug_norm
+#     return data_val_norm, data_aug_norm, data_gauss_val_norm, data_gauss_aug_norm
 
-def normalization_fun_one(data_first, data_second, k):
+def normalization_fun(data_first, k):
     data_norm = data_first
-    data_g_norm= data_second
     kk=1/(1-k)
 
     for framenumber in range(np.size(data_first, 0)):
@@ -155,11 +154,19 @@ def normalization_fun_one(data_first, data_second, k):
         data[data < 0] = 0   
         data_norm[framenumber] = data*kk
 
+    return data_norm
+
+    
+def normalization_fun_g(data_second, k):
+    data_g_norm= data_second
+    kk=1/(1-k)
+
+    for framenumber in range(np.size(data_second, 0)):
         data_g = (data_second[framenumber])/(np.max(data_second)) 
         data_g = data_g-k
         data_g[data_g < 0] = 0     
         data_g_norm[framenumber] = data_g*kk   
-    return data_norm, data_g_norm                     
+    return data_g_norm                                
 
 
 def import_fun_neg(joinpath, fdir, imdir):
