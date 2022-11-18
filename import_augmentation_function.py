@@ -5,7 +5,7 @@ import os, sys
 from os import path
 from glob import glob
 from sklearn.model_selection import train_test_split
-from albumentations import Compose, Rotate, RandomRotate90, HorizontalFlip, Flip, ElasticTransform, GaussNoise, RandomCrop, Resize
+from albumentations import Compose, Rotate, RandomRotate90, HorizontalFlip, Flip, VerticalFlip
 from myfunctions import augStack, augImg, augStack_one, augImg_one
 import matplotlib.pyplot as plt 
 import random
@@ -52,56 +52,63 @@ def aug_fun(augmentation_data, augmentation_data_gauss, transform):
 
 
 
-def import_aug_fun(joinpath, fdir, imdir):
+def import_aug_fun(joinpath, fdir, imdir,sigma_chosen, numaug):
         ## this should conserve memory##
-    all_image_array_gauss=np.zeros((256,256))[None, :, :]
-    all_image_array=np.zeros((256,256))[None, :, :]
-    all_data_gauss_aug=np.zeros((256,256))[None, :, :]
-    all_data_aug=np.zeros((256,256))[None, :, :]
-    
+    data_gauss=np.zeros((256,256))[None, :, :]
+    data =np.zeros((256,256))[None, :, :]
+    aug_data = np.zeros((256,256))[None, :, :]
+    g_data = np.zeros((256,256))[None, :, :]
 
     for image_file in os.listdir(joinpath):
         image, date, cell_type, bf_fl, index, number_gauss  = image_file.split('_')
         joined_image_path = os.path.join(fdir, imdir, image_file)
 
-        p_rot = random.randint(0, 1) #generate random transform probabilities per file
-        p_hor = random.randint(0, 1)
-        p_flip = random.randint(0, 1)
-        transform = Compose([RandomRotate90(p=p_rot), HorizontalFlip(p=p_hor), Flip(p=p_flip)])
 
         if 'gauss' in number_gauss:
-            img_gauss = Image.open(joined_image_path)
-            image_array_gauss = np.zeros((img_gauss.n_frames,256,256))
-            for i in range(0, img_gauss.n_frames-1):
-                img_gauss.seek(i)
-                image_array_gauss[i,:,:] = np.array(img_gauss) 
-            #non augmented data#
-            all_image_array_gauss = np.concatenate([all_image_array_gauss, image_array_gauss])
-            #augmented data#
-            data_gauss_aug = augStack_one(image_array_gauss, transform, sigma=8)
-            all_data_gauss_aug = np.concatenate([all_data_gauss_aug, data_gauss_aug])
+            i,d,ct,dy,n,sigma,ng = image_file.split('_')
+            s= [int(k) for k in sigma if k.isdigit()]
+            sigma=s[0]
+            if sigma==sigma_chosen:
+                img_gauss = Image.open(joined_image_path)
+                image_array_gauss = np.zeros((img_gauss.n_frames,256,256))
+                for i in range(0, img_gauss.n_frames):
+                    img_gauss.seek(i)
+                    image_array_gauss[i,:,:] = np.array(img_gauss)
+
+                norm_gauss = normalization_fun_g(image_array_gauss, 0.1)
+
+                for n in range(1,numaug+1):
+                    g_data = np.concatenate(norm_gauss)
+                g_data= np.delete(g_data, 0, axis=0)
+                data_gauss = np.concatenate([data_gauss, norm_gauss])
             
         else:
             img = Image.open(joined_image_path)
             image_array = np.zeros((img.n_frames,256,256))
-            for i in range(0,img.n_frames-1):
+            for i in range(0,img.n_frames):
                 img.seek(i)
                 image_array[i,:,:] = np.array(img)
-            #non augmented data#
-            all_image_array = np.concatenate([all_image_array, image_array])
-            #augmented data#
-            data_aug= augStack_one(image_array,transform, sigma=8)
-            all_data_aug = np.concatenate([all_data_aug, data_aug])
+            
+            norm_data= normalization_fun_g(image_array, 0.1) 
 
-        #augmentation_data, validation_data, augmentation_data_gauss, validation_data_gauss =  train_test_split(, imarray_gauss, 
-                                                                                                       #test_size=data_set_test_trainvalid_ratio, random_state=data_split_state)  
-        #all_image_array_gauss_val = np.concatenate([all_image_array_gauss_val, validation_data_gauss])
-        #all_image_array_val = np.concatenate([all_image_array_val, validation_data])
+            for n in range(1,numaug+1):
+                p_rot = random.randint(0, 1) #generate random transform probabilities per file
+                p_rot9 = random.randint(0, 1)
+                p_hor = random.randint(0, 1)
+                p_flip = random.randint(0, 1)
+                p_vert = random.randint(0, 1)
+                transform = Compose([Rotate(limit=45, p=p_rot), RandomRotate90(p=p_rot9), HorizontalFlip(p=p_hor), Flip(p=p_flip), VerticalFlip(p=p_vert)])
+                aug_data = np.concatenate(augStack(norm_data, transform, sigma=8))
 
-        
-    all_image_array= np.delete(all_image_array, 1, axis=0) #removes the elements in the first axis which were just zeros
-    all_image_array_gauss= np.delete(all_image_array_gauss, 1, axis=0)
-    return all_data_aug, all_data_gauss_aug, all_image_array, all_image_array_gauss
+            aug_data= np.delete(aug_data, 0, axis=0)
+            data = np.concatenate([data, aug_data])
+            
+
+
+    data= np.delete(data, 0, axis=0) #removes the elements in the first axis which were just zeros
+    data_gauss= np.delete(data_gauss, 0, axis=0)
+
+    return data, data_gauss
 
 
     
