@@ -66,12 +66,18 @@ def image_crop_save(l,list_of_divisions, data, img, outputname, foldname):
         xcrop1=xmean+128
         xcrop2=xmean-128
 
-        if ycrop1 > 2048:                           #safety conditions in case pics are at the edges
+        if ycrop1 > 2048:                           #safety conditions in case pics are at the upper edges
             ycrop1=2048
             ycrop2=1792
         if xcrop1 > 2048:
             xcrop1=2048
             xcrop2=1792
+        if ycrop2 < 0:                           #safety conditions in case pics are at the lower edges
+            ycrop1=256
+            ycrop2=0
+        if xcrop2 < 0:
+            xcrop1=256
+            xcrop2=0
         
         dataar=np.zeros((frame2-frame1, 256, 256))
 
@@ -108,12 +114,18 @@ def image_crop_save_gauss(l,list_of_divisions, data, img, outputname, foldname):
         xcrop1=xmean+128
         xcrop2=xmean-128
 
-        if ycrop1 > 2048:                           #safety conditions in case pics are at the edges
+        if ycrop1 > 2048:                           #safety conditions in case pics are at the upper edges
             ycrop1=2048
             ycrop2=1792
         if xcrop1 > 2048:
             xcrop1=2048
             xcrop2=1792
+        if ycrop2 < 0:                           #safety conditions in case pics are at the lower edges
+            ycrop1=256
+            ycrop2=0
+        if xcrop2 < 0:
+            xcrop1=256
+            xcrop2=0
 
         dataar_gauss=np.zeros((frame2-frame1, 256, 256))
 
