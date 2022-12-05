@@ -27,59 +27,42 @@ def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmen
     all_image_array = np.concatenate((all_image_array,all_image_array_neg))
     all_image_array_gauss = np.concatenate((all_image_array_gauss,all_image_array_gauss_neg))
 
+                            ## NORMALIZATION ##
+
     norm_image_array= normalization_fun(all_image_array, 0.1)
     norm_image_array_gauss = normalization_fun_g(all_image_array_gauss, 0.1)
 
-                                    ## CROP ##
-
-    data_crop = np.zeros((np.size(norm_image_array , 0),128,128))
-    data_crop_gauss = np.zeros((np.size(norm_image_array_gauss , 0),128,128))
-
-    for frame_index in range(np.size(norm_image_array , 0)):
-        data_crop[frame_index,:,:] = norm_image_array[frame_index, 64:192 , 64:192]
-        data_crop_gauss[frame_index,:,:] = norm_image_array_gauss[frame_index, 64:192 , 64:192]
-
                             ## AUGMENTATION ##
 
-    augmentation_data, data_val, augmentation_data_gauss, data_gauss_val =  train_test_split(data_crop, data_crop_gauss,
+    augmentation_data, data_val, augmentation_data_gauss, data_gauss_val =  train_test_split(norm_image_array, norm_image_array_gauss,
                                                                                                        test_size=data_ratio, random_state=data_split_state)
-    data_aug = augmentation_data
-    data_gauss_aug = augmentation_data_gauss
+    data_aug = np.zeros((np.size(augmentation_data , 0),128,128))
+    data_gauss_aug = np.zeros((np.size(augmentation_data , 0),128,128))
+    for frame_index in range(np.size(data_aug , 0)):
+            data_aug[frame_index,:,:] = augmentation_data[frame_index, 64:192 , 64:192]
+            data_gauss_aug[frame_index,:,:] = data_gauss_aug[frame_index, 64:192 , 64:192]
     
     for j in range(number_of_augmentations):
         transform = Compose([Rotate(limit=45, p=0.5), RandomRotate90(p=0.5), HorizontalFlip(p=0.5), Flip(p=0.5), VerticalFlip(p=0.5)])
         print('augmentation', j)
         augment_data, augment_data_gauss = aug_fun(augmentation_data, augmentation_data_gauss,transform)
-        data_aug = np.concatenate((data_aug, augment_data))
-        data_gauss_aug = np.concatenate((data_gauss_aug,augment_data_gauss))
-
+        # for frame_index in range(np.size(augment_data , 0)):
+        #     augment_data[frame_index] = augment_data[frame_index, 64:192 , 64:192]
+        #     augment_data_gauss[frame_index] = augment_data_gauss[frame_index, 64:192 , 64:192]
+        data_aug = np.concatenate((data_aug, augment_data[:, 64:192 , 64:192]))
+        data_gauss_aug = np.concatenate((data_gauss_aug,augment_data_gauss[:, 64:192 , 64:192]))
 
                                 ## SHUFFLE ##
 
-    data_shuffa=np.zeros((data_aug.shape))
-    data_g_shuffa=np.zeros((data_gauss_aug.shape))
-    data_shuffv=np.zeros((data_val.shape))
-    data_g_shuffv=np.zeros((data_gauss_val.shape))
-    # produce empty arrays to fill in with the shuffled elements
     shuffle_array_val= np.arange(0, data_val.shape[0], 1)
     shuffle_array_aug= np.arange(0, data_aug.shape[0], 1)
     r.shuffle(shuffle_array_val)
     r.shuffle(shuffle_array_aug)
 
-    for frame_index in range(np.size(data_val , 0)):
-        x=shuffle_array_val[frame_index]
-        data_shuffv[frame_index]= data_val[x]
-        data_g_shuffv[frame_index]= data_gauss_val[x]
-
-    for frame_index in range(np.size(data_aug , 0)):
-        x=shuffle_array_aug[frame_index]
-        data_shuffa[frame_index]= data_aug[x]
-        data_g_shuffa[frame_index]= data_gauss_aug[x]
-
-    data_val=data_shuffv
-    data_gauss_val=data_g_shuffv
-    data_aug=data_shuffa
-    data_gauss_aug=data_g_shuffa
+    data_val=data_val[shuffle_array_val]
+    data_gauss_val=data_gauss_val[shuffle_array_val]
+    data_aug=data_aug[shuffle_array_aug]
+    data_gauss_aug=data_gauss_aug[shuffle_array_aug]
 
     # name1=f'{cell_type}_{microscope}_{bf_fl}_{sigma}_data_val.tiff'
     # name2=f'{cell_type}_{microscope}_{bf_fl}_{sigma}_data_gauss_val.tiff'
