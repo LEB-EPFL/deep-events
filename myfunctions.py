@@ -45,7 +45,7 @@ def event_separation(data):
     return all_event_lines
 
 
-def image_crop_save(l,list_of_divisions, data, img, outputname, foldname):   
+def image_crop(l,list_of_divisions, data, img, g_state, outputname, foldname):   
     division_list=[]
     for index_list in range(0, l):
         l1=len(list_of_divisions[index_list])
@@ -56,7 +56,7 @@ def image_crop_save(l,list_of_divisions, data, img, outputname, foldname):
             minlist=division_list[0]
             maxlist=division_list[index_list1]
 
-        data_croped= data.iloc[minlist:maxlist,1:4]
+        data_croped= data.iloc[minlist:maxlist+1,1:4]
         frame1=int(data_croped['axis-0'].min())
         frame2=int(data_croped['axis-0'].max())
         ymean = data_croped['axis-1'].mean()
@@ -87,57 +87,22 @@ def image_crop_save(l,list_of_divisions, data, img, outputname, foldname):
             imcrop= img.crop(box)
         
             dataar[frame_index, :, :] = np.array(imcrop)
-        currname_crop = f'{outputname}_{index_list}.tiff'
-        savepath= os.path.join(foldname,currname_crop)
-        tifffile.imwrite(savepath, (dataar).astype(np.uint16), photometric='minisblack')   
+        if g_state==0:
+            save_im(index_list, outputname, foldname, dataar)
+        if g_state==1:
+            save_gauss(index_list, outputname, foldname, dataar)
 
 
 
-def image_crop_save_gauss(l,list_of_divisions, data, img, outputname, foldname):   
-    division_list=[]
-    for index_list in range(0, l):
-        l1=len(list_of_divisions[index_list])
-        division_list=[]
-
-        for index_list1 in range(0,l1):
-            division_list.append(list_of_divisions[index_list][index_list1])
-            minlist=division_list[0]
-            maxlist=division_list[index_list1]
-
-        data_croped= data.iloc[minlist:maxlist,1:4]
-        frame1=int(data_croped['axis-0'].min())
-        frame2=int(data_croped['axis-0'].max())
-        ymean = data_croped['axis-1'].mean()
-        xmean = data_croped['axis-2'].mean()
-        ycrop1=ymean+128
-        ycrop2=ymean-128
-        xcrop1=xmean+128
-        xcrop2=xmean-128
-
-        if ycrop1 > 2048:                           #safety conditions in case pics are at the upper edges
-            ycrop1=2048
-            ycrop2=1792
-        if xcrop1 > 2048:
-            xcrop1=2048
-            xcrop2=1792
-        if ycrop2 < 0:                           #safety conditions in case pics are at the lower edges
-            ycrop1=256
-            ycrop2=0
-        if xcrop2 < 0:
-            xcrop1=256
-            xcrop2=0
-
-        dataar_gauss=np.zeros((frame2-frame1, 256, 256))
-
-        for frame_index, frame_number in enumerate(range (frame1, frame2)):
-            img.seek(frame_number) #starts from 0 I think?
-            box = (xcrop2, ycrop2, xcrop1, ycrop1) #choose dimensions of box
-            imcrop= img.crop(box)
-        
-            dataar_gauss[frame_index, :, :] = np.array(imcrop)
+def save_gauss(index_list, outputname, foldname, dataar_gauss):   
         currname_crop_gauss = f'{outputname}_{index_list}gauss.tiff'
         savepath=os.path.join(foldname,currname_crop_gauss)
         tifffile.imwrite(savepath, (dataar_gauss).astype(np.uint8), photometric='minisblack')
+
+def save_im(index_list, outputname, foldname, dataar):   
+        currname_crop = f'{outputname}_{index_list}.tiff'
+        savepath= os.path.join(foldname,currname_crop)
+        tifffile.imwrite(savepath, (dataar).astype(np.uint16), photometric='minisblack') 
 
 def get_gaussian(mu, sigma, size):
     mu = ((mu[1]+0.5-0.5*size[1])/(size[1]*0.5), (mu[0]+0.5-0.5*size[0])/(size[0]*0.5))
@@ -158,12 +123,10 @@ def image_crop_negative(l,list_of_divisions, data, img, outputname,foldname):
 
         for index_list1 in range(0,l1):
             division_list.append(list_of_divisions[index_list][index_list1])
-        print(division_list)
         minlist=division_list[0]
         maxlist=division_list[index_list1]
 
-        data_croped_after_event= data.iloc[minlist:maxlist,1:4]
-        print(data_croped_after_event)
+        data_croped_after_event= data.iloc[minlist:maxlist+1,1:4]
         frame_number_max=int(data_croped_after_event['axis-0'].max())
         if frame_number_max<90:
             frame1_after=frame_number_max
