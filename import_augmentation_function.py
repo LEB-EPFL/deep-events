@@ -2,13 +2,12 @@ from PIL import Image
 import pandas as pd
 import numpy as np
 import os, sys
-from os import path
-from glob import glob
-from sklearn.model_selection import train_test_split
 from albumentations import Compose, Rotate, RandomRotate90, HorizontalFlip, Flip, VerticalFlip
 from myfunctions import augStack, augImg, augStack_one, augImg_one
-import matplotlib.pyplot as plt 
 import random
+from skimage.filters import threshold_local,rank
+
+
 
 def import_fun(joinpath, fdir, imdir,sigma_chosen):
         ## this creates one aray of 3 columns and fills it will all the images ##
@@ -111,57 +110,17 @@ def import_aug_fun(joinpath, fdir, imdir,sigma_chosen, numaug):
     return data, data_gauss
 
 
-    
-# def normalization_fun(data_val, data_aug, data_gauss_val, data_gauss_aug,k):
-#     data_aug_norm = data_aug 
-#     data_gauss_aug_norm= data_gauss_aug
-#     data_val_norm = data_val 
-#     data_gauss_val_norm= data_gauss_val
-#     # k is the bit of data that we want to set to background and this should be reconsidered since maybe just quoting a number isn't very productive #
-#     kk=1/(1-k)
 
-#     for framenumber in range(np.size(data_val, 0)):
-
-#         # validation data #
-#         data_vall = (data_val[framenumber])/(np.max(data_val[framenumber]))                                           
-#         data_vall = data_vall-k
-#         data_vall[data_vall < 0] = 0   
-#         data_val_norm[framenumber] = data_vall*kk
-
-#         data_gauss_vall = (data_gauss_val[framenumber])/(np.max(data_gauss_val)) 
-#         data_gauss_vall = data_gauss_vall-k
-#         data_gauss_vall[data_gauss_vall < 0] = 0     
-#         data_gauss_val_norm[framenumber] = data_gauss_vall*kk                                             
-    
-
-#     for framenumber in range(np.size(data_aug,0)):
-
-#         # augmentation data #
-#         data_augg = (data_aug[framenumber])/(np.max(data_aug))                                               
-#         data_augg = data_augg-k
-#         data_augg[data_augg < 0] = 0   
-#         data_aug_norm[framenumber] = data_augg*kk
-
-#         data_gauss_augg = (data_gauss_aug[framenumber])/(np.max(data_gauss_aug))
-#         data_gauss_augg = data_gauss_augg-k
-#         data_gauss_augg[data_gauss_augg < 0] = 0     
-#         data_gauss_aug_norm[framenumber] = data_gauss_augg*kk  
-    
-#     return data_val_norm, data_aug_norm, data_gauss_val_norm, data_gauss_aug_norm
-
-def normalization_fun(data_first, k):
-    data_norm = data_first
-    kk=1/(1-k)
+def normalization_fun(data_first, k,ofs):
+    final_loc_bin=np.zeros((np.size(data_first,0),np.size(data_first,1),np.size(data_first,2)))
 
     for framenumber in range(np.size(data_first, 0)):
+        image_loc_bin= data_first[framenumber]
+        local_thresh = threshold_local(image_loc_bin, k, offset=ofs)
+        image_loc_bin[image_loc_bin < local_thresh] = 0
+        final_loc_bin[framenumber,:,:]=image_loc_bin
 
-        # validation data #
-        data = (data_first[framenumber])/(np.max(data_first[framenumber]))                                             
-        data = data-k
-        data[data < 0] = 0   
-        data_norm[framenumber] = data*kk
-
-    return data_norm
+    return final_loc_bin
 
     
 def normalization_fun_g(data_second, k):
@@ -173,6 +132,7 @@ def normalization_fun_g(data_second, k):
         data_g = data_g-k
         data_g[data_g < 0] = 0     
         data_g_norm[framenumber] = data_g*kk   
+        
     return data_g_norm                                
 
 
