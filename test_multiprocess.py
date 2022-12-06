@@ -29,18 +29,24 @@ def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmen
 
                             ## NORMALIZATION ##
 
-    norm_image_array= normalization_fun(all_image_array, 0.1)
+    norm_image_array= normalization_fun(all_image_array, 51, offset=5)
     norm_image_array_gauss = normalization_fun_g(all_image_array_gauss, 0.1)
 
                             ## AUGMENTATION ##
 
-    augmentation_data, data_val, augmentation_data_gauss, data_gauss_val =  train_test_split(norm_image_array, norm_image_array_gauss,
+    augmentation_data, validation_data, augmentation_data_gauss, validation_data_gauss =  train_test_split(norm_image_array, norm_image_array_gauss,
                                                                                                        test_size=data_ratio, random_state=data_split_state)
     data_aug = np.zeros((np.size(augmentation_data , 0),128,128))
     data_gauss_aug = np.zeros((np.size(augmentation_data , 0),128,128))
+    data_val = np.zeros((np.size(validation_data , 0),128,128))
+    data_gauss_val = np.zeros((np.size(validation_data_gauss , 0),128,128))
+
     for frame_index in range(np.size(data_aug , 0)):
-            data_aug[frame_index,:,:] = augmentation_data[frame_index, 64:192 , 64:192]
-            data_gauss_aug[frame_index,:,:] = data_gauss_aug[frame_index, 64:192 , 64:192]
+        data_aug[frame_index,:,:] = augmentation_data[frame_index, 64:192 , 64:192]
+        data_gauss_aug[frame_index,:,:] = augmentation_data_gauss[frame_index, 64:192 , 64:192]
+    for frame_index in range(np.size(data_val , 0)):
+        data_val[frame_index,:,:] = validation_data[frame_index, 64:192 , 64:192]
+        data_gauss_val[frame_index,:,:] = validation_data_gauss[frame_index, 64:192 , 64:192]
     
     for j in range(number_of_augmentations):
         transform = Compose([Rotate(limit=45, p=0.5), RandomRotate90(p=0.5), HorizontalFlip(p=0.5), Flip(p=0.5), VerticalFlip(p=0.5)])
