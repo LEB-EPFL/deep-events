@@ -79,9 +79,9 @@ def image_crop(l,list_of_divisions, data, img, g_state, outputname, foldname):
             xcrop1=256
             xcrop2=0
         
-        dataar=np.zeros((frame2-frame1, 256, 256))
+        dataar=np.zeros((frame2-frame1+1, 256, 256))
 
-        for frame_index, frame_number in enumerate(range (frame1, frame2)):
+        for frame_index, frame_number in enumerate(range (frame1, frame2+1)):
             img.seek(frame_number) #starts from 0 I think?
             box = (xcrop2, ycrop2, xcrop1, ycrop1) #choose dimensions of box
             imcrop= img.crop(box)

@@ -8,7 +8,7 @@ import os
 from os import path
 import random as r
 import imageio
-from import_augmentation_function import import_fun, aug_fun, import_fun_neg, normalization_fun, normalization_fun_g, import_aug_fun
+from import_augmentation_function import import_fun, aug_fun, import_fun_neg, normalization_fun_glob, normalization_fun_loc, normalization_fun_g, import_aug_fun
 import tensorflow as tf 
 
 data_ratio= 0.1
@@ -29,7 +29,8 @@ def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmen
 
                             ## NORMALIZATION ##
 
-    norm_image_array= normalization_fun(all_image_array, 51, offset=5)
+    #norm_image_array= normalization_fun_glob(all_image_array)
+    norm_image_array= normalization_fun_loc(all_image_array, 21, 5)
     norm_image_array_gauss = normalization_fun_g(all_image_array_gauss, 0.1)
 
                             ## AUGMENTATION ##
