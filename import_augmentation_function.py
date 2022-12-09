@@ -111,13 +111,13 @@ def import_aug_fun(joinpath, fdir, imdir,sigma_chosen, numaug):
 
     return data, data_gauss
 
-def normalization_fun_loc(data_first, k,ofs):
+def normalization_fun_loc(data_first, k,ofs,perc):
     final_loc_bin=np.zeros((np.size(data_first,0),np.size(data_first,1),np.size(data_first,2)))
-    kk=1/0.95
+    kk=1/(1-perc)
 
     for framenumber in range(np.size(data_first, 0)):
-        data_g = (data_first[framenumber])/(np.max(data_first)) 
-        data_g = data_g-0.05
+        data_g = (data_first[framenumber])/(np.max(data_first[framenumber])) 
+        data_g = data_g-perc
         data_g[data_g < 0] = 0     
         #data_g_norm[framenumber] = data_g*kk 
         image_loc_bin = data_g*kk 
