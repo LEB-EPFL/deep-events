@@ -15,7 +15,7 @@ data_ratio= 0.1
 data_split_state = None
 
 
-def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmentations):
+def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmentations,k,ofs,perc):
     date, dye, cell_type, microscope, bf_fl, pos_neg = images_dir.split('_')
     joined_path = os.path.join(files_dir, images_dir)
     joined_path_neg = os.path.join(files_dir, images_neg_dir)
@@ -30,7 +30,7 @@ def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmen
                             ## NORMALIZATION ##
 
     #norm_image_array= normalization_fun_glob(all_image_array)
-    norm_image_array= normalization_fun_loc(all_image_array, 21, 5)
+    norm_image_array= normalization_fun_loc(all_image_array, k,ofs,perc)
     norm_image_array_gauss = normalization_fun_g(all_image_array_gauss, 0.1)
 
                             ## AUGMENTATION ##
