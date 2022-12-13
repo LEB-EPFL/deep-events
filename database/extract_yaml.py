@@ -10,7 +10,7 @@ import numpy as np
 
 
 #%% setup
-MAIN_PATH = "//lebnas1.epfl.ch/microsc125/deep_events/original_data"
+MAIN_PATH = r'C:\Users\roumba\Documents\Software\deep-events\original_data'
 KEYS_PATH = os.path.dirname(os.path.realpath(__file__)) + "/keys.yaml"
 
 keys = benedict(KEYS_PATH)
