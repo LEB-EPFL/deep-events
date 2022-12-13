@@ -16,13 +16,13 @@ KEYS_PATH = os.path.dirname(os.path.realpath(__file__)) + "/keys.yaml"
 keys = benedict(KEYS_PATH)
 
 
-def get_dict(folder: str):
+def get_dict(folder: str, path:str = MAIN_PATH):
     try:
-        folder_dict = benedict(os.path.join(MAIN_PATH, folder, "db.yaml"))
+        folder_dict = benedict(os.path.join(path, folder, "db.yaml"))
     except ValueError:
         folder_dict = benedict(benedict().
-                               to_yaml(filepath=os.path.join(MAIN_PATH, folder, "db.yaml")))
-    folder_dict['original_path'] = '/'.join([MAIN_PATH, folder])
+                               to_yaml(filepath=os.path.join(path, folder, "db.yaml")))
+    folder_dict['original_path'] = '/'.join([path, folder])
     folder_dict['original_folder'] = folder
     return folder_dict
 
@@ -116,6 +116,6 @@ def extract_folders(path: Path):
         extract_foldername(folder)
         extract_ome(folder)
 
-extract_folders(MAIN_PATH)
+
 
 # %%

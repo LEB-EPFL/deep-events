@@ -83,7 +83,7 @@ def image_crop(l,list_of_divisions, data, img, g_state, outputname, foldname, SA
             xcrop1=256
             xcrop2=0
 
-        dataar=np.zeros((frame2-frame1+1, 256, 256))
+        dataar=np.zeros((frame2-frame1+1+1, 256, 256))
 
         for frame_index, frame_number in enumerate(range (frame1, frame2+1+1)):
             img.seek(frame_number) #starts from 0 I think?
@@ -94,15 +94,18 @@ def image_crop(l,list_of_divisions, data, img, g_state, outputname, foldname, SA
 
         if "ws" in SAVING_SCHEME:
             # Adjust the names to the database optimized saving scheme
-            outputname, path, folder_dict, event_id = get_save_info(outputname, foldname, folder_dict)
-            currname_crop = f"{outputname}.tiff"
-            event_dict['event_path'] = path
-            event_dict['_id'] = event_id
-            save_dict(event_dict)
-            savepath = os.path.join(path, currname_crop)
             if g_state == 0:
+                path, folder_dict, event_id = get_save_info(foldname, folder_dict)
+                event_dict['event_path'] = path
+                event_dict['_id'] = event_id
+                save_dict(event_dict)
+                currname_crop = f"images.tiff"
+                savepath = os.path.join(path, currname_crop)
                 tifffile.imwrite(savepath, (dataar).astype(np.uint16), photometric='minisblack')
             elif g_state == 1:
+                path = event_dict['event_path']
+                currname_crop = f"gaussians.tiff"
+                savepath = os.path.join(path, currname_crop)
                 tifffile.imwrite(savepath, (dataar).astype(np.uint8), photometric='minisblack')
         else:
             if g_state==0:
@@ -112,9 +115,9 @@ def image_crop(l,list_of_divisions, data, img, g_state, outputname, foldname, SA
 
     if folder_dict:
         save_dict(folder_dict)
+        return event_dict
 
-def get_save_info(outputname, foldname, folder_dict):
-    outputname = "images"
+def get_save_info(foldname, folder_dict):
     filepath = os.path.dirname(foldname)
     event_id = ObjectId()
     folder = os.path.basename(foldname)
@@ -124,7 +127,7 @@ def get_save_info(outputname, foldname, folder_dict):
         folder_dict['extracted_events'] = [event_id.binary.hex()]
     filepath = os.path.join(filepath, folder, event_id.binary.hex())
     Path(filepath).mkdir(parents=True, exist_ok=True)
-    return outputname, filepath, folder_dict, event_id
+    return filepath, folder_dict, event_id
 
 
 def delete_old_extracted_events(folder_dict, training_path):
