@@ -100,14 +100,15 @@ def image_crop(l,list_of_divisions, data, img, g_state, outputname, foldname, SA
             event_dict['_id'] = event_id
             save_dict(event_dict)
             savepath = os.path.join(path, currname_crop)
+            if g_state == 0:
+                tifffile.imwrite(savepath, (dataar).astype(np.uint16), photometric='minisblack')
+            elif g_state == 1:
+                tifffile.imwrite(savepath, (dataar).astype(np.uint8), photometric='minisblack')
         else:
-            currname_crop = f'{outputname}_{index_list}.tiff'
-            savepath = os.path.join(foldname, currname_crop)
-        # tifffile.imwrite(savepath, (dataar).astype(np.uint16), photometric='minisblack')
-        if g_state==0:
-            save_im(index_list, outputname, foldname, dataar)
-        if g_state==1:
-            save_gauss(index_list, outputname, foldname, dataar)
+            if g_state==0:
+                save_im(index_list, outputname, foldname, dataar)
+            if g_state==1:
+                save_gauss(index_list, outputname, foldname, dataar)
 
     if folder_dict:
         save_dict(folder_dict)
