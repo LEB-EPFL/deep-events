@@ -3,7 +3,9 @@ import pandas as pd
 import numpy as np
 import os, sys
 from albumentations import Compose, Rotate, RandomRotate90, HorizontalFlip, Flip, VerticalFlip
-from myfunctions import augStack, augImg, augStack_one, augImg_one
+from myfunctions import augStack
+from skimage.filters import threshold_otsu, threshold_local
+import matplotlib.pyplot as plt
 import random
 from skimage.filters import threshold_otsu, threshold_local,rank
 
@@ -17,7 +19,7 @@ def import_fun(joinpath, fdir, imdir,sigma_chosen):
     for image_file in os.listdir(joinpath):
         # image, date, cell_type, bf_fl, index, number_gauss  = image_file.split('_')
         joined_image_path = os.path.join(fdir, imdir, image_file)
-        
+
         if 'gauss' in image_file:
             i,d,ct,dy,n,sigma,ng = image_file.split('_')
             s= [int(k) for k in sigma if k.isdigit()]
@@ -43,7 +45,7 @@ def import_fun(joinpath, fdir, imdir,sigma_chosen):
 
 
 def aug_fun(augmentation_data, augmentation_data_gauss, transform):
-    
+
     aug_data, aug_data_gauss= augStack(augmentation_data, augmentation_data_gauss, transform, sigma=8)
     return aug_data, aug_data_gauss
 
@@ -80,15 +82,15 @@ def import_aug_fun(joinpath, fdir, imdir,sigma_chosen, numaug):
                     g_data = np.concatenate(norm_gauss)
                 g_data= np.delete(g_data, 0, axis=0)
                 data_gauss = np.concatenate([data_gauss, norm_gauss])
-            
+
         else:
             img = Image.open(joined_image_path)
             image_array = np.zeros((img.n_frames,256,256))
             for i in range(0,img.n_frames):
                 img.seek(i)
                 image_array[i,:,:] = np.array(img)
-            
-            norm_data= normalization_fun_g(image_array, 0.1) 
+
+            norm_data= normalization_fun_g(image_array, 0.1)
 
             for n in range(1,numaug+1):
                 p_rot = random.randint(0, 1) #generate random transform probabilities per file
@@ -101,7 +103,7 @@ def import_aug_fun(joinpath, fdir, imdir,sigma_chosen, numaug):
 
             aug_data= np.delete(aug_data, 0, axis=0)
             data = np.concatenate([data, aug_data])
-            
+
 
 
     data= np.delete(data, 0, axis=0) #removes the elements in the first axis which were just zeros
@@ -109,18 +111,16 @@ def import_aug_fun(joinpath, fdir, imdir,sigma_chosen, numaug):
 
     return data, data_gauss
 
-
-
-def normalization_fun_loc(data_first, k,ofs):
+def normalization_fun_loc(data_first, k,ofs,perc):
     final_loc_bin=np.zeros((np.size(data_first,0),np.size(data_first,1),np.size(data_first,2)))
-    kk=1/0.95
+    kk=1/(1-perc)
 
     for framenumber in range(np.size(data_first, 0)):
-        data_g = (data_first[framenumber])/(np.max(data_first)) 
-        data_g = data_g-0.05
-        data_g[data_g < 0] = 0     
-        #data_g_norm[framenumber] = data_g*kk 
-        image_loc_bin = data_g*kk 
+        data_g = (data_first[framenumber])/(np.max(data_first[framenumber]))
+        data_g = data_g-perc
+        data_g[data_g < 0] = 0
+        #data_g_norm[framenumber] = data_g*kk
+        image_loc_bin = data_g*kk
         #image_loc_bin= data_first[framenumber]
         local_thresh = threshold_local(image_loc_bin, k, method='gaussian', offset=ofs)
         image_loc_bin[image_loc_bin < local_thresh] = 0
@@ -136,21 +136,25 @@ def normalization_fun_glob(data_first):
         threshold= threshold_otsu(image_glob)
         image_glob[image_glob < threshold] = 0
         final_glob[framenumber,:,:]= image_glob
+        image_glob= data_first[framenumber]
+        threshold= threshold_otsu(image_glob)
+        image_glob[image_glob < threshold] = 0
+        final_glob[framenumber,:,:]= image_glob
 
     return final_glob
 
-    
+
 def normalization_fun_g(data_second, k):
     data_g_norm= data_second
     kk=1/(1-k)
 
     for framenumber in range(np.size(data_second, 0)):
-        data_g = (data_second[framenumber])/(np.max(data_second)) 
+        data_g = (data_second[framenumber])/(np.max(data_second))
         data_g = data_g-k
-        data_g[data_g < 0] = 0     
-        data_g_norm[framenumber] = data_g*kk   
-        
-    return data_g_norm                                
+        data_g[data_g < 0] = 0
+        data_g_norm[framenumber] = data_g*kk
+
+    return data_g_norm
 
 
 def import_fun_neg(joinpath, fdir, imdir):
@@ -160,7 +164,7 @@ def import_fun_neg(joinpath, fdir, imdir):
     for image_file in os.listdir(joinpath):
         # image, date, cell_type, bf_fl, index, number_gauss  = image_file.split('_')
         joined_image_path = os.path.join(fdir, imdir, image_file)
-        
+
         img = Image.open(joined_image_path)
         image_array = np.zeros((img.n_frames,256,256))
         for i in range(0,img.n_frames):

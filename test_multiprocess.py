@@ -9,13 +9,13 @@ from os import path
 import random as r
 import imageio
 from import_augmentation_function import import_fun, aug_fun, import_fun_neg, normalization_fun_glob, normalization_fun_loc, normalization_fun_g, import_aug_fun
-import tensorflow as tf 
+import tensorflow as tf
 
 data_ratio= 0.1
 data_split_state = None
 
 
-def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmentations):
+def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmentations,k,ofs,perc):
     date, dye, cell_type, microscope, bf_fl, pos_neg = images_dir.split('_')
     joined_path = os.path.join(files_dir, images_dir)
     joined_path_neg = os.path.join(files_dir, images_neg_dir)
@@ -48,7 +48,7 @@ def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmen
     for frame_index in range(np.size(data_val , 0)):
         data_val[frame_index,:,:] = validation_data[frame_index, 64:192 , 64:192]
         data_gauss_val[frame_index,:,:] = validation_data_gauss[frame_index, 64:192 , 64:192]
-    
+
     for j in range(number_of_augmentations):
         transform = Compose([Rotate(limit=45, p=0.5), RandomRotate90(p=0.5), HorizontalFlip(p=0.5), Flip(p=0.5), VerticalFlip(p=0.5)])
         print('augmentation', j)
@@ -82,10 +82,10 @@ def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmen
     # imageio.mimwrite(name4, (data_gauss_aug).astype(np.float64))
     base_dir = r'C:\Users\roumba\Documents\Software\deep-events'
     model_path = base_dir + '\Models'
-    
+
     gpu = tf.config.list_physical_devices('GPU')[0]
     tf.config.experimental.set_memory_growth(gpu, True)
-    gpu = tf.device('GPU:0/') 
+    gpu = tf.device('GPU:0/')
 
     with gpu:
         print(gpu)
@@ -93,13 +93,13 @@ def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmen
         firstConvSize = 9
         batch_size = [8, 16, 32, 256]
         model, history= {}, {}
-        
+
         b=batch_size[1]
         model_name = 'ref_f%i_c%i_b%i'%(nb_filters, firstConvSize, b)
         print('Model:', model_name)
         model[model_name] = create_model(nb_filters, firstConvSize)
         history[model_name] = train_model(model[model_name], data_aug, data_gauss_aug, b, data_ratio)
-    
+
     folder_name = list(model.keys())
 
     util.save_model(model, model_path, [f'model_{cell_type}_{microscope}_{bf_fl}_{sigma}']*len(model), folder_name)
@@ -157,7 +157,7 @@ def load_aug_train_time(files_dir, images_dir,images_neg_dir, sigma, number_of_a
     data_gauss_aug=data_crop_gauss
     data_val=data_cropp
     data_gauss_val=data_cropp_gauss
-        
+
     name1=f'{cell_type}_{microscope}_{bf_fl}_data_val.tiff'
     name2=f'{cell_type}_{microscope}_{bf_fl}_data_gauss_val.tiff'
     name3=f'{cell_type}_{microscope}_{bf_fl}_data_aug.tiff'
@@ -173,7 +173,7 @@ def load_aug_train_time(files_dir, images_dir,images_neg_dir, sigma, number_of_a
 
     gpu = tf.config.list_physical_devices('GPU')[0]
     tf.config.experimental.set_memory_growth(gpu, True)
-    gpu = tf.device('GPU:0/') 
+    gpu = tf.device('GPU:0/')
 
     with gpu:
         print(gpu)
@@ -181,7 +181,7 @@ def load_aug_train_time(files_dir, images_dir,images_neg_dir, sigma, number_of_a
         firstConvSize = 9
         batch_size = [8, 16, 32, 256]
         model, history= {}, {}
-        
+
         b=batch_size[1]
         model_name = 'ref_f%i_c%i_b%i'%(nb_filters, firstConvSize, b)
         print('Model:', model_name)
@@ -189,7 +189,7 @@ def load_aug_train_time(files_dir, images_dir,images_neg_dir, sigma, number_of_a
         history[model_name] = train_model(model[model_name], data_aug, data_gauss_aug, b, data_ratio)
 
 
-    
+
 
     folder_name = list(model.keys())
 

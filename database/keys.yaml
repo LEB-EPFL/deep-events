@@ -1,0 +1,16 @@
+stain:
+  - mtstaygold
+  - mitotrackergreen
+  - mtstaygold
+
+cell_line:
+  - cos7
+  - u2os
+
+microscope:
+  - isim
+  - zeiss
+
+contrast:
+  - fl
+  - bf
