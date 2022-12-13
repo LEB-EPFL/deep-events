@@ -12,7 +12,9 @@ import tensorflow_probability as tfp
 import tensorflow as tf
 from tqdm import tqdm
 import tifffile
-
+from bson.objectid import ObjectId
+from database.extract_yaml import save_dict
+import shutil
 
 def event_separation(data):
     #this function takes in the data from the excel file and splits them into a nested list: each list within the nested list corresponds to the excel lines of a single division
@@ -45,8 +47,10 @@ def event_separation(data):
     return all_event_lines
 
 
-def image_crop_save(l,list_of_divisions, data, img, outputname, foldname):
+def image_crop_save(l,list_of_divisions, data, img, outputname, foldname, SAVING_SCHEME=None,
+                    folder_dict = None, event_dict = None):
     division_list=[]
+
     for index_list in range(0, l):
         l1=len(list_of_divisions[index_list])
         division_list=[]
@@ -81,10 +85,53 @@ def image_crop_save(l,list_of_divisions, data, img, outputname, foldname):
             imcrop= img.crop(box)
 
             dataar[frame_index, :, :] = np.array(imcrop)
-        currname_crop = f'{outputname}_{index_list}.tiff'
-        savepath= os.path.join(foldname,currname_crop)
+
+        if "ws" in SAVING_SCHEME:
+            # Adjust the names to the database optimized saving scheme
+            outputname, path, folder_dict, event_id = get_save_info(outputname, foldname, folder_dict)
+            currname_crop = f"{outputname}.tiff"
+            event_dict['event_path'] = path
+            event_dict['_id'] = event_id
+            save_dict(event_dict)
+            savepath = os.path.join(path, currname_crop)
+        else:
+            currname_crop = f'{outputname}_{index_list}.tiff'
+            savepath = os.path.join(foldname, currname_crop)
         tifffile.imwrite(savepath, (dataar).astype(np.uint16), photometric='minisblack')
 
+    if folder_dict:
+        save_dict(folder_dict)
+
+def get_save_info(outputname, foldname, folder_dict):
+    outputname = "images"
+    filepath = os.path.dirname(foldname)
+    event_id = ObjectId()
+    folder = os.path.basename(foldname)
+    try:
+        folder_dict['extracted_events'].append(event_id.binary.hex())
+    except (KeyError, AttributeError) as e:
+        folder_dict['extracted_events'] = [event_id.binary.hex()]
+    filepath = os.path.join(filepath, folder, event_id.binary.hex())
+    Path(filepath).mkdir(parents=True, exist_ok=True)
+    return outputname, filepath, folder_dict, event_id
+
+
+def delete_old_extracted_events(folder_dict, training_path):
+    date = folder_dict['date']
+    if not folder_dict['extracted_events']:
+        return folder_dict
+    for event in folder_dict['extracted_events']:
+        folder = event
+        path = os.path.join(training_path, folder)
+        print(f"removing {path}.")
+        try:
+            shutil.rmtree(path)
+        except FileNotFoundError:
+            print("Not found in this folder.")
+        except PermissionError:
+            print("No permission, skip.")
+    folder_dict['extracted_events'] = []
+    save_dict(folder_dict)
 
 
 def image_crop_save_gauss(l,list_of_divisions, data, img, outputname, foldname):
