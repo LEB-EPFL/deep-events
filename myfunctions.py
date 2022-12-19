@@ -1,13 +1,8 @@
 from PIL import Image
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import plotly.express as px
-from scipy import ndimage as ndi
 from pathlib import Path
 import os
-from os import path
-from scipy import signal
 import tensorflow_probability as tfp
 import tensorflow as tf
 from tqdm import tqdm
@@ -47,7 +42,7 @@ def event_separation(data):
     return all_event_lines
 
 
-def image_crop(l,list_of_divisions, data, img, g_state, outputname, foldname, SAVING_SCHEME=None,
+def image_crop(l,list_of_divisions, data, img, g_state, outputname, foldname, SAVING_SCHEME= "None",
                     folder_dict = None, event_dict = None):
     division_list=[]
 
@@ -60,7 +55,7 @@ def image_crop(l,list_of_divisions, data, img, g_state, outputname, foldname, SA
             minlist=division_list[0]
             maxlist=division_list[index_list1]
 
-        data_croped= data.iloc[minlist:maxlist+1+1,1:4]
+        data_croped= data.iloc[minlist:maxlist+1,1:4]
         frame1=int(data_croped['axis-0'].min())
         frame2=int(data_croped['axis-0'].max())
         ymean = data_croped['axis-1'].mean()
@@ -83,10 +78,10 @@ def image_crop(l,list_of_divisions, data, img, g_state, outputname, foldname, SA
             xcrop1=256
             xcrop2=0
 
-        dataar=np.zeros((frame2-frame1+1+1, 256, 256))
+        dataar=np.zeros((frame2-frame1+1, 256, 256))
 
-        for frame_index, frame_number in enumerate(range (frame1, frame2+1+1)):
-            img.seek(frame_number) #starts from 0 I think?
+        for frame_index, frame_number in enumerate(range (frame1, frame2+1)):
+            img.seek(frame_number) 
             box = (xcrop2, ycrop2, xcrop1, ycrop1) #choose dimensions of box
             imcrop= img.crop(box)
 

@@ -3,11 +3,9 @@ import pandas as pd
 import numpy as np
 import os, sys
 from albumentations import Compose, Rotate, RandomRotate90, HorizontalFlip, Flip, VerticalFlip
-from myfunctions import augStack
-from skimage.filters import threshold_otsu, threshold_local
-import matplotlib.pyplot as plt
 import random
 from skimage.filters import threshold_otsu, threshold_local,rank
+from myfunctions import augStack
 
 
 
@@ -111,20 +109,26 @@ def import_aug_fun(joinpath, fdir, imdir,sigma_chosen, numaug):
 
     return data, data_gauss
 
-def normalization_fun_loc(data_first, k,ofs,perc):
+def normalization_fun_loc(data_first, k,ofs,bf_fl):
     final_loc_bin=np.zeros((np.size(data_first,0),np.size(data_first,1),np.size(data_first,2)))
-    kk=1/(1-perc)
-
-    for framenumber in range(np.size(data_first, 0)):
-        data_g = (data_first[framenumber])/(np.max(data_first[framenumber]))
-        data_g = data_g-perc
-        data_g[data_g < 0] = 0
-        #data_g_norm[framenumber] = data_g*kk
-        image_loc_bin = data_g*kk
-        #image_loc_bin= data_first[framenumber]
-        local_thresh = threshold_local(image_loc_bin, k, method='gaussian', offset=ofs)
-        image_loc_bin[image_loc_bin < local_thresh] = 0
-        final_loc_bin[framenumber,:,:]=image_loc_bin
+    kk=1/0.95
+    if bf_fl=='fl':
+        for framenumber in range(np.size(data_first, 0)):
+            data_g = (data_first[framenumber])/(np.max(data_first[framenumber])) 
+            data_g = data_g-0.05
+            data_g[data_g < 0] = 0     
+            #data_g_norm[framenumber] = data_g*kk 
+            image_loc_bin = data_g*kk 
+            #image_loc_bin= data_first[framenumber]
+            local_thresh = threshold_local(image_loc_bin, k, method='gaussian', offset=ofs)
+            image_loc_bin[image_loc_bin < local_thresh] = 0
+            final_loc_bin[framenumber,:,:]=image_loc_bin
+    if bf_fl=='Brightfield':
+        for framenumber in range(np.size(data_first, 0)):
+            data_g = (data_first[framenumber])/(np.max(data_first[framenumber])) 
+            data_g = data_g+0.05
+            data_g[data_g > 1] = 0
+            final_loc_bin[framenumber,:,:]= data_g
 
     return final_loc_bin
 
