@@ -120,12 +120,12 @@ def normalization_fun_loc(data_first, k,ofs, perc, bf_fl):
             image_loc_bin = data_g*kk 
             local_thresh = threshold_local(image_loc_bin, k, method='gaussian', offset=ofs)
             image_loc_bin[image_loc_bin < local_thresh] = 0
-            final_loc_bin[framenumber,:,:]=image_loc_bin
+            final_loc_bin[framenumber,:,:] = image_loc_bin
     if bf_fl=='Brightfield' or 'bf':
         for framenumber in range(np.size(data_first, 0)):
             data_g = (data_first[framenumber])/(np.max(data_first[framenumber])) 
-            data_g = data_g + perc
-            data_g[data_g > 1] = 0
+            data_g = data_g - perc
+            data_g[data_g < 0] = 0
             final_loc_bin[framenumber,:,:]= data_g*kk 
 
     return final_loc_bin
