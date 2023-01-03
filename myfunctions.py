@@ -16,9 +16,10 @@ from bson.objectid import ObjectId
 from database.extract_yaml import save_dict
 import shutil
 
-def event_separation(data):
+def event_separation(data, event_dict):
     #this function takes in the data from the excel file and splits them into a nested list: each list within the nested list corresponds to the excel lines of a single division
     #it differentiates the lines based on conditions on both frame number and x,y-distance that could potentially be changed if they don't work
+
     length_of_file=len(data)-1
     all_event_lines=[]
     single_divison_events=[]
@@ -35,7 +36,13 @@ def event_separation(data):
         xdistancedataline2= data.iloc[excelindex+1,2]
         xdistancediff= abs(xdistancedataline2-xdistancedataline1)
 
-        if framediff < 10 and ydistancediff <  15 and xdistancediff < 15 :
+        framediff_max = 3
+        distance_max = 15
+        event_dict['event_separation'] = {}
+        event_dict['event_separation']['framediff_max'] = framediff_max
+        event_dict['event_separation']['distance_max'] = distance_max
+
+        if framediff < framediff_max and ydistancediff <  distance_max and xdistancediff < distance_max :
             single_divison_events.append(excelindex)
             if excelindex == length_of_file-1:
                 single_divison_events.append(excelindex+1)
@@ -44,7 +51,7 @@ def event_separation(data):
             single_divison_events.append(excelindex)
             all_event_lines.append(single_divison_events)
             single_divison_events=[]
-    return all_event_lines
+    return all_event_lines, event_dict
 
 
 def image_crop(l,list_of_divisions, data, img, g_state, outputname, foldname, SAVING_SCHEME=None,
@@ -70,6 +77,7 @@ def image_crop(l,list_of_divisions, data, img, g_state, outputname, foldname, SA
         xcrop1=xmean+128
         xcrop2=xmean-128
 
+        #TODO: make this size agnostic
         if ycrop1 > 2048:                           #safety conditions in case pics are at the upper edges
             ycrop1=2048
             ycrop2=1792
@@ -83,9 +91,9 @@ def image_crop(l,list_of_divisions, data, img, g_state, outputname, foldname, SA
             xcrop1=256
             xcrop2=0
 
-        dataar=np.zeros((frame2-frame1+1+1, 256, 256))
+        dataar=np.zeros((frame2-frame1+1, 256, 256))
 
-        for frame_index, frame_number in enumerate(range (frame1, frame2+1+1)):
+        for frame_index, frame_number in enumerate(range (frame1, frame2+1)):
             img.seek(frame_number) #starts from 0 I think?
             box = (xcrop2, ycrop2, xcrop1, ycrop1) #choose dimensions of box
             imcrop= img.crop(box)
@@ -98,6 +106,9 @@ def image_crop(l,list_of_divisions, data, img, g_state, outputname, foldname, SA
                 path, folder_dict, event_id = get_save_info(foldname, folder_dict)
                 event_dict['event_path'] = path
                 event_dict['_id'] = event_id
+                event_dict['frames'] = (frame1, frame2+1)
+                event_dict['crop_box'] = box
+                event_dict['saving_scheme'] = SAVING_SCHEME
                 save_dict(event_dict)
                 currname_crop = f"images.tiff"
                 savepath = os.path.join(path, currname_crop)
@@ -169,7 +180,8 @@ def get_gaussian(mu, sigma, size):
     return tf.reshape(gauss, size)
 
 
-def image_crop_negative(l,list_of_divisions, data, img, outputname,foldname):
+def image_crop_negative(l,list_of_divisions, data, img, outputname,foldname, SAVING_SCHEME="None",
+                    folder_dict = None, event_dict = None):
     division_list=[]
     for index_list in range(0, l):
         l1=len(list_of_divisions[index_list])
@@ -218,9 +230,19 @@ def image_crop_negative(l,list_of_divisions, data, img, outputname,foldname):
 
                 dataar_a[frame_index_a, :, :] = np.array(imcrop)
 
-            currname_crop_a = f'{outputname}_{index_list}_neg.tiff'
-            savepath=os.path.join(foldname,currname_crop_a)
-            tifffile.imwrite(savepath, (dataar_a).astype(np.uint16), photometric='minisblack')
+            if "ws" in SAVING_SCHEME:
+                path, folder_dict, event_id = get_save_info(foldname, folder_dict)
+                event_dict['event_path'] = path
+                event_dict['_id'] = event_id
+                save_dict(event_dict)
+                currname_crop = f"images.tiff"
+                savepath = os.path.join(path, currname_crop)
+                tifffile.imwrite(savepath, (dataar_a).astype(np.uint16), photometric='minisblack')
+            else:
+                currname_crop_a = f'{outputname}_{index_list}_neg.tiff'
+                savepath=os.path.join(foldname,currname_crop_a)
+                tifffile.imwrite(savepath, (dataar_a).astype(np.uint16), photometric='minisblack')
+
 
 def augImg(input_img, output_img, transform, **kwargs):
     #input_mask = (input_img>0).astype(np.uint8)
@@ -255,7 +277,7 @@ def augStack_one(input_data, transform, **kwargs):
         aug_input_data[i] = augImg_one(input_data[i],  transform, **kwargs)
     return aug_input_data
 
-def poi(datacsv,input_name, sigma_trial, size_trial,total_frames):
+def poi(datacsv,input_name, sigma_trial, size_trial,total_frames, path=None):
     points_of_interest= np.zeros((total_frames, 2048, 2048))
 
     for row_number in tqdm(range(0, len(datacsv))):
@@ -270,7 +292,9 @@ def poi(datacsv,input_name, sigma_trial, size_trial,total_frames):
         gaussian_points = gaussian_points/np.max(gaussian_points)                                               #divides by max again
         points_of_interest[framenumber_in_row] = points_of_interest[framenumber_in_row] + gaussian_points       #adds the gaussian intensity in the empty file
 
-
+    if path:
+        input_name = os.path.join(path, input_name)
+        print("Gaussian Location", input_name)
 
     #TODO We could save this as float and save all of the work when we load it later
     tifffile.imwrite(input_name, (points_of_interest*254).astype(np.uint8))

@@ -1,0 +1,24 @@
+220927_mitotrackergreen_cos7_ZEISS_fl:
+  typically_use: no
+221123_mtStayGold_U2OS_ZEISS_fl:
+  ome:
+    physical_size_x: 0.103
+    physical_size_y: 0.103
+221123_mtStayGold_cos7_ZEISS_bf:
+  ome:
+    physical_size_x: 0.103
+    physical_size_y: 0.103
+221123_mtStayGold_cos7_ZEISS_fl:
+  ome:
+    physical_size_x: 0.103
+    physical_size_y: 0.103
+
+# The old data from Dora, no OME
+200101_mitogfp_cos7_janeliasim_fl:
+  ome:
+    physical_size_x: 0.081
+    physical_size_y: 0.081
+  typically_use: no
+  augmented: yes
+  scale_csv: no
+  fps: 1
