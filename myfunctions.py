@@ -165,7 +165,7 @@ def get_gaussian(mu, sigma, size):
 
 
 def image_crop_negative(l,list_of_divisions, data, img, g_state, outputname, foldname):
-    
+    outnm = f'{outputname}_neg'
     division_list=[]
     for index_list in range(0, l):
         l1=len(list_of_divisions[index_list])
@@ -214,11 +214,10 @@ def image_crop_negative(l,list_of_divisions, data, img, g_state, outputname, fol
                 imcrop= img.crop(box_a)
 
                 dataar_a[frame_index_a, :, :] = np.array(imcrop)
-            outputname = f'{outputname}_neg'
             if g_state==0:
-                save_im(index_list, outputname, foldname, dataar_a)
+                save_im(index_list, outnm, foldname, dataar_a)
             if g_state==1:
-                save_gauss(index_list, outputname, foldname, dataar_a)
+                save_gauss(index_list, outnm, foldname, dataar_a)
 
 
 def augImg(input_img, output_img, transform, **kwargs):

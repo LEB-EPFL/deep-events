@@ -117,6 +117,7 @@ def extract_folders(path: Path):
         extract_foldername(folder)
         extract_ome(folder)
 
-extract_folders(MAIN_PATH)
+if __name__ == "__main__":
+    extract_folders(MAIN_PATH)
 
 # %%

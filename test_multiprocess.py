@@ -21,8 +21,8 @@ def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmen
     joined_path_neg = os.path.join(files_dir, images_neg_dir)
 
     all_image_array, all_image_array_gauss= import_fun(joined_path, files_dir, images_dir,sigma)
-    all_image_array_gauss, all_image_array= zero_frames(all_image_array.shape[1], all_image_array_gauss, all_image_array)
-    all_image_array_neg, all_image_array_gauss_neg = import_fun_neg(joined_path_neg,files_dir, images_neg_dir)
+    #all_image_array_gauss, all_image_array= zero_frames(all_image_array.shape[1], all_image_array_gauss, all_image_array)
+    all_image_array_neg, all_image_array_gauss_neg = import_fun(joined_path_neg,files_dir, images_neg_dir,sigma)
 
     all_image_array = np.concatenate((all_image_array,all_image_array_neg))
     all_image_array_gauss = np.concatenate((all_image_array_gauss,all_image_array_gauss_neg))
