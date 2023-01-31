@@ -52,8 +52,8 @@ def image_crop(l,list_of_divisions, data, img, g_state, outputname, foldname, SA
 
         for index_list1 in range(0,l1):
             division_list.append(list_of_divisions[index_list][index_list1])
-            minlist=division_list[0]
-            maxlist=division_list[index_list1]
+        minlist=division_list[0]
+        maxlist=division_list[index_list1]
 
         data_croped= data.iloc[minlist:maxlist+1,1:4]
         frame1=int(data_croped['axis-0'].min())
@@ -144,14 +144,14 @@ def delete_old_extracted_events(folder_dict, training_path):
 
 
 def save_gauss(index_list, outputname, foldname, dataar_gauss):
-        currname_crop_gauss = f'{outputname}_{index_list}gauss.tiff'
-        savepath=os.path.join(foldname,currname_crop_gauss)
-        tifffile.imwrite(savepath, (dataar_gauss).astype(np.uint8), photometric='minisblack')
+    currname_crop_gauss = f'{outputname}_{index_list}gauss.tiff'
+    savepath=os.path.join(foldname,currname_crop_gauss)
+    tifffile.imwrite(savepath, (dataar_gauss).astype(np.uint8), photometric='minisblack')
 
 def save_im(index_list, outputname, foldname, dataar):
-        currname_crop = f'{outputname}_{index_list}.tiff'
-        savepath= os.path.join(foldname,currname_crop)
-        tifffile.imwrite(savepath, (dataar).astype(np.uint16), photometric='minisblack')
+    currname_crop = f'{outputname}_{index_list}.tiff'
+    savepath= os.path.join(foldname,currname_crop)
+    tifffile.imwrite(savepath, (dataar).astype(np.uint16), photometric='minisblack')
 
 def get_gaussian(mu, sigma, size):
     mu = ((mu[1]+0.5-0.5*size[1])/(size[1]*0.5), (mu[0]+0.5-0.5*size[0])/(size[0]*0.5))
@@ -164,7 +164,8 @@ def get_gaussian(mu, sigma, size):
     return tf.reshape(gauss, size)
 
 
-def image_crop_negative(l,list_of_divisions, data, img, outputname,foldname):
+def image_crop_negative(l,list_of_divisions, data, img, g_state, outputname, foldname):
+    
     division_list=[]
     for index_list in range(0, l):
         l1=len(list_of_divisions[index_list])
@@ -176,10 +177,11 @@ def image_crop_negative(l,list_of_divisions, data, img, outputname,foldname):
         maxlist=division_list[index_list1]
 
         data_croped_after_event= data.iloc[minlist:maxlist+1,1:4]
-        frame_number_max=int(data_croped_after_event['axis-0'].max())
-        if frame_number_max<90:
-            frame1_after=frame_number_max
-            frame2_after=frame_number_max+10
+        max_frame_data=int(data_croped_after_event['axis-0'].max())
+        max_frame_img=img.n_frames
+        if max_frame_data< max_frame_img-10:
+            frame1_after=max_frame_data
+            frame2_after=max_frame_data+10
             ymean_after = data_croped_after_event['axis-1'].mean()
             xmean_after = data_croped_after_event['axis-2'].mean()
             y_moved_lower=ymean_after+64
@@ -207,15 +209,17 @@ def image_crop_negative(l,list_of_divisions, data, img, outputname,foldname):
             dataar_a=np.zeros((frame2_after-frame1_after+1, 256, 256))
 
             for frame_index_a, frame_number_a in enumerate(range (frame1_after, frame2_after+1)):
-                img.seek(frame_number_a) #starts from 0 I think?
+                img.seek(frame_number_a) 
                 box_a = (x_moved_lower, y_moved_lower, x_moved_upper, y_moved_upper) #choose dimensions of box
                 imcrop= img.crop(box_a)
 
                 dataar_a[frame_index_a, :, :] = np.array(imcrop)
+            outputname = f'{outputname}_neg'
+            if g_state==0:
+                save_im(index_list, outputname, foldname, dataar_a)
+            if g_state==1:
+                save_gauss(index_list, outputname, foldname, dataar_a)
 
-            currname_crop_a = f'{outputname}_{index_list}_neg.tiff'
-            savepath=os.path.join(foldname,currname_crop_a)
-            tifffile.imwrite(savepath, (dataar_a).astype(np.uint16), photometric='minisblack')
 
 def augImg(input_img, output_img, transform, **kwargs):
     #input_mask = (input_img>0).astype(np.uint8)
@@ -257,8 +261,8 @@ def poi(datacsv,input_name, sigma_trial, size_trial,total_frames):
         framenumber_in_row= int(datacsv.loc[row_number, 'axis-0'])
         fission_ycoord = int(datacsv.loc[row_number, 'axis-1'])
         fission_xcoord = int(datacsv.loc[row_number, 'axis-2'])
-        fission_coords=(fission_ycoord,fission_xcoord)
-        gaussian_points=get_gaussian(fission_coords,sigma_trial,size_trial)                                     #gets gaussian points at a single frame
+        fission_coords = (fission_ycoord,fission_xcoord)
+        gaussian_points = get_gaussian(fission_coords,sigma_trial,size_trial)                                     #gets gaussian points at a single frame
         gaussian_points = gaussian_points.numpy()                                                               #convers tensor into numpy array
         gaussian_points = gaussian_points/np.max(gaussian_points)                                               #divides by the max
         gaussian_points[gaussian_points < 0.1] = 0                                                              #sets background to zero

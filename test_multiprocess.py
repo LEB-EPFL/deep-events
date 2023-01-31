@@ -29,9 +29,8 @@ def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmen
 
                             ## NORMALIZATION ##
 
-    #norm_image_array= normalization_fun_glob(all_image_array)
     norm_image_array= normalization_fun_loc(all_image_array, k, ofs, perc, bf_fl)
-    norm_image_array_gauss = normalization_fun_g(all_image_array_gauss, perc)
+    norm_image_array_gauss = normalization_fun_g(all_image_array_gauss)
 
                             ## AUGMENTATION ##
 
