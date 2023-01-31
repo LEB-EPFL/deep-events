@@ -10,7 +10,7 @@ import numpy as np
 
 
 #%% setup
-MAIN_PATH = r'C:\Users\roumba\Documents\Software\deep-events\original_data'
+MAIN_PATH = r'\\lebnas1.epfl.ch\microsc125\deep_events\original_data'
 KEYS_PATH = os.path.dirname(os.path.realpath(__file__)) + "/keys.yaml"
 
 keys = benedict(KEYS_PATH)
@@ -44,6 +44,7 @@ def extract_foldername(folder: Path):
     folder_dict = get_dict(folder)
     folder_dict['date'] = date
     folder_dict['type'] = 'original'
+    folder_dict['extracted_events'] = []
     for key in keys.keys():
         matches = {x for x in keys[key] if x.lower() in str(folder).lower()}
         folder_dict[key] = matches
@@ -116,6 +117,6 @@ def extract_folders(path: Path):
         extract_foldername(folder)
         extract_ome(folder)
 
-
+extract_folders(MAIN_PATH)
 
 # %%
