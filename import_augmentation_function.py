@@ -162,21 +162,21 @@ def normalization_fun_g(data_second):
     return data_g_norm
 
 
-def import_fun_neg(joinpath, fdir, imdir):
-        ## this creates one aray of 3 columns and fills it will all the images ##
-    all_image_array_neg=np.zeros((256,256))[None, :, :]
+# def import_fun_neg(joinpath, fdir, imdir):
+#         ## this creates one aray of 3 columns and fills it will all the images ##
+#     all_image_array_neg=np.zeros((256,256))[None, :, :]
 
-    for image_file in os.listdir(joinpath):
-        # image, date, cell_type, bf_fl, index, number_gauss  = image_file.split('_')
-        joined_image_path = os.path.join(fdir, imdir, image_file)
+#     for image_file in os.listdir(joinpath):
+#         # image, date, cell_type, bf_fl, index, number_gauss  = image_file.split('_')
+#         joined_image_path = os.path.join(fdir, imdir, image_file)
 
-        img = Image.open(joined_image_path)
-        image_array = np.zeros((img.n_frames,256,256))
-        for i in range(0,img.n_frames):
-            img.seek(i)
-            image_array[i,:,:] = np.array(img)
-        all_image_array_neg= np.concatenate([all_image_array_neg, image_array])
+#         img = Image.open(joined_image_path)
+#         image_array = np.zeros((img.n_frames,256,256))
+#         for i in range(0,img.n_frames):
+#             img.seek(i)
+#             image_array[i,:,:] = np.array(img)
+#         all_image_array_neg= np.concatenate([all_image_array_neg, image_array])
 
-    all_image_array_neg= np.delete(all_image_array_neg, 0, axis=0) #removes the elements in the first axis which were just zeros
-    all_image_array_gauss_neg=np.zeros((np.shape(all_image_array_neg)))
-    return all_image_array_neg, all_image_array_gauss_neg
+#     all_image_array_neg= np.delete(all_image_array_neg, 0, axis=0) #removes the elements in the first axis which were just zeros
+#     all_image_array_gauss_neg=np.zeros((np.shape(all_image_array_neg)))
+#     return all_image_array_neg, all_image_array_gauss_neg
