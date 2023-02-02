@@ -8,7 +8,7 @@ import os
 from os import path
 import random as r
 import imageio
-from import_augmentation_function import import_fun, aug_fun, import_fun_neg, normalization_fun_glob, normalization_fun_loc, normalization_fun_g, import_aug_fun
+from import_augmentation_function import import_fun, aug_fun, normalization_fun_loc, normalization_fun_g
 import tensorflow as tf
 
 data_ratio= 0.1
