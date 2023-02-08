@@ -8,7 +8,7 @@ import os
 from os import path
 import random as r
 import imageio
-from import_augmentation_function import import_fun, aug_fun, normalization_fun_loc, normalization_fun_g
+from import_augmentation_function import import_fun, aug_fun, normalization_fun_loc, normalization_fun_g,import_aug_fun
 import tensorflow as tf
 
 data_ratio= 0.1
@@ -122,51 +122,69 @@ def zero_frames(size,datag,dataim):
 
 
 
-def load_aug_train_time(files_dir, images_dir,images_neg_dir, sigma, number_of_augmentations):
+def load_aug_train_time(files_dir, images_dir,images_neg_dir, sigma, number_of_augmentations,k,ofs,perc):
     date, dye, cell_type, microscope, bf_fl, pos_neg = images_dir.split('_')
     joined_path = os.path.join(files_dir, images_dir)
-    #joined_path_neg = os.path.join(files_dir, images_neg_dir)
+    joined_path_neg = os.path.join(files_dir, images_neg_dir)
 
-    data, data_gauss = import_aug_fun(joined_path, files_dir, images_dir,sigma, number_of_augmentations)
+    all_image_array, all_image_array_gauss, transformations= import_aug_fun(joined_path, files_dir, images_dir,sigma)
+    #all_image_array_gauss, all_image_array= zero_frames(all_image_array.shape[1], all_image_array_gauss, all_image_array)
+    all_image_array_neg, all_image_array_gauss_neg,transformations_neg = import_aug_fun(joined_path_neg,files_dir, images_neg_dir,sigma)
 
-    num= int(data.shape[0]*0.1)
-    frames=[]
-    for i in range(num):
-        frames[i]= r.randint(0,data.shape[0]+1)
-    for j in range(len(frames)):
-        data_aug = data[frames[j]]
-        data_gauss_aug = data_gauss[frames[j]]
+                            ## NORMALIZATION ##
 
+    norm_image_array= normalization_fun_loc(all_image_array, k, ofs, perc, bf_fl)
+    norm_image_array_gauss = normalization_fun_g(all_image_array_gauss)
+    norm_image_array_neg= normalization_fun_loc(all_image_array_neg, k, ofs, perc, bf_fl)
+    norm_image_array_gauss_neg = normalization_fun_g(all_image_array_gauss_neg)
 
-    data_crop = np.zeros((np.size(data_aug , 0),128,128))
-    data_crop_gauss = np.zeros((np.size(data_aug , 0),128,128))
-    data_cropp = np.zeros((np.size(data_val , 0),128,128))
-    data_cropp_gauss = np.zeros((np.size(data_val , 0),128,128))
+                            ## AUGMENTATION ##
+
+    augmentation_data, validation_data, augmentation_data_gauss, validation_data_gauss =  train_test_split(norm_image_array, norm_image_array_gauss,
+                                                                                                       test_size=data_ratio, random_state=data_split_state)
+
+    augmentation_data_neg, validation_data_neg, augmentation_data_gauss_neg, validation_data_gauss_neg =  train_test_split(norm_image_array_neg, norm_image_array_gauss_neg,
+                                                                                                       test_size=data_ratio, random_state=data_split_state)
+    size_init_aug= np.size(augmentation_data , 0) + np.size(augmentation_data_neg , 0)
+    size_init_val= np.size(validation_data , 0) + np.size(validation_data_neg , 0)
+    print(size_init_aug, size_init_val)
+    data_aug = np.zeros((size_init_aug,128,128))
+    data_gauss_aug = np.zeros((size_init_aug,128,128))
+    data_val = np.zeros((size_init_val,128,128))
+    data_gauss_val = np.zeros((size_init_val,128,128))
+    print(data_aug.shape, data_val.shape)
 
     for frame_index in range(np.size(data_aug , 0)):
-        data_crop[frame_index,:,:] = data_aug[frame_index, 64:192 , 64:192]
-        data_crop_gauss[frame_index,:,:] = data_gauss_aug[frame_index, 64:192 , 64:192]
-
+        if frame_index < np.size(augmentation_data , 0):
+            data_aug[frame_index,:,:] = augmentation_data[frame_index, 64:192 , 64:192]
+            data_gauss_aug[frame_index,:,:] = augmentation_data_gauss[frame_index, 64:192 , 64:192]
+        else: 
+            data_aug[frame_index,:,:] = augmentation_data_neg[frame_index, 64:192 , 64:192]
+            data_gauss_aug[frame_index,:,:] = augmentation_data_gauss[frame_index, 64:192 , 64:192]
     for frame_index in range(np.size(data_val , 0)):
-        data_cropp[frame_index,:,:] = data_val[frame_index, 64:192 , 64:192]
-        data_cropp_gauss[frame_index,:,:] = data_gauss_val[frame_index, 64:192 , 64:192]
+        if frame_index < np.size(validation_data , 0):
+            data_val[frame_index,:,:] = validation_data[frame_index, 64:192 , 64:192]
+            data_gauss_val[frame_index,:,:] = validation_data_gauss[frame_index, 64:192 , 64:192]
+        else:
+            data_val[frame_index,:,:] = validation_data_neg[frame_index, 64:192 , 64:192]
+            data_gauss_val[frame_index,:,:] = validation_data_gauss_neg[frame_index, 64:192 , 64:192]
 
+    for j in range(number_of_augmentations):
+        print('augmentation', j)
+        augment_data, augment_data_gauss = aug_fun(augmentation_data, augmentation_data_gauss,transformations)
+        augment_data_neg, augment_data_gauss_neg = aug_fun(augmentation_data_neg, augmentation_data_gauss_neg,transformations_neg)
+        data_aug = np.concatenate((data_aug, augment_data[:, 64:192 , 64:192], augment_data_neg[:, 64:192 , 64:192]))
+        data_gauss_aug = np.concatenate((data_gauss_aug,augment_data_gauss[:, 64:192 , 64:192], augment_data_gauss_neg[:, 64:192 , 64:192]))
 
-    data_aug=data_crop
-    data_gauss_aug=data_crop_gauss
-    data_val=data_cropp
-    data_gauss_val=data_cropp_gauss
+    # name1=f'{cell_type}_{microscope}_{bf_fl}_{sigma}_data_val.tiff'
+    # name2=f'{cell_type}_{microscope}_{bf_fl}_{sigma}_data_gauss_val.tiff'
+    # name3=f'{cell_type}_{microscope}_{bf_fl}_{sigma}_data_aug.tiff'
+    # name4=f'{cell_type}_{microscope}_{bf_fl}_{sigma}_data_gauss_aug.tiff'
 
-    name1=f'{cell_type}_{microscope}_{bf_fl}_data_val.tiff'
-    name2=f'{cell_type}_{microscope}_{bf_fl}_data_gauss_val.tiff'
-    name3=f'{cell_type}_{microscope}_{bf_fl}_data_aug.tiff'
-    name4=f'{cell_type}_{microscope}_{bf_fl}_data_gauss_aug.tiff'
-
-    imageio.mimwrite(name1, (data_val).astype(np.float64))
-    imageio.mimwrite(name2, (data_gauss_val).astype(np.float64))
-    imageio.mimwrite(name3, (data_aug).astype(np.float64))
-    imageio.mimwrite(name4, (data_gauss_aug).astype(np.float64))
-
+    # imageio.mimwrite(name1, (data_val).astype(np.float64))
+    # imageio.mimwrite(name2, (data_gauss_val).astype(np.float64))
+    # imageio.mimwrite(name3, (data_aug).astype(np.float64))
+    # imageio.mimwrite(name4, (data_gauss_aug).astype(np.float64))
     base_dir = r'C:\Users\roumba\Documents\Software\deep-events'
     model_path = base_dir + '\Models'
 
@@ -186,9 +204,6 @@ def load_aug_train_time(files_dir, images_dir,images_neg_dir, sigma, number_of_a
         print('Model:', model_name)
         model[model_name] = create_model(nb_filters, firstConvSize)
         history[model_name] = train_model(model[model_name], data_aug, data_gauss_aug, b, data_ratio)
-
-
-
 
     folder_name = list(model.keys())
 
