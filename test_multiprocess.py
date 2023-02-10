@@ -7,7 +7,7 @@ from albumentations import Compose, Rotate, RandomRotate90, HorizontalFlip, Flip
 import os
 from os import path
 import random as r
-import imageio
+import math
 from import_augmentation_function import import_fun, aug_fun, normalization_fun_loc, normalization_fun_g,import_aug_fun
 import tensorflow as tf
 
@@ -52,9 +52,6 @@ def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmen
         transform = Compose([Rotate(limit=45, p=0.5), RandomRotate90(p=0.5), HorizontalFlip(p=0.5), Flip(p=0.5), VerticalFlip(p=0.5)])
         print('augmentation', j)
         augment_data, augment_data_gauss = aug_fun(augmentation_data, augmentation_data_gauss,transform)
-        # for frame_index in range(np.size(augment_data , 0)):
-        #     augment_data[frame_index] = augment_data[frame_index, 64:192 , 64:192]
-        #     augment_data_gauss[frame_index] = augment_data_gauss[frame_index, 64:192 , 64:192]
         data_aug = np.concatenate((data_aug, augment_data[:, 64:192 , 64:192]))
         data_gauss_aug = np.concatenate((data_gauss_aug,augment_data_gauss[:, 64:192 , 64:192]))
 
@@ -106,75 +103,57 @@ def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmen
 
 
 
-
-def zero_frames(size,datag,dataim):
-    frame_check=np.zeros((size,size))
-    z_list=[]
-
-    for x in range(np.size(datag,0)):
-        frame_check = datag[x]
-        if not np.any(frame_check)==True:
-            z_list.append(x)
-
-    datag= np.delete(datag, z_list, axis=0)
-    dataim= np.delete(dataim, z_list, axis=0)
-    return datag,dataim
-
-
-
 def load_aug_train_time(files_dir, images_dir,images_neg_dir, sigma, number_of_augmentations,k,ofs,perc):
     date, dye, cell_type, microscope, bf_fl, pos_neg = images_dir.split('_')
     joined_path = os.path.join(files_dir, images_dir)
     joined_path_neg = os.path.join(files_dir, images_neg_dir)
 
-    all_image_array, all_image_array_gauss, transformations= import_aug_fun(joined_path, files_dir, images_dir,sigma)
+    all_image_array, all_image_array_gauss= import_aug_fun(joined_path, files_dir, images_dir,sigma)
     #all_image_array_gauss, all_image_array= zero_frames(all_image_array.shape[1], all_image_array_gauss, all_image_array)
-    all_image_array_neg, all_image_array_gauss_neg,transformations_neg = import_aug_fun(joined_path_neg,files_dir, images_neg_dir,sigma)
+    all_image_array_neg, all_image_array_gauss_neg = import_aug_fun(joined_path_neg,files_dir, images_neg_dir,sigma)
+
+    all_image_array = np.concatenate((all_image_array,all_image_array_neg))
+    all_image_array_gauss = np.concatenate((all_image_array_gauss,all_image_array_gauss_neg))
 
                             ## NORMALIZATION ##
+    norm_image_array= np.zeros(np.shape(all_image_array))
+    norm_image_array_gauss= np.zeros(np.shape(all_image_array_gauss))
+    for n_vid in range(0,np.size(all_image_array , 0)):
+        norm_image_array[n_vid]= normalization_fun_loc(all_image_array[n_vid], k, ofs, perc, bf_fl)
+        norm_image_array_gauss[n_vid] = normalization_fun_g(all_image_array_gauss[n_vid])
 
-    norm_image_array= normalization_fun_loc(all_image_array, k, ofs, perc, bf_fl)
-    norm_image_array_gauss = normalization_fun_g(all_image_array_gauss)
-    norm_image_array_neg= normalization_fun_loc(all_image_array_neg, k, ofs, perc, bf_fl)
-    norm_image_array_gauss_neg = normalization_fun_g(all_image_array_gauss_neg)
-
-                            ## AUGMENTATION ##
-
+                            ## SPLIT TRAINING SET AND TEST SET ##
+    
     augmentation_data, validation_data, augmentation_data_gauss, validation_data_gauss =  train_test_split(norm_image_array, norm_image_array_gauss,
                                                                                                        test_size=data_ratio, random_state=data_split_state)
+                            ## AUGMENTATION ##
 
-    augmentation_data_neg, validation_data_neg, augmentation_data_gauss_neg, validation_data_gauss_neg =  train_test_split(norm_image_array_neg, norm_image_array_gauss_neg,
-                                                                                                       test_size=data_ratio, random_state=data_split_state)
-    size_init_aug= np.size(augmentation_data , 0) + np.size(augmentation_data_neg , 0)
-    size_init_val= np.size(validation_data , 0) + np.size(validation_data_neg , 0)
-    print(size_init_aug, size_init_val)
-    data_aug = np.zeros((size_init_aug,128,128))
-    data_gauss_aug = np.zeros((size_init_aug,128,128))
-    data_val = np.zeros((size_init_val,128,128))
-    data_gauss_val = np.zeros((size_init_val,128,128))
-    print(data_aug.shape, data_val.shape)
+    data_aug = np.zeros((np.size(augmentation_data , 0),3,128,128))
+    data_gauss_aug = np.zeros((np.size(augmentation_data , 0),3,128,128))
+    data_val = np.zeros((np.size(validation_data , 0),3,128,128))
+    data_gauss_val = np.zeros((np.size(validation_data , 0),3,128,128))
 
     for frame_index in range(np.size(data_aug , 0)):
-        if frame_index < np.size(augmentation_data , 0):
-            data_aug[frame_index,:,:] = augmentation_data[frame_index, 64:192 , 64:192]
-            data_gauss_aug[frame_index,:,:] = augmentation_data_gauss[frame_index, 64:192 , 64:192]
-        else: 
-            data_aug[frame_index,:,:] = augmentation_data_neg[frame_index, 64:192 , 64:192]
-            data_gauss_aug[frame_index,:,:] = augmentation_data_gauss[frame_index, 64:192 , 64:192]
+        data_aug[frame_index,:,:,:] = augmentation_data[frame_index,:, 64:192 , 64:192]
+        data_gauss_aug[frame_index,:,:,:] = augmentation_data_gauss[frame_index,:, 64:192 , 64:192]
     for frame_index in range(np.size(data_val , 0)):
-        if frame_index < np.size(validation_data , 0):
-            data_val[frame_index,:,:] = validation_data[frame_index, 64:192 , 64:192]
-            data_gauss_val[frame_index,:,:] = validation_data_gauss[frame_index, 64:192 , 64:192]
-        else:
-            data_val[frame_index,:,:] = validation_data_neg[frame_index, 64:192 , 64:192]
-            data_gauss_val[frame_index,:,:] = validation_data_gauss_neg[frame_index, 64:192 , 64:192]
+        data_val[frame_index,:,:,:] = validation_data[frame_index,:, 64:192 , 64:192]
+        data_gauss_val[frame_index,:,:,:] = validation_data_gauss[frame_index,:, 64:192 , 64:192]
 
     for j in range(number_of_augmentations):
         print('augmentation', j)
-        augment_data, augment_data_gauss = aug_fun(augmentation_data, augmentation_data_gauss,transformations)
-        augment_data_neg, augment_data_gauss_neg = aug_fun(augmentation_data_neg, augmentation_data_gauss_neg,transformations_neg)
-        data_aug = np.concatenate((data_aug, augment_data[:, 64:192 , 64:192], augment_data_neg[:, 64:192 , 64:192]))
-        data_gauss_aug = np.concatenate((data_gauss_aug,augment_data_gauss[:, 64:192 , 64:192], augment_data_gauss_neg[:, 64:192 , 64:192]))
+        augment_data = np.zeros(np.shape(augmentation_data))
+        augment_data_gauss = np.zeros(np.shape(augmentation_data))
+        for n_vid in range(0,np.size(data_aug , 0)):
+            p_rot = r.randint(0, 1) 
+            p_rot9 = r.randint(0, 1)
+            p_hor = r.randint(0, 1)
+            p_flip = r.randint(0, 1)
+            p_vert = r.randint(0, 1)
+            t = Compose([Rotate(limit=45, p=p_rot), RandomRotate90(p=p_rot9), HorizontalFlip(p=p_hor), Flip(p=p_flip), VerticalFlip(p=p_vert)])
+            augment_data[n_vid], augment_data_gauss[n_vid] = aug_fun(augmentation_data[n_vid], augmentation_data_gauss[n_vid],t)
+            data_aug = np.concatenate((data_aug, augment_data[:,3, 64:192 , 64:192]))
+            data_gauss_aug = np.concatenate((data_gauss_aug,augment_data_gauss[:,3, 64:192 , 64:192]))
 
     # name1=f'{cell_type}_{microscope}_{bf_fl}_{sigma}_data_val.tiff'
     # name2=f'{cell_type}_{microscope}_{bf_fl}_{sigma}_data_gauss_val.tiff'

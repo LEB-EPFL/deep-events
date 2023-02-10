@@ -63,7 +63,6 @@ def normalization_fun_loc(data_first, k,ofs, perc, bf_fl):
     final_loc_bin=np.zeros((np.size(data_first,0),np.size(data_first,1),np.size(data_first,2)))
     kk=1/(1-perc)
     if bf_fl=='fl':
-        print('fluorescent removal')
         for framenumber in range(np.size(data_first, 0)):
             data_g = (data_first[framenumber])/(np.max(data_first[framenumber])) 
             data_g = data_g-perc
@@ -73,7 +72,6 @@ def normalization_fun_loc(data_first, k,ofs, perc, bf_fl):
             image_loc_bin[image_loc_bin < local_thresh] = 0
             final_loc_bin[framenumber,:,:] = image_loc_bin
     elif bf_fl=='bf':
-        print('brightfield removal')
         for framenumber in range(np.size(data_first, 0)):
             data_g = (data_first[framenumber])/(np.max(data_first[framenumber])) 
             data_g = data_g - perc
