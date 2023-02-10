@@ -152,8 +152,8 @@ def load_aug_train_time(files_dir, images_dir,images_neg_dir, sigma, number_of_a
             p_vert = r.randint(0, 1)
             t = Compose([Rotate(limit=45, p=p_rot), RandomRotate90(p=p_rot9), HorizontalFlip(p=p_hor), Flip(p=p_flip), VerticalFlip(p=p_vert)])
             augment_data[n_vid], augment_data_gauss[n_vid] = aug_fun(augmentation_data[n_vid], augmentation_data_gauss[n_vid],t)
-            data_aug = np.concatenate((data_aug, augment_data[:,3, 64:192 , 64:192]))
-            data_gauss_aug = np.concatenate((data_gauss_aug,augment_data_gauss[:,3, 64:192 , 64:192]))
+            data_aug = np.concatenate((data_aug, augment_data[:,:, 64:192 , 64:192]))
+            data_gauss_aug = np.concatenate((data_gauss_aug,augment_data_gauss[:,:, 64:192 , 64:192]))
 
     # name1=f'{cell_type}_{microscope}_{bf_fl}_{sigma}_data_val.tiff'
     # name2=f'{cell_type}_{microscope}_{bf_fl}_{sigma}_data_gauss_val.tiff'
