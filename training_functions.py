@@ -10,14 +10,17 @@ from sklearn.utils import shuffle
 
 from sklearn.model_selection import train_test_split
 
-def create_model(nb_filters=8, firstConvSize=9, nb_input_channels=1, printSummary=False, ):    
+def create_model(nb_filters, firstConvSize, nb_input_channels, printSummary=False, ):    
     #Hyperparameters
     optimizer_type = Adam(learning_rate=0.5e-3)
     loss = 'binary_crossentropy'
     metrics = [BinaryAccuracy()]
     
     #Network architecture
-    input_shape = (None, None, nb_input_channels)
+    if nb_input_channels==1:
+        input_shape = (None, None)
+    elif nb_input_channels==3:
+        input_shape = (nb_input_channels, None, None)
     inputs = Input(shape=input_shape)
 
     # Encoder

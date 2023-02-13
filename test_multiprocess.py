@@ -93,7 +93,8 @@ def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmen
         b=batch_size[1]
         model_name = 'ref_f%i_c%i_b%i'%(nb_filters, firstConvSize, b)
         print('Model:', model_name)
-        model[model_name] = create_model(nb_filters, firstConvSize)
+        nb_filters, firstConvSize, nb_input_channels = 8, 9, 1
+        model[model_name] = create_model(nb_filters, firstConvSize, nb_input_channels)
         history[model_name] = train_model(model[model_name], data_aug, data_gauss_aug, b, data_ratio)
 
     folder_name = list(model.keys())
@@ -181,7 +182,8 @@ def load_aug_train_time(files_dir, images_dir,images_neg_dir, sigma, number_of_a
         b=batch_size[1]
         model_name = 'ref_f%i_c%i_b%i'%(nb_filters, firstConvSize, b)
         print('Model:', model_name)
-        model[model_name] = create_model(nb_filters, firstConvSize)
+        nb_filters, firstConvSize, nb_input_channels = 8, 9, 3
+        model[model_name] = create_model(nb_filters, firstConvSize, nb_input_channels)
         history[model_name] = train_model(model[model_name], data_aug, data_gauss_aug, b, data_ratio)
 
     folder_name = list(model.keys())
