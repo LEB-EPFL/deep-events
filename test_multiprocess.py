@@ -15,14 +15,10 @@ data_ratio= 0.1
 data_split_state = None
 
 
-def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmentations,k,ofs,perc):
-    date, dye, cell_type, microscope, bf_fl, pos_neg = images_dir.split('_')
-    joined_path = os.path.join(files_dir, images_dir)
-    joined_path_neg = os.path.join(files_dir, images_neg_dir)
+def load_aug(joined_path, joined_path_neg, sigma, number_of_augmentations,k,ofs,perc,bf_fl):
 
-    all_image_array, all_image_array_gauss= import_fun(joined_path, files_dir, images_dir,sigma)
-    #all_image_array_gauss, all_image_array= zero_frames(all_image_array.shape[1], all_image_array_gauss, all_image_array)
-    all_image_array_neg, all_image_array_gauss_neg = import_fun(joined_path_neg,files_dir, images_neg_dir,sigma)
+    all_image_array, all_image_array_gauss= import_fun(joined_path,sigma)
+    all_image_array_neg, all_image_array_gauss_neg = import_fun(joined_path_neg,sigma)
 
     all_image_array = np.concatenate((all_image_array,all_image_array_neg))
     all_image_array_gauss = np.concatenate((all_image_array_gauss,all_image_array_gauss_neg))
@@ -57,61 +53,16 @@ def load_aug_train(files_dir, images_dir,images_neg_dir, sigma, number_of_augmen
 
                                 ## SHUFFLE ##
 
-    shuffle_array_val= np.arange(0, data_val.shape[0], 1)
-    shuffle_array_aug= np.arange(0, data_aug.shape[0], 1)
-    r.shuffle(shuffle_array_val)
-    r.shuffle(shuffle_array_aug)
+    data_val,data_gauss_val,data_aug,data_gauss_aug = shuffle(data_val,data_gauss_val,data_aug,data_gauss_aug)
 
-    data_val=data_val[shuffle_array_val]
-    data_gauss_val=data_gauss_val[shuffle_array_val]
-    data_aug=data_aug[shuffle_array_aug]
-    data_gauss_aug=data_gauss_aug[shuffle_array_aug]
-
-    # name1=f'{cell_type}_{microscope}_{bf_fl}_{sigma}_data_val.tiff'
-    # name2=f'{cell_type}_{microscope}_{bf_fl}_{sigma}_data_gauss_val.tiff'
-    # name3=f'{cell_type}_{microscope}_{bf_fl}_{sigma}_data_aug.tiff'
-    # name4=f'{cell_type}_{microscope}_{bf_fl}_{sigma}_data_gauss_aug.tiff'
-
-    # imageio.mimwrite(name1, (data_val).astype(np.float64))
-    # imageio.mimwrite(name2, (data_gauss_val).astype(np.float64))
-    # imageio.mimwrite(name3, (data_aug).astype(np.float64))
-    # imageio.mimwrite(name4, (data_gauss_aug).astype(np.float64))
-    base_dir = r'C:\Users\roumba\Documents\Software\deep-events'
-    model_path = base_dir + '\Models'
-
-    gpu = tf.config.list_physical_devices('GPU')[0]
-    tf.config.experimental.set_memory_growth(gpu, True)
-    gpu = tf.device('GPU:0/')
-
-    with gpu:
-        print(gpu)
-        nb_filters = 8
-        firstConvSize = 9
-        batch_size = [8, 16, 32, 256]
-        model, history= {}, {}
-
-        b=batch_size[1]
-        model_name = 'ref_f%i_c%i_b%i'%(nb_filters, firstConvSize, b)
-        print('Model:', model_name)
-        nb_filters, firstConvSize, nb_input_channels = 8, 9, 1
-        model[model_name] = create_model(nb_filters, firstConvSize, nb_input_channels)
-        history[model_name] = train_model(model[model_name], data_aug, data_gauss_aug, b, data_ratio)
-
-    folder_name = list(model.keys())
-
-    util.save_model(model, model_path, [f'model_{cell_type}_{microscope}_{bf_fl}_{sigma}']*len(model), folder_name)
-    util.save_pkl(history, model_path, [f'history_{cell_type}_{microscope}_{bf_fl}_{sigma}']*len(model), folder_name)
+    return data_aug,data_gauss_aug, data_val, data_gauss_val
+    
 
 
+def load_aug_time(joined_path, joined_path_neg, sigma, number_of_augmentations,k,ofs,perc,bf_fl):
 
-def load_aug_train_time(files_dir, images_dir,images_neg_dir, sigma, number_of_augmentations,k,ofs,perc):
-    date, dye, cell_type, microscope, bf_fl, pos_neg = images_dir.split('_')
-    joined_path = os.path.join(files_dir, images_dir)
-    joined_path_neg = os.path.join(files_dir, images_neg_dir)
-
-    all_image_array, all_image_array_gauss= import_aug_fun(joined_path, files_dir, images_dir,sigma)
-    #all_image_array_gauss, all_image_array= zero_frames(all_image_array.shape[1], all_image_array_gauss, all_image_array)
-    all_image_array_neg, all_image_array_gauss_neg = import_aug_fun(joined_path_neg,files_dir, images_neg_dir,sigma)
+    all_image_array, all_image_array_gauss= import_aug_fun(joined_path,sigma)
+    all_image_array_neg, all_image_array_gauss_neg = import_aug_fun(joined_path_neg,sigma)
 
     all_image_array = np.concatenate((all_image_array,all_image_array_neg))
     all_image_array_gauss = np.concatenate((all_image_array_gauss,all_image_array_gauss_neg))
@@ -159,7 +110,11 @@ def load_aug_train_time(files_dir, images_dir,images_neg_dir, sigma, number_of_a
 
     
                             ## SHUFFLE ##
+    data_val,data_gauss_val,data_aug,data_gauss_aug = shuffle(data_val,data_gauss_val,data_aug,data_gauss_aug)
+    return data_aug,data_gauss_aug, data_val, data_gauss_val
 
+
+def shuffle(data_val,data_gauss_val,data_aug,data_gauss_aug):
     shuffle_array_val= np.arange(0, data_val.shape[0], 1)
     shuffle_array_aug= np.arange(0, data_aug.shape[0], 1)
     r.shuffle(shuffle_array_val)
@@ -169,16 +124,9 @@ def load_aug_train_time(files_dir, images_dir,images_neg_dir, sigma, number_of_a
     data_gauss_val=data_gauss_val[shuffle_array_val]
     data_aug=data_aug[shuffle_array_aug]
     data_gauss_aug=data_gauss_aug[shuffle_array_aug]
+    return data_val,data_gauss_val,data_aug,data_gauss_aug
 
-    # name1=f'{cell_type}_{microscope}_{bf_fl}_{sigma}_data_val.tiff'
-    # name2=f'{cell_type}_{microscope}_{bf_fl}_{sigma}_data_gauss_val.tiff'
-    # name3=f'{cell_type}_{microscope}_{bf_fl}_{sigma}_data_aug.tiff'
-    # name4=f'{cell_type}_{microscope}_{bf_fl}_{sigma}_data_gauss_aug.tiff'
-
-    # imageio.mimwrite(name1, (data_val).astype(np.float64))
-    # imageio.mimwrite(name2, (data_gauss_val).astype(np.float64))
-    # imageio.mimwrite(name3, (data_aug).astype(np.float64))
-    # imageio.mimwrite(name4, (data_gauss_aug).astype(np.float64))
+def training(data_aug,data_gauss_aug,dim,cell_type,microscope,bf_fl,sigma):
     base_dir = r'C:\Users\roumba\Documents\Software\deep-events'
     model_path = base_dir + '\Models'
 
@@ -196,7 +144,7 @@ def load_aug_train_time(files_dir, images_dir,images_neg_dir, sigma, number_of_a
         b=batch_size[1]
         model_name = 'ref_f%i_c%i_b%i'%(nb_filters, firstConvSize, b)
         print('Model:', model_name)
-        nb_filters, firstConvSize, nb_input_channels = 8, 9, 3
+        nb_filters, firstConvSize, nb_input_channels = 8, 9, dim
         model[model_name] = create_model(nb_filters, firstConvSize, nb_input_channels)
         history[model_name] = train_model(model[model_name], data_aug, data_gauss_aug, b, data_ratio)
 

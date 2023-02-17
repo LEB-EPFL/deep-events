@@ -8,7 +8,6 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.metrics import BinaryAccuracy
 from sklearn.utils import shuffle
 
-from sklearn.model_selection import train_test_split
 
 def create_model(nb_filters, firstConvSize, nb_input_channels, printSummary=False, ):    
     #Hyperparameters
@@ -20,7 +19,7 @@ def create_model(nb_filters, firstConvSize, nb_input_channels, printSummary=Fals
     if nb_input_channels==1:
         input_shape = (None, None)
     elif nb_input_channels==3:
-        input_shape = (nb_input_channels, None, None)
+        input_shape = (None,nb_input_channels, None, None)
     inputs = Input(shape=input_shape)
 
     # Encoder
