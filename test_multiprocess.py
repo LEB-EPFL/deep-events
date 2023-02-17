@@ -121,6 +121,7 @@ def load_aug_train_time(files_dir, images_dir,images_neg_dir, sigma, number_of_a
     norm_image_array_gauss= np.zeros(np.shape(all_image_array_gauss))
     for n_vid in range(0,np.size(all_image_array , 0)):
         norm_image_array[n_vid]= normalization_fun_loc(all_image_array[n_vid], k, ofs, perc, bf_fl)
+    for n_vid in range(0,np.size(all_image_array_gauss , 0)):
         norm_image_array_gauss[n_vid] = normalization_fun_g(all_image_array_gauss[n_vid])
 
                             ## SPLIT TRAINING SET AND TEST SET ##
@@ -142,10 +143,10 @@ def load_aug_train_time(files_dir, images_dir,images_neg_dir, sigma, number_of_a
         data_gauss_val[frame_index,:,:,:] = validation_data_gauss[frame_index,:, 64:192 , 64:192]
 
     for n_vid in range(0,np.size(data_aug , 0)):
-        augment_data = np.zeros(number_of_augmentations,3,128,128)
-        augment_data_gauss = np.zeros(number_of_augmentations,3,128,128)
+        augment_data = np.zeros((number_of_augmentations,3,256,256))
+        augment_data_gauss = np.zeros((number_of_augmentations,3,256,256))
         for j in range(number_of_augmentations):
-            print('augmentation', j)
+            print('augmentation', j+1)
             p_rot = r.randint(0, 1) 
             p_rot9 = r.randint(0, 1)
             p_hor = r.randint(0, 1)

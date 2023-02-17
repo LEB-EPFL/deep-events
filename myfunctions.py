@@ -10,6 +10,8 @@ import tifffile
 from bson.objectid import ObjectId
 from database.extract_yaml import save_dict
 import shutil
+from skimage import filters, segmentation, feature, measure, morphology
+import scipy.ndimage as ndi
 
 def event_separation(data):
     #this function takes in the data from the excel file and splits them into a nested list: each list within the nested list corresponds to the excel lines of a single division
@@ -220,7 +222,7 @@ def image_crop_negative(l,list_of_divisions, data, img, g_state, outputname, fol
                 save_gauss(index_list, outnm, foldname, dataar_a)
 
 
-def augImg(input_img, output_img, transform, **kwargs):
+def augImg(input_img, output_img, transform):
     #input_mask = (input_img>0).astype(np.uint8)
     transformed = transform(image=input_img, image0=output_img)
 
@@ -228,12 +230,12 @@ def augImg(input_img, output_img, transform, **kwargs):
     return aug_input_img.astype(np.float64), aug_output_img
 
 
-def augStack(input_data, output_data, transform, **kwargs):
+def augStack(input_data, output_data, transform):
     aug_input_data = np.zeros(input_data.shape, dtype=np.float64)
     aug_output_data = np.zeros(output_data.shape, dtype=np.float32)
 
     for i in tqdm(range(input_data.shape[0]), total=input_data.shape[0]):
-        aug_input_data[i], aug_output_data[i]= augImg(input_data[i], output_data[i], transform, **kwargs)
+        aug_input_data[i], aug_output_data[i]= augImg(input_data[i], output_data[i], transform)
     return aug_input_data, aug_output_data
 
 
@@ -273,3 +275,24 @@ def poi(datacsv,input_name, sigma_trial, size_trial,total_frames):
     #TODO We could save this as float and save all of the work when we load it later
     tifffile.imwrite(input_name, (points_of_interest*254).astype(np.uint8))
     return
+
+import cv2 as cv
+def find_int(int_dir, thresh):
+    coords=np.zeros(1,1)
+    for image_file in int_dir:
+        # change it with your absolute path for the image
+        image = cv.imread(image_file)
+        blur = cv.GaussianBlur(image, (5, 5),cv.BORDER_DEFAULT)
+        ret, thresh = cv.threshold(blur, 0.5, 1, cv.THRESH_BINARY_INV)
+
+        contours, hierarchies = cv.findContours(thresh, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+        for i in contours:
+            M = cv.moments(i)
+            if M['m00'] != 0:
+                cx = int(M['m10']/M['m00'])
+                cy = int(M['m01']/M['m00'])
+                #cv.drawContours(image, [i], -1, (0, 255, 0), 2)
+                #cv.circle(image, (cx, cy), 7, (0, 0, 255), -1)
+                #cv.putText(image, "center", (cx - 20, cy - 20), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+            coords.append(cy,cx)
+    coords= np.delete(coords, 0, axis=0)
