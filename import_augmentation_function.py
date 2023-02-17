@@ -10,14 +10,14 @@ from myfunctions import augStack,augImg
 
 
 
-def import_fun(joinpath, fdir, imdir,sigma_chosen):
+def import_fun(joinpath,sigma_chosen):
         ## this creates one aray of 3 columns and fills it will all the images ##
     all_image_array=np.zeros((256,256))[None, :, :]
     all_image_array_gauss=np.zeros((256,256))[None, :, :]
 
     for image_file in os.listdir(joinpath):
         # image, date, cell_type, bf_fl, index, number_gauss  = image_file.split('_')
-        joined_image_path = os.path.join(fdir, imdir, image_file)
+        joined_image_path = os.path.join(joinpath, image_file)
 
         if 'gauss' in image_file:
             if 'neg' in image_file:
@@ -111,13 +111,13 @@ def normalization_fun_g(data_second):
 
 
 
-def import_aug_fun(joinpath, fdir, imdir, sigma_chosen):
+def import_aug_fun(joinpath, sigma_chosen):
         ## this should conserve memory##
     all_image_array=np.zeros((3,256,256))[None,:, :, :]
     all_image_array_gauss=np.zeros((3,256,256))[None,:, :, :]
 
     for image_file in os.listdir(joinpath):
-        joined_image_path = os.path.join(fdir, imdir, image_file)
+        joined_image_path = os.path.join(joinpath, image_file)
         image = Image.open(joined_image_path)
         framenum=image.n_frames
 
