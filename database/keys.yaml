@@ -2,6 +2,7 @@ stain:
   - mtstaygold
   - mitotrackergreen
   - mtstaygold
+  - mitogfp
 
 cell_line:
   - cos7
@@ -10,7 +11,14 @@ cell_line:
 microscope:
   - isim
   - zeiss
+  - janeliasim
 
 contrast:
   - fl
   - bf
+
+# Defaults of manually set values
+defaults:
+  typically_use: yes
+  augmented: no
+  scale_csv: yes
