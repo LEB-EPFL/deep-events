@@ -64,7 +64,8 @@ def produce_gaussians(data, path = ""):
                 original_folder = os.path.basename(path)
             in_name=f'{original_folder}_{x+1}_sigma{s}.tiff'
             framenum=im.n_frames
-            poi(csv,in_name,sigma,im.size,framenum, path=path)
+            im_shape = (im.height, im.width)
+            poi(csv,in_name,sigma,im.size,framenum, im_shape, path=path)
 
 
 def crop_data(data, path = ""):
@@ -133,4 +134,4 @@ def do_all():
         main(folder)
 
 if __name__ == "__main__":
-    do_all()
+    main("200101_mitogfp_cos7_janeliasim_fl")
