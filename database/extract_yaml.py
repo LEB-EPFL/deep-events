@@ -62,9 +62,7 @@ def set_defaults(folder:Path):
     except KeyError:
         # No manual entries for this folder
         pass
-
     save_dict(folder_dict)
-
 
 
 def extract_foldername(folder: Path):
