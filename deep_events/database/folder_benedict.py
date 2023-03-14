@@ -5,6 +5,15 @@ folders. Saving is handled by info inside the dicts and entries can be set recur
 import os
 from benedict import benedict
 
+def handle_folder_dict(func):
+    def wrapper(folder_dict, *args, **kwargs):
+
+        if not isinstance(folder_dict, dict):
+            folder_dict = get_dict(folder_dict)
+        folder_dict = func(folder_dict, *args, **kwargs)
+        save_dict(folder_dict)
+        return folder_dict
+    return wrapper
 
 
 def get_dict(folder: str):
