@@ -18,6 +18,7 @@ keys = benedict(KEYS_PATH)
 
 def recursive_folder(folder: Path):
     folder_dict = get_dict(folder)
+    folder_dict['type'] = 'original'
     subpath = folder
     while subpath != os.path.dirname(subpath):
         set_manual(folder_dict, subpath)
@@ -29,6 +30,8 @@ def check_minimal(folder: Path):
     folder_dict = get_dict(folder)
     present_keys = folder_dict.keys()
     min_keys = list(keys.keys())
+    min_keys.remove('defaults')
+    min_keys.extend(list(keys['defaults'].keys()))
     matched_keys = [key in present_keys for key in min_keys]
     return all(matched_keys)
 
@@ -43,11 +46,11 @@ def delete_db_files(folder: Path):
 def set_defaults(folder_dict: Union[dict, str, Path]):
     "Get default settings from file and set them to the local yaml"
 
-    folder_dict['type'] = 'original'
     default_keys = benedict(KEYS_PATH)['defaults']
 
     for key, value in default_keys.items():
-        folder_dict[key] = value
+        if not key in folder_dict.keys():
+            folder_dict[key] = value
     return folder_dict
 
 
@@ -79,11 +82,22 @@ def extract_foldername(folder_dict: Union[dict, str, Path], folder):
     if not 'original_folder' in folder_dict.keys():
         folder_dict['original_folder'] = os.path.basename(folder)
 
+
     for key in keys.keys():
+        # Check if this field is already set.
         if not key in folder_dict.keys():
-            matches = {x for x in keys[key] if x.lower() in str(folder).lower()}
-            if matches:
-                folder_dict[key] = matches
+            all_matches = []
+            for tag in keys[key]:
+                if isinstance(tag, list):
+                    matches = [subtag.lower() in str(folder).lower() for subtag in tag]
+                    if any(matches):
+                        all_matches.append(tag[0])
+                else:
+                    matches = tag.lower() in str(folder).lower()
+                    if matches:
+                        all_matches.append(tag)
+            if all_matches:
+                folder_dict[key] = all_matches
     return folder_dict
 
 

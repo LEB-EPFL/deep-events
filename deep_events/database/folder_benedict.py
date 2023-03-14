@@ -21,8 +21,6 @@ def get_dict(folder: str):
     try:
         folder_dict = benedict(os.path.join(folder, "db.yaml"))
     except ValueError:
-        print(f"""Dict not found at {folder}
-                  Constructing new""")
         folder_dict = benedict(benedict().
                                to_yaml(filepath=os.path.join(folder, "db.yaml")))
     folder_dict['original_path'] = folder

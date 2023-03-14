@@ -1,6 +1,7 @@
 #%%
 from pathlib import Path
 import os
+from warnings import warn
 
 import extract_yaml
 
@@ -17,9 +18,11 @@ tif_files = list(Path(folder).rglob(r'*.ome.tif*'))
 
 
 for file in tif_files:
-    extract_yaml.set_defaults(os.path.dirname(file))
     extract_yaml.recursive_folder(os.path.dirname(file))
-
+    extract_yaml.set_defaults(os.path.dirname(file))
+    minimal_present = extract_yaml.check_minimal(os.path.dirname(file))
+    if not minimal_present:
+        warn(f"Folder {os.path.dirname(file)} does not have all necessary entries.")
 
 
 # %%
