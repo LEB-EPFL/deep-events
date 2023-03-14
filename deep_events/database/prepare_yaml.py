@@ -17,5 +17,9 @@ tif_files = list(Path(folder).rglob(r'*.ome.tif*'))
 
 
 for file in tif_files:
-    print(file)
     extract_yaml.set_defaults(os.path.dirname(file))
+    extract_yaml.recursive_folder(os.path.dirname(file))
+
+
+
+# %%
