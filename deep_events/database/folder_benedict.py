@@ -42,6 +42,5 @@ def set_dict_entry(my_dict, key, value):
     if not isinstance(value, dict):
         my_dict[key] = value
     else:
-        for sub_key, sub_value in value.items():
-            my_dict = set_dict_entry(my_dict[key], sub_key, sub_value)
+        my_dict[key] = benedict(value)
     return my_dict

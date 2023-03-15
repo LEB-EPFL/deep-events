@@ -60,7 +60,8 @@ def set_manual(folder_dict: Union[dict, str, Path], folder):
     try:
         manual_entries = benedict(os.path.join(folder, "db_manual.yaml"))
         for key, value in manual_entries.items():
-            set_dict_entry(folder_dict, key, value)
+            # folder_dict[key] = value
+            folder_dict = set_dict_entry(folder_dict, key, value)
     except (KeyError, ValueError) as e:
         # No manual entries for this folder
         pass

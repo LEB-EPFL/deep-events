@@ -4,7 +4,7 @@ import os
 from warnings import warn
 
 import extract_yaml
-
+import ome_to_yaml
 
 
 folder = "Z:/_Lab members/Juan/230222_MitoSplitNet_TrainingSet_U2OS_iSIM/"
@@ -17,6 +17,7 @@ extract_yaml.delete_db_files(folder)
 tif_files = list(Path(folder).rglob(r'*.ome.tif*'))
 
 
+# Do the yaml file from the information in files and folder names
 for file in tif_files:
     extract_yaml.recursive_folder(os.path.dirname(file))
     extract_yaml.set_defaults(os.path.dirname(file))
@@ -24,5 +25,22 @@ for file in tif_files:
     if not minimal_present:
         warn(f"Folder {os.path.dirname(file)} does not have all necessary entries.")
 
+
+# Get the tif files that we want to look at for the OME metadata
+# The oldest one should have the most true OME data
+db_files = list(Path(folder).rglob(r'db.yaml'))
+tif_files = []
+for db_file in db_files[1:]:
+    print(db_file)
+    tifs = sorted(Path(os.path.dirname(db_file)).glob(r'*.ome.tif'), key=os.path.getmtime)
+    tif_files.append(tifs[0])
+tif_files = [str(file) for file in tif_files]
+
+
+# Get the OME fields from the tif_files
+
+for tif in tif_files:
+    print(str(tif))
+    ome_to_yaml.extract_ome(tif)
 
 # %%

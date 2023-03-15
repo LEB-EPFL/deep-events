@@ -4,20 +4,25 @@ import re
 
 import numpy as np
 import tifffile
-from database.folder_benedict import get_dict, save_dict
+from deep_events.database.folder_benedict import get_dict, save_dict
 import xmltodict
 
 
-def extract_ome(folder: str):
+def extract_ome(file: str):
     "Get all the first tif file in a folder and get OME metadata from it, transfer to yaml"
-    folder_dict = get_dict(folder)
-    tif_files = list(Path(os.path.join(folder)).glob(r'*.ome.tif*'))
-    if tif_files:
-        with tifffile.TiffFile(tif_files[0]) as tif:
+    folder_dict = get_dict(os.path.dirname(file))
+    with tifffile.TiffFile(file) as tif:
+        try:
             fps = extract_fps(tif)
-            folder_dict['fps'] = fps
+            if fps:
+                folder_dict['fps'] = fps
+        except AttributeError:
+            print("Could not get fps, check OME metadata")
+        try:
             params = extract_params(tif)
             folder_dict['ome'] = params
+        except AttributeError:
+            print("Could not get OME metadata fields")
     save_dict(folder_dict)
 
 
@@ -35,8 +40,13 @@ def extract_fps(tif: tifffile.TiffFile):
     "From a tif file, calculate the fps by looking at the times that the frames were taken at."
     mdInfoDict = get_ome(tif)
     if not mdInfoDict:
-        return 0
+        return False
     elapsed = []
+    try:
+        planes = mdInfoDict['OME']['Image']['Pixels']['Plane']
+    except:
+        return False
+
     for plane in mdInfoDict['OME']['Image']['Pixels']['Plane']:
         elapsed.append(float(plane['@DeltaT']))
     fpu = np.mean(np.diff(elapsed))
