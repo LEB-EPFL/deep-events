@@ -8,7 +8,7 @@ import tensorflow as tf
 from tqdm import tqdm
 import tifffile
 from bson.objectid import ObjectId
-from database.extract_yaml import save_dict
+from deep_events.database.extract_yaml import save_dict
 import shutil
 from skimage import filters, segmentation, feature, measure, morphology
 import scipy.ndimage as ndi
