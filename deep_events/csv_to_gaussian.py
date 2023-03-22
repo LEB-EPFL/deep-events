@@ -5,7 +5,7 @@ import os
 from deep_events.database.folder_benedict import get_dict
 import tifffile
 import pandas as pd
-from myfunctions import poi
+from deep_events.myfunctions import poi
 
 folder = "Z:/_Lab members/Juan/230222_MitoSplitNet_TrainingSet_U2OS_iSIM/"
 SIGMA = 5

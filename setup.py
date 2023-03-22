@@ -27,9 +27,11 @@ setup(
     package_data={},
     include_package_data=True,
     install_requires=[
-        python-benedict
-        tifffile
-        pandas
+        "python_benedict",
+        "tifffile",
+        "pandas",
+        "bson",
+        "opencv-python"
     ],
     python_requires=">=3.7",
 )
