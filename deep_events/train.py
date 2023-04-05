@@ -11,6 +11,10 @@ from training_functions import create_model
 folder = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Emily/20230329_FtsW_sfGFP_caulobacter_zeiss/training_data")
 nb_filters, first_conv_size, nb_input_channels =  8, 9, 1
 
+tf.keras.backend.clear_session()
+for gpu in tf.config.experimental.list_physical_devices('GPU'):
+    tf.config.experimental.set_memory_growth(gpu, True)
+gpu = tf.device('GPU:1/')
 
 def main():
     latest_folder = get_latest_folder(folder)
@@ -25,9 +29,7 @@ def main():
     print(latest_folder)
     model = create_model(nb_filters, first_conv_size, nb_input_channels)
 
-    gpu = tf.config.list_physical_devices('GPU')[0]
-    tf.config.experimental.set_memory_growth(gpu, True)
-    gpu = tf.device('GPU:0/')
+
 
     with gpu:
         history = model.fit(train_imgs, train_mask,
