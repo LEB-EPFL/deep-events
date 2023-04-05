@@ -6,7 +6,7 @@ from tensorflow.keras.layers import Conv2D, MaxPooling2D, Conv3D, MaxPooling3D
 from tensorflow.keras.layers import concatenate, UpSampling2D, BatchNormalization, Reshape
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.metrics import BinaryAccuracy
-s
+
 
 
 def create_model(nb_filters, firstConvSize, nb_input_channels, printSummary=False, ):
