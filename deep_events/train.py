@@ -3,6 +3,7 @@ import datetime
 
 import tifffile
 import tensorflow as tf
+import numpy as np
 
 from training_functions import create_model
 
@@ -13,10 +14,11 @@ nb_filters, first_conv_size, nb_input_channels =  8, 9, 1
 
 def main():
     latest_folder = get_latest_folder(folder)
-    train_imgs = tifffile.imread(latest_folder / "train_images.tif")
-    eval_images = tifffile.imread(latest_folder / "eval_images.tif")
-    train_mask = tifffile.imread(latest_folder / "train_gt.tif")
-    eval_mask = tifffile.imread(latest_folder / "eval_gt.tif")
+    train_imgs = adjust_tf_dimensions(tifffile.imread(latest_folder / "train_images.tif"))
+    eval_images = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_images.tif"))
+    train_mask = adjust_tf_dimensions(tifffile.imread(latest_folder / "train_gt.tif"))
+    eval_mask = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_gt.tif"))
+    print(train_imgs.shape)
 
     validation_data = (eval_images, eval_mask)
 
@@ -30,7 +32,7 @@ def main():
     with gpu:
         history = model.fit(train_imgs, train_mask,
                             batch_size = 16,
-                            epochs = 20
+                            epochs = 20,
                             shuffle=True,
                             validation_data = validation_data,
                             verbose=2)
@@ -44,6 +46,11 @@ def get_latest_folder(parent_folder:Path):
     subfolders.sort(key=lambda x: datetime.datetime.strptime(x.name, datetime_format),
                     reverse=True)
     return subfolders[0] if subfolders else None
+
+
+def adjust_tf_dimensions(stack:np.array):
+    return np.expand_dims(stack, axis=-1)
+
 
 if __name__ == "__main__":
     main()
