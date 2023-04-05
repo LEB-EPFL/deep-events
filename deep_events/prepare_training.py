@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 import tifffile
 import albumentations as albs
 
-folder = Path("Z:/_Lab members/Emily/20230329_FtsW_sfGFP_caulobacter_zeiss/training_data")
+folder = Path("Z:/_Lab members/Emily/event_data")
 n_augmentations = 20
 
 def main():

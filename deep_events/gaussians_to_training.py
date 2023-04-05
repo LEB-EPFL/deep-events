@@ -9,7 +9,7 @@ from bson.objectid import ObjectId
 import numpy as np
 from multiprocessing import Pool
 
-folder = "Z:/_Lab members/Juan/230222_MitoSplitNet_TrainingSet_U2OS_iSIM/"
+folder = "//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Emily/"
 db_files = list(Path(folder).rglob(r'db.yaml'))
 SAVING_SCHEME = "ws_0.2"
 
@@ -21,8 +21,10 @@ def extract_events(db_file, images_identifier: str = "", channel_contrast: str =
 
     if os.path.exists(os.path.join(os.path.dirname(db_file), 'ground_truth.tiff')):
         gaussians_file = os.path.join(os.path.dirname(db_file), 'ground_truth.tiff')
-    else:
+    elif  os.path.exists(os.path.join(os.path.dirname(db_file), 'ground_truth.tif')):
         gaussians_file = os.path.join(os.path.dirname(db_file), 'ground_truth.tif')
+    else:
+        return
 
     folder_dict = get_dict(Path(os.path.dirname(db_file)))
     event_dict = copy.deepcopy(folder_dict)
@@ -51,6 +53,7 @@ def handle_db(event, box, event_dict):
     event_id = ObjectId()
     event_folder = f"ev_{event_dict['cell_line'][0]}_{event_dict['microscope'][0]}_{event_dict['contrast'][:4]}_{event_id}"
     path = os.path.join(folder, "event_data", event_folder)
+    print(path)
     Path(path).mkdir(parents=True, exist_ok=True)
     event_dict['event_path'] = path
     event_dict['_id'] = event_id
@@ -61,8 +64,7 @@ def handle_db(event, box, event_dict):
     return event_dict
 
 
-
 if __name__ == "__main__":
     shutil.rmtree(os.path.join(folder, "event_data"))
     with Pool(12) as p:
-        p.map(extract_events, [db_files, ["GFP"]*len(db_files), ["fluorescence"]*len(db_files)])
+        p.starmap(extract_events, zip(db_files, ["GFP"]*len(db_files)))

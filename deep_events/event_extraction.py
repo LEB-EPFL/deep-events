@@ -7,7 +7,7 @@ import scipy.ndimage as ndi
 from tqdm import tqdm
 
 
-def basic_scan(data, size=256, threshold=1):
+def basic_scan(data, size=256, threshold=0.2):
     open_events = []
     framenumber = len(data)
     ev_n = 1
