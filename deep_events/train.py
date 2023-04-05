@@ -45,7 +45,7 @@ def get_latest_folder(parent_folder:Path):
                   datetime.datetime.strptime(f.name, datetime_format)]
     subfolders.sort(key=lambda x: datetime.datetime.strptime(x.name, datetime_format),
                     reverse=True)
-    return subfolders[0] if subfolders else None
+    return Path(subfolders[0]) if subfolders else None
 
 
 def adjust_tf_dimensions(stack:np.array):
