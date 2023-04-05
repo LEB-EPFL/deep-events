@@ -83,7 +83,9 @@ class EDA_Event():
         self.last_frame = first_frame
 
 
-def crop_images(event, imgs, size=256):
+def crop_images(event, imgs, channel=None, size=256):
+    if channel is not None:
+        raise(NotImplementedError)
     dataar=np.zeros((event.last_frame-event.first_frame+1, size, size))
 
     for index, frame in enumerate(range(event.first_frame, event.last_frame + 1)):

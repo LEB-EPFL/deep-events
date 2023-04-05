@@ -14,13 +14,22 @@ db_files = list(Path(folder).rglob(r'db.yaml'))
 SAVING_SCHEME = "ws_0.2"
 
 
-def extract_events(db_file):
-    tif_file = sorted(Path(os.path.dirname(db_file)).glob(r'*.ome.tif'), key=os.path.getmtime)[-1]
-    gaussians_file = os.path.join(os.path.dirname(db_file), 'ground_truth.tiff')
+def extract_events(db_file, images_identifier: str = "", channel_contrast: str = None):
+
+    tif_identifier = r'*' + images_identifier + r'*.ome.tif'
+    tif_file = sorted(Path(os.path.dirname(db_file)).glob(tif_identifier), key=os.path.getmtime)[-1]
+
+    if os.path.exists(os.path.join(os.path.dirname(db_file), 'ground_truth.tiff')):
+        gaussians_file = os.path.join(os.path.dirname(db_file), 'ground_truth.tiff')
+    else:
+        gaussians_file = os.path.join(os.path.dirname(db_file), 'ground_truth.tif')
 
     folder_dict = get_dict(Path(os.path.dirname(db_file)))
     event_dict = copy.deepcopy(folder_dict)
     event_dict['type'] = "event"
+    event_dict['channel_contrast'] = channel_contrast
+    if channel_contrast is not None:
+        event_dict['contrast'] = channel_contrast
     event_dict['original_file'] = os.path.basename(tif_file)
     event_dict['label_file'] = os.path.basename(gaussians_file)
     event_dict['event_content'] = 'division'
@@ -41,7 +50,7 @@ def extract_events(db_file):
 def handle_db(event, box, event_dict):
     event_id = ObjectId()
     event_folder = f"ev_{event_dict['cell_line'][0]}_{event_dict['microscope'][0]}_{event_dict['contrast'][:4]}_{event_id}"
-    path = os.path.join(folder, "training_data", event_folder)
+    path = os.path.join(folder, "event_data", event_folder)
     Path(path).mkdir(parents=True, exist_ok=True)
     event_dict['event_path'] = path
     event_dict['_id'] = event_id
@@ -54,6 +63,6 @@ def handle_db(event, box, event_dict):
 
 
 if __name__ == "__main__":
-    shutil.rmtree(os.path.join(folder, "training_data"))
+    shutil.rmtree(os.path.join(folder, "event_data"))
     with Pool(12) as p:
-        p.map(extract_events, db_files)
+        p.map(extract_events, [db_files, ["GFP"]*len(db_files), ["fluorescence"]*len(db_files)])
