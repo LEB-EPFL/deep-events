@@ -8,7 +8,7 @@ import numpy as np
 from training_functions import create_model
 
 
-folder = Path("Z:/_Lab members/Emily/20230329_FtsW_sfGFP_caulobacter_zeiss/training_data")
+folder = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Emily/20230329_FtsW_sfGFP_caulobacter_zeiss/training_data")
 nb_filters, first_conv_size, nb_input_channels =  8, 9, 1
 
 
