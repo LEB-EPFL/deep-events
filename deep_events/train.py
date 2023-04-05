@@ -37,7 +37,8 @@ def main():
                             epochs = 20,
                             shuffle=True,
                             validation_data = validation_data,
-                            verbose=2)
+                            verbose=1)
+    model.save(latest_folder / "model.h5")
 
 
 def get_latest_folder(parent_folder:Path):
@@ -54,5 +55,20 @@ def adjust_tf_dimensions(stack:np.array):
     return np.expand_dims(stack, axis=-1)
 
 
+def test_model():
+    import matplotlib.pyplot as plt
+    frame = 1
+    latest_folder = get_latest_folder(folder)
+    model = tf.keras.models.load_model(latest_folder / "model.h5")
+    eval_images = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_images.tif"))
+    output = model.predict(np.expand_dims(eval_images[frame],axis=0))
+    eval_mask = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_gt.tif"))
+    plt.imshow(output[0, :, :, 0], vmax=1)
+    plt.figure()
+    plt.imshow(eval_mask[frame, :, :, 0])
+    plt.figure()
+    plt.imshow(eval_images[frame, :, :, 0])
+    plt.show()
+
 if __name__ == "__main__":
-    main()
+    test_model()
