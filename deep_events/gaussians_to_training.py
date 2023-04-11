@@ -9,21 +9,39 @@ from bson.objectid import ObjectId
 import numpy as np
 from multiprocessing import Pool
 
-folder = "Z:/_Lab members/Emily/20230329_FtsW_sfGFP_caulobacter_zeiss"
-db_files = list(Path(folder).rglob(r'ground_truth*'))
+folder = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Emily/")
 SAVING_SCHEME = "ws_0.2"
 
 
-def extract_events(db_file):
-    tif_file = sorted(Path(os.path.dirname(db_file)).glob(r'*.ome.tif'), key=os.path.getmtime)[-1]
+def extract_events(db_file, images_identifier: str = "", channel_contrast: str = None):
+
+    tif_identifier = r'*' + images_identifier + r'*.ome.tif'
+    tif_files = sorted(Path(os.path.dirname(db_file)).glob(tif_identifier), key=os.path.getmtime)
+    if tif_files:
+        tif_file = tif_files[-1]
+        print(tif_file)
+    else:
+        print(db_file)
+        print("Did not find a corresponding tif file for this db_file")
+        return
+
+
     if os.path.exists(os.path.join(os.path.dirname(db_file), 'ground_truth.tiff')):
         gaussians_file = os.path.join(os.path.dirname(db_file), 'ground_truth.tiff')
-    else:
+    elif  os.path.exists(os.path.join(os.path.dirname(db_file), 'ground_truth.tif')):
         gaussians_file = os.path.join(os.path.dirname(db_file), 'ground_truth.tif')
+    else:
+        print(db_file)
+        print("Did not find a corresponding ground truth file for this db_file")
+        return
+    print(gaussians_file)
 
     folder_dict = get_dict(Path(os.path.dirname(db_file)))
     event_dict = copy.deepcopy(folder_dict)
     event_dict['type'] = "event"
+    event_dict['channel_contrast'] = channel_contrast
+    if channel_contrast is not None:
+        event_dict['contrast'] = channel_contrast
     event_dict['original_file'] = os.path.basename(tif_file)
     event_dict['label_file'] = os.path.basename(gaussians_file)
     event_dict['event_content'] = 'division'
@@ -40,8 +58,6 @@ def extract_events(db_file):
             #                  (gaussians_crop).astype(np.uint16), photometric='minisblack')
             tifffile.imwrite(os.path.join(event_dict['event_path'], "ground_truth.tif"),
                              (gaussians_crop).astype(np.float16), photometric='minisblack')
-            # tifffile.imwrite(os.path.join(event_dict['event_path'], "images.tif"),
-            #                  (imgs_crop).astype(np.uint16), photometric='minisblack')
             tifffile.imwrite(os.path.join(event_dict['event_path'], "images.tif"),
                              (imgs_crop).astype(np.float16), photometric='minisblack')
 
@@ -49,7 +65,8 @@ def extract_events(db_file):
 def handle_db(event, box, event_dict):
     event_id = ObjectId()
     event_folder = f"ev_{event_dict['cell_line'][0]}_{event_dict['microscope'][0]}_{event_dict['contrast'][:4]}_{event_id}"
-    path = os.path.join(folder, "training_data", event_folder)
+    path = os.path.join(folder, "event_data", event_folder)
+    print(path)
     Path(path).mkdir(parents=True, exist_ok=True)
     event_dict['event_path'] = path
     event_dict['_id'] = event_id
@@ -60,8 +77,9 @@ def handle_db(event, box, event_dict):
     return event_dict
 
 
-
 if __name__ == "__main__":
-    shutil.rmtree(os.path.join(folder, "training_data"), ignore_errors=True)
-    with Pool(5) as p:
-        p.map(extract_events, db_files)
+    if (folder / "event_data").is_dir():
+        shutil.rmtree(os.path.join(folder, "event_data"))
+    db_files = list((folder).rglob(r'db.yaml'))
+    with Pool(10) as p:
+        p.starmap(extract_events, zip(db_files, ["GFP"]*len(db_files)))

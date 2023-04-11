@@ -7,7 +7,7 @@ import scipy.ndimage as ndi
 from tqdm import tqdm
 
 
-def basic_scan(data, size=256, threshold=1):
+def basic_scan(data, size=256, threshold=0.7):
     open_events = []
     framenumber = len(data)
     ev_n = 1
@@ -83,10 +83,12 @@ class EDA_Event():
         self.last_frame = first_frame
 
 
-def crop_images(event, imgs, size=256):
-    dataar=np.zeros((event.last_frame-event.first_frame+1, size, size))
+def crop_images(event, imgs, channel=None, size=256):
+    if channel is not None:
+        raise(NotImplementedError)
+    dataar=np.zeros((event.last_frame-event.first_frame, size, size))
 
-    for index, frame in enumerate(range(event.first_frame, event.last_frame + 1)):
+    for index, frame in enumerate(range(event.first_frame, event.last_frame)):
         box = box_from_pos(event.c_p['x'], event.c_p['y'], size)
         box = box_edge_check(box, imgs.pages[0].shape[-2:])
         dataar[index] = imgs.pages[frame].asarray()[box[1]:box[3], box[0]:box[2]]

@@ -1,12 +1,10 @@
 from PIL import Image
-import pandas as pd
-from tqdm import tqdm
+
 import numpy as np
-import os, sys
-from albumentations import Compose, Rotate, RandomRotate90, HorizontalFlip, Flip, VerticalFlip
-import random
-from skimage.filters import threshold_otsu, threshold_local,rank
-from myfunctions import augStack,augImg
+import os
+
+from skimage.filters import threshold_otsu, threshold_local
+from myfunctions import augStack
 
 
 
@@ -64,19 +62,19 @@ def normalization_fun_loc(data_first, k,ofs, perc, bf_fl):
     kk=1/(1-perc)
     if bf_fl=='fl':
         for framenumber in range(np.size(data_first, 0)):
-            data_g = (data_first[framenumber])/(np.max(data_first[framenumber])) 
+            data_g = (data_first[framenumber])/(np.max(data_first[framenumber]))
             data_g = data_g-perc
-            data_g[data_g < 0] = 0     
-            image_loc_bin = data_g*kk 
+            data_g[data_g < 0] = 0
+            image_loc_bin = data_g*kk
             local_thresh = threshold_local(image_loc_bin, k, method='gaussian', offset=ofs)
             image_loc_bin[image_loc_bin < local_thresh] = 0
             final_loc_bin[framenumber,:,:] = image_loc_bin
     elif bf_fl=='bf':
         for framenumber in range(np.size(data_first, 0)):
-            data_g = (data_first[framenumber])/(np.max(data_first[framenumber])) 
+            data_g = (data_first[framenumber])/(np.max(data_first[framenumber]))
             data_g = data_g - perc
             data_g[data_g < 0] = 0
-            final_loc_bin[framenumber,:,:]= data_g*kk 
+            final_loc_bin[framenumber,:,:]= data_g*kk
 
     return final_loc_bin
 

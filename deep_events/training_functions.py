@@ -6,20 +6,17 @@ from tensorflow.keras.layers import Conv2D, MaxPooling2D, Conv3D, MaxPooling3D
 from tensorflow.keras.layers import concatenate, UpSampling2D, BatchNormalization, Reshape
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.metrics import BinaryAccuracy
-from sklearn.utils import shuffle
 
 
-def create_model(nb_filters, firstConvSize, nb_input_channels, printSummary=False, ):    
+
+def create_model(nb_filters, firstConvSize, nb_input_channels, printSummary=False, ):
     #Hyperparameters
     optimizer_type = Adam(learning_rate=0.5e-3)
     loss = 'binary_crossentropy'
     metrics = [BinaryAccuracy()]
-    
+
     #Network architecture
-    if nb_input_channels==1:
-        input_shape = (None, None)
-    elif nb_input_channels==3:
-        input_shape = (None,nb_input_channels, None, None)
+    input_shape = (None, None, nb_input_channels)
     inputs = Input(shape=input_shape)
 
     # Encoder
@@ -91,7 +88,7 @@ def create_model(nb_filters, firstConvSize, nb_input_channels, printSummary=Fals
 
     outputs = Conv2D(1, (1, 1), activation='sigmoid')(up0)  # was relu also before
     outputs.set_shape([None, None, None, 1])
-    
+
     model = Model(inputs=inputs, outputs=outputs)
     model.compile(optimizer=optimizer_type, loss=loss, metrics=metrics)
     if printSummary:
@@ -103,14 +100,12 @@ def train_model(model, input_data, output_data, batch_size, validtrain_split_rat
     # Split dataset into [test] and [train+valid]
     max_epochs = 20  # maxmimum number of epochs to be iterated
     batch_shuffle= True   # shuffle the training data prior to batching before each epoch
-    
+
     history = model.fit(input_data, output_data,
                         batch_size=batch_size,
                         epochs=max_epochs,
                         validation_split=validtrain_split_ratio,
                         shuffle=batch_shuffle,
                         verbose=2)
-  
+
     return history.history
-
-
