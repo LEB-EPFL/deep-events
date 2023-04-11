@@ -3,10 +3,12 @@ stain:
   - mitotrackergreen
   - mitoGFP
   - TfamRFP
+  - FtsW_sfGFP
 
 cell_line:
   - cos7
   - u2os
+  - caulobacter
 
 microscope:
   - isim
@@ -22,3 +24,4 @@ defaults:
   typically_use: yes
   augmented: no
   scale_csv: yes
+
