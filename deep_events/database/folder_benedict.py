@@ -35,7 +35,7 @@ def save_dict(folder_dict: dict):
                                               "db.yaml"))
     elif folder_dict['type'] == "event":
         folder_dict.to_yaml(filepath=os.path.join(folder_dict['event_path'],
-                                              "db.yaml"))
+                                              "event_db.yaml"))
 
 def set_dict_entry(my_dict, key, value):
     """Recursively set dict entries for nested dicts"""
