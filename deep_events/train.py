@@ -17,13 +17,13 @@ SETTINGS = {"nb_filters": 16,
             "epochs": 20}
 NAME = datetime.datetime.now().strftime("%Y%m%d_%H%M")
 
-benedict(SETTINGS).to_yaml(filepath=folder / NAME + "_settings.yaml")
+
 
 
 tf.keras.backend.clear_session()
 for gpu in tf.config.experimental.list_physical_devices('GPU'):
     tf.config.experimental.set_memory_growth(gpu, True)
-gpu = tf.device('GPU:4/')
+gpu = tf.device('GPU:5/')
 
 def main():
     latest_folder = get_latest_folder(folder)
@@ -36,6 +36,7 @@ def main():
     validation_data = (eval_images, eval_mask)
 
     print(latest_folder)
+    benedict(SETTINGS).to_yaml(filepath = latest_folder / (NAME + "_settings.yaml"))
     model = create_model(SETTINGS["nb_filters"], SETTINGS["first_conv_size"], SETTINGS["nb_input_channels"])
 
 
@@ -48,7 +49,7 @@ def main():
                             shuffle=True,
                             validation_data = validation_data,
                             verbose=1)
-    model.save(latest_folder / NAME + "_model.h5")
+    model.save(latest_folder / (NAME + "_model.h5"))
 
 
 def get_latest_folder(parent_folder:Path):
