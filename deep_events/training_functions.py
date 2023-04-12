@@ -5,15 +5,15 @@ from tensorflow.keras.layers import Input, Activation
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Conv3D, MaxPooling3D
 from tensorflow.keras.layers import concatenate, UpSampling2D, BatchNormalization, Reshape
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.metrics import BinaryAccuracy
+from tensorflow.keras.metrics import BinaryAccuracy, MeanSquaredError
 
 
 
 def create_model(nb_filters, firstConvSize, nb_input_channels, printSummary=False, ):
     #Hyperparameters
     optimizer_type = Adam(learning_rate=0.5e-3)
-    loss = 'binary_crossentropy'
-    metrics = [BinaryAccuracy()]
+    loss = 'mse'
+    metrics = [BinaryAccuracy(), MeanSquaredError()]
 
     #Network architecture
     input_shape = (None, None, nb_input_channels)
