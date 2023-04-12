@@ -1,6 +1,6 @@
 from pathlib import Path
 import tifffile
-from event_extraction import basic_scan, crop_images
+from deep_events.event_extraction import basic_scan, crop_images
 import os
 import shutil
 import copy
@@ -9,13 +9,16 @@ from bson.objectid import ObjectId
 import numpy as np
 from multiprocessing import Pool
 
-folder = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Emily/")
+folder = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Juan/230222_MitoSplitNet_TrainingSet_U2OS_iSIM/")
 SAVING_SCHEME = "ws_0.2"
 
 
 def extract_events(db_file, images_identifier: str = "", channel_contrast: str = None):
+    if images_identifier != "":
+        tif_identifier = r'*' + images_identifier + r'*.ome.tif'
+    else:
+        tif_identifier = r'*.ome.tif'
 
-    tif_identifier = r'*' + images_identifier + r'*.ome.tif'
     tif_files = sorted(Path(os.path.dirname(db_file)).glob(tif_identifier), key=os.path.getmtime)
     if tif_files:
         tif_file = tif_files[-1]

@@ -1,6 +1,7 @@
 from pathlib import Path
 import numpy as np
 import datetime
+from typing import List
 
 from sklearn.model_selection import train_test_split
 import tifffile
@@ -43,8 +44,9 @@ def save_data(folder:Path, images_eval:np.array, gt_eval:np.array, prefix:str = 
 
 
 
-def load_folder(parent_folder:Path):
-    db_files = list(parent_folder.rglob(r'event_db.yaml'))
+def load_folder(parent_folder:Path, db_files: List = None):
+    if db_files is None:
+        db_files = list(parent_folder.rglob(r'event_db.yaml'))
     all_images = []
     all_gt = []
     print(f"Number of db files: {len(db_files)}")
