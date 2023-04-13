@@ -2,6 +2,7 @@ from pathlib import Path
 import numpy as np
 import datetime
 from typing import List
+import psutil
 
 from sklearn.model_selection import train_test_split
 import tifffile
@@ -44,7 +45,7 @@ def save_data(folder:Path, images_eval:np.array, gt_eval:np.array, prefix:str = 
 
 
 
-def load_folder(parent_folder:Path, db_files: List = None):
+def load_folder(parent_folder:Path, db_files: List = None, training_folder: str = None):
     if db_files is None:
         db_files = list(parent_folder.rglob(r'event_db.yaml'))
     all_images = []
@@ -55,6 +56,11 @@ def load_folder(parent_folder:Path, db_files: List = None):
         images, ground_truth = load_tifs(folder)
         all_images.append(images)
         all_gt.append(ground_truth)
+        # These things can get very big. Save inbetween, when memory almost full.
+        if psutil.virtual_memory().percent < 90:
+            save_data(training_folder, all_images, all_gt, "train")
+            all_images = []
+            all_gt = []
     all_images = np.concatenate(all_images)
     all_gt = np.concatenate(all_gt)
     return all_images, all_gt
