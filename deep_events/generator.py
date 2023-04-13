@@ -5,8 +5,9 @@ from keras.utils import Sequence
 from keras.preprocessing.image import ImageDataGenerator
 
 class CustomSequence(Sequence):
-    def __init__(self, data_dir, batch_size, augment=True):
+    def __init__(self, data_dir, batch_size, augment=True, n_augmentations=10):
         self.data_dir = data_dir
+        self.n_augmentations = n_augmentations
         self.batch_size = batch_size
         self.augment = augment
         self.generator = ImageDataGenerator(
@@ -20,12 +21,13 @@ class CustomSequence(Sequence):
         print("Number of frames in generator: ", self.num_samples)
 
     def __len__(self):
-        return int(np.ceil(self.num_samples / float(self.batch_size)))
+        return int(np.ceil(self.num_samples * self.n_augmentations / float(self.batch_size)))
 
     def __getitem__(self, idx):
         batch_x = []
         batch_y = []
-        start_index = idx * self.batch_size
+        start_index = (idx * self.batch_size) % self.num_samples
+        # print("\n start", start_index)
         # end_index = min((idx + 1) * self.batch_size, self.num_samples)
 
         for f in self.file_list:
@@ -35,7 +37,11 @@ class CustomSequence(Sequence):
             gt_file = os.path.join(self.data_dir, f.replace(self.images_prefix, self.gt_prefix))
             with tifffile.TiffFile(images_file) as tif_input, tifffile.TiffFile(gt_file) as tif_gt:
                 num_pages = len(tif_input.pages)
-                for i in range(num_pages):
+                i = -1
+                while True:
+                    i += 1
+                    #reset if we went over the total number of frames
+                    i = 0 if i >= num_pages else i
                     if start_index <= 0:
                         input_page = tif_input.pages[i]
                         gt_page = tif_gt.pages[i]
@@ -55,13 +61,13 @@ class CustomSequence(Sequence):
 
                     if len(batch_x) >= self.batch_size:
                         break
+                    
 
                 if len(batch_x) >= self.batch_size:
                     break
 
         batch_x = np.array(batch_x)
         batch_y = np.array(batch_y)
-        print(batch_x.shape)
         return batch_x, batch_y
 
     def apply_augmentation(self, x, y):

@@ -15,7 +15,7 @@ SETTINGS = {"nb_filters": 16,
             "nb_input_channels": 1,
             "batch_size": 16,
             "epochs": 20,
-            "steps_per_epoch": 100}
+            "n_augmentations": 10}
 NAME = datetime.datetime.now().strftime("%Y%m%d_%H%M")
 
 
@@ -28,7 +28,8 @@ gpu = tf.device('GPU:5/')
 
 def main():
     latest_folder = get_latest_folder(folder)
-    batch_generator = CustomSequence(latest_folder, SETTINGS["batch_size"])
+    batch_generator = CustomSequence(latest_folder, SETTINGS["batch_size"],
+                                     n_augmentations=SETTINGS["n_augmentations"])
     eval_images = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_images_00.tif"))
     eval_mask = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_gt_00.tif"))
 
@@ -38,14 +39,14 @@ def main():
     benedict(SETTINGS).to_yaml(filepath = latest_folder / (NAME + "_settings.yaml"))
     model = create_model(SETTINGS["nb_filters"], SETTINGS["first_conv_size"], SETTINGS["nb_input_channels"])
 
-
+    steps_per_epoch = np.floor(batch_generator.__len__())
 
     with gpu:
         history = model.fit(batch_generator,
                             batch_size = SETTINGS["batch_size"],
                             epochs = SETTINGS["epochs"],
-                            steps_per_epoch = SETTINGS['steps_per_epoch'],
-                            shuffle=True,
+                            steps_per_epoch = steps_per_epoch,
+                            shuffle=False,
                             validation_data = validation_data,
                             verbose=1)
     model.save(latest_folder / (NAME + "_model.h5"))
