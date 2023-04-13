@@ -7,14 +7,15 @@ import tensorflow as tf
 import numpy as np
 
 from training_functions import create_model
-
+from generator import CustomSequence
 
 folder = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Juan/training_data")
 SETTINGS = {"nb_filters": 16,
             "first_conv_size": 32,
             "nb_input_channels": 1,
             "batch_size": 16,
-            "epochs": 20}
+            "epochs": 20,
+            "steps_per_epoch": 100}
 NAME = datetime.datetime.now().strftime("%Y%m%d_%H%M")
 
 
@@ -27,11 +28,9 @@ gpu = tf.device('GPU:5/')
 
 def main():
     latest_folder = get_latest_folder(folder)
-    train_imgs = adjust_tf_dimensions(tifffile.imread(latest_folder / "train_images.tif"))
-    eval_images = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_images.tif"))
-    train_mask = adjust_tf_dimensions(tifffile.imread(latest_folder / "train_gt.tif"))
-    eval_mask = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_gt.tif"))
-    print(train_imgs.shape)
+    batch_generator = CustomSequence(latest_folder, SETTINGS["batch_size"])
+    eval_images = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_images_00.tif"))
+    eval_mask = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_gt_00.tif"))
 
     validation_data = (eval_images, eval_mask)
 
@@ -42,10 +41,10 @@ def main():
 
 
     with gpu:
-        num_images = 10_640
-        history = model.fit(train_imgs[:num_images], train_mask[:num_images],
+        history = model.fit(batch_generator,
                             batch_size = SETTINGS["batch_size"],
                             epochs = SETTINGS["epochs"],
+                            steps_per_epoch = SETTINGS['steps_per_epoch'],
                             shuffle=True,
                             validation_data = validation_data,
                             verbose=1)

@@ -38,8 +38,13 @@ def make_training_folder(folder:Path):
 
 
 def save_data(folder:Path, images_eval:np.array, gt_eval:np.array, prefix:str = ""):
-    images_file = folder / (prefix + "_images.tif")
-    gt_file = folder / (prefix + "_gt.tif")
+    i = 0
+    images_file = folder / (prefix + "_images_" + str(i).zfill(2) + ".tif")
+    gt_file = folder / (prefix + "_gt_" + str(i).zfill(2) + ".tif")
+    while images_file.exists():
+        images_file = folder / (prefix + "_images_" + str(i).zfill(2) + ".tif")
+        gt_file = folder / (prefix + "_gt_" + str(i).zfill(2) + ".tif")
+        i += 1
     tifffile.imwrite(images_file, images_eval)
     tifffile.imwrite(gt_file, gt_eval)
 
@@ -57,7 +62,10 @@ def load_folder(parent_folder:Path, db_files: List = None, training_folder: str 
         all_images.append(images)
         all_gt.append(ground_truth)
         # These things can get very big. Save inbetween, when memory almost full.
-        if psutil.virtual_memory().percent < 90:
+        if psutil.virtual_memory().percent > 90:
+            print("Saving multiple tiff files")
+            all_images = np.concatenate(all_images)
+            all_gt = np.concatenate(all_gt)
             save_data(training_folder, all_images, all_gt, "train")
             all_images = []
             all_gt = []
