@@ -39,6 +39,9 @@ def train(folder: Path = None, gpu = 'GPU:0/'):
     else:
         latest_folder = folder
     
+    logdir = latest_folder.parents[0] / ("logs/scalars/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
+
     batch_generator = ArraySequence(latest_folder, SETTINGS["batch_size"],
                                      n_augmentations=SETTINGS["n_augmentations"])
     eval_images = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_images_00.tif"))
@@ -63,7 +66,8 @@ def train(folder: Path = None, gpu = 'GPU:0/'):
                             steps_per_epoch = steps_per_epoch,
                             shuffle=True,
                             validation_data = validation_data,
-                            verbose=1)
+                            verbose = 1,
+                            callbacks = [tensorboard_callback])
     model.save(latest_folder / (NAME + "_model.h5"))
 
 # 
@@ -84,18 +88,27 @@ def get_latest_folder(parent_folder:Path):
     return Path(subfolders[0]) if subfolders else None
 
 
+def get_latest(pattern, folder:Path):
+    files = [f for f in folder.glob('*') if f.is_file()]
+    files = [f for f in files if pattern in f.name]
+    files.sort(reverse=True)
+    print(files)
+    return folder / files[0]
+
+
 def adjust_tf_dimensions(stack:np.array):
     return np.expand_dims(stack, axis=-1)
 
 
 def test_model():
     import matplotlib.pyplot as plt
-    frame = 10
-    latest_folder = get_latest_folder(folder)
-    model = tf.keras.models.load_model(latest_folder / "model.h5")
-    eval_images = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_images.tif"))
+    frame = 20
+    training_folder = get_latest_folder(FOLDER)
+    model_dir = get_latest("model", training_folder)
+    model = tf.keras.models.load_model(model_dir)
+    eval_images = adjust_tf_dimensions(tifffile.imread(training_folder / "eval_images_00.tif"))
     output = model.predict(np.expand_dims(eval_images[frame],axis=0))
-    eval_mask = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_gt.tif"))
+    eval_mask = adjust_tf_dimensions(tifffile.imread(training_folder / "eval_gt_00.tif"))
     plt.imshow(output[0, :, :, 0], vmax=0.5)
     plt.figure()
     plt.imshow(eval_mask[frame, :, :, 0])
@@ -104,4 +117,6 @@ def test_model():
     plt.show()
 
 if __name__ == "__main__":
-    main()
+    # import os
+    # os.environ["CUDA_VISIBLE_DEVICES"] = "3" # set the GPU ID
+    train()
