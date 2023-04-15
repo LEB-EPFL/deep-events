@@ -1,5 +1,6 @@
 #%%
 from deep_events.database.extract_yaml import MAIN_PATH
+from convenience import get_collection
 from pathlib import Path
 from pymongo import MongoClient
 from benedict import benedict
@@ -10,9 +11,7 @@ def main():
 
 def construct_from_folder(folder: Path, collection: str):
     # Initialize database connection
-    cluster = "mongodb://lebpc13.epfl.ch/"
-    client = MongoClient(cluster)
-    coll = client.deep_events[collection]
+    coll = get_collection(collection)
 
     #%% Get the db.yaml files from the folders
     if "event_data" in folder:

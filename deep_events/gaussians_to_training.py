@@ -13,7 +13,7 @@ folder = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Juan/230222_Mito
 SAVING_SCHEME = "ws_0.2"
 
 
-def extract_events(db_file, images_identifier: str = "", channel_contrast: str = None):
+def extract_events(db_file, images_identifier: str = "", channel_contrast: str = None, events_folder: str = None):
     if images_identifier != "":
         tif_identifier = r'*' + images_identifier + r'*.ome.tif'
     else:
@@ -55,7 +55,7 @@ def extract_events(db_file, images_identifier: str = "", channel_contrast: str =
         for event in events:
             gaussians_crop, box = crop_images(event, gaussians)
             imgs_crop, box = crop_images(event, images)
-            event_dict = handle_db(event, box, event_dict)
+            event_dict = handle_db(event, box, event_dict, events_folder)
 
             # tifffile.imwrite(os.path.join(event_dict['event_path'], "ground_truth.tif"),
             #                  (gaussians_crop).astype(np.uint16), photometric='minisblack')
@@ -65,10 +65,12 @@ def extract_events(db_file, images_identifier: str = "", channel_contrast: str =
                              (imgs_crop).astype(np.float16), photometric='minisblack')
 
 
-def handle_db(event, box, event_dict):
+def handle_db(event, box, event_dict, events_folder = None):
+    if event_folder is None:
+        events_folder = folder
     event_id = ObjectId()
     event_folder = f"ev_{event_dict['cell_line'][0]}_{event_dict['microscope'][0]}_{event_dict['contrast'][:4]}_{event_id}"
-    path = os.path.join(folder, "event_data", event_folder)
+    path = os.path.join(events_folder, "event_data", event_folder)
     print(path)
     Path(path).mkdir(parents=True, exist_ok=True)
     event_dict['event_path'] = path

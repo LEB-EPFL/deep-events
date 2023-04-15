@@ -3,13 +3,16 @@ import numpy as np
 import datetime
 from typing import List
 import psutil
+import time
 
 from sklearn.model_selection import train_test_split
 import tifffile
-import albumentations as albs
+
+from benedict import benedict
+from deep_events.database import get_collection
 
 folder = Path("Z:/_Lab members/Emily/event_data")
-n_augmentations = 20
+
 
 def main():
     training_folder = make_training_folder(folder)
@@ -25,16 +28,51 @@ def main():
     stacks = {"image":images_train,"mask": gt_train}
     stacks = normalize_stacks(stacks)
 
-    # Augment
-    all_images = augment_stacks(stacks, n_augmentations)
     save_data(training_folder, all_images['image'], all_images["mask"], "train")
 
 
+
+def prepare_for_prompt(folder: Path, prompt: dict, collection: str):
+    coll = get_collection(collection)
+
+    filtered_list = list(coll.find(prompt))
+
+    db_files = []
+    for item in filtered_list:
+        db_files.append(Path(item['event_path']) / "event_db.yaml")
+
+    training_folder = make_training_folder(folder)
+    benedict(prompt).to_yaml(filepath=training_folder / "db_prompt.yaml")
+
+    # Load and split
+    all_images, all_gt = load_folder(folder, db_files, training_folder)
+    images_train, images_eval, gt_train, gt_eval = train_test_split(all_images, all_gt,
+                                                                    test_size=0.2, random_state=42)
+    stacks = {"image":images_eval,"mask": gt_eval}
+    stacks = normalize_stacks(stacks)
+    save_data(training_folder, stacks['image'], stacks['mask'], "eval")
+
+    # Normalize
+    stacks = {"image":images_train,"mask": gt_train}
+    stacks = normalize_stacks(stacks)
+
+    save_data(training_folder, stacks['image'], stacks["mask"], "train")
+    return training_folder
+
 def make_training_folder(folder:Path):
-    folder_name = datetime.datetime.now().strftime("%Y%m%d_%H%M")
-    folder = folder.parents[0] / "training_data" / folder_name
-    folder.mkdir(exist_ok=True, parents=True)
-    return folder
+    i = 0
+    while True:
+        folder_name = datetime.datetime.now().strftime("%Y%m%d_%H%M")
+        new_folder = folder.parents[0] / "training_data" / folder_name
+        try:
+            new_folder.mkdir(parents=True)
+            break
+        except FileExistsError:
+            if i == 0:
+                print("Would be same folder name, wait")
+                i = 1
+            time.sleep(3)
+    return new_folder
 
 
 def save_data(folder:Path, images_eval:np.array, gt_eval:np.array, prefix:str = ""):
@@ -81,30 +119,30 @@ def load_tifs(folder:Path):
     ground_truth = tifffile.imread(gt_file).astype(np.float32)
     return images, ground_truth
 
-def augment_stacks(stacks:dict, n_augmentations:int):
-    transform = albs.Compose([albs.Rotate(limit=45, p=0.5),
-                        albs.HorizontalFlip(p=0.5),
-                        albs.VerticalFlip(p=0.5)
-                        ])
+# def augment_stacks(stacks:dict, n_augmentations:int):
+#     transform = albs.Compose([albs.Rotate(limit=45, p=0.5),
+#                         albs.HorizontalFlip(p=0.5),
+#                         albs.VerticalFlip(p=0.5)
+#                         ])
 
-    augmented_stacks = {}
-    for key in stacks.keys():
-        augmented_stacks[key] = []
+#     augmented_stacks = {}
+#     for key in stacks.keys():
+#         augmented_stacks[key] = []
 
-    for frame in range(stacks[list(stacks.keys())[0]].shape[0]):
-        frames = {}
-        for key in stacks.keys():
-            frames[key] = stacks[key][frame]
+#     for frame in range(stacks[list(stacks.keys())[0]].shape[0]):
+#         frames = {}
+#         for key in stacks.keys():
+#             frames[key] = stacks[key][frame]
 
-        for i in range(n_augmentations):
-            augmented_frames = transform(**frames)
-            for key in stacks.keys():
-                augmented_stacks[key].append(augmented_frames[key])
+#         for i in range(n_augmentations):
+#             augmented_frames = transform(**frames)
+#             for key in stacks.keys():
+#                 augmented_stacks[key].append(augmented_frames[key])
 
-    for key in stacks.keys():
-        augmented_stacks[key] = np.stack(augmented_stacks[key])
+#     for key in stacks.keys():
+#         augmented_stacks[key] = np.stack(augmented_stacks[key])
 
-    return augmented_stacks
+#     return augmented_stacks
 
 def normalize_stacks(stacks:dict):
     for key in stacks.keys():

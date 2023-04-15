@@ -8,8 +8,8 @@ import tifffile
 import tensorflow as tf
 import numpy as np
 
-from training_functions import create_model
-from generator import ArraySequence
+from deep_events.training_functions import create_model
+from deep_events.generator import ArraySequence
 
 FOLDER = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Juan/training_data")
 SETTINGS = {"nb_filters": 16,
@@ -20,7 +20,7 @@ SETTINGS = {"nb_filters": 16,
             "n_augmentations": 10}
 NAME = datetime.datetime.now().strftime("%Y%m%d_%H%M")
 
-lock = Lock()
+
 def main():
     tf.keras.backend.clear_session()
     gpus = ['GPU:1/', 'GPU:2/', 'GPU:4/']
@@ -29,7 +29,14 @@ def main():
     with Pool(3) as p:
         p.starmap(train, zip(folders, gpus))
 
+def distributed_train(folders, gpus):
+    l = Lock()
+    with Pool(len(folders), initializer=init_pool, initargs=(l,)) as p:
+        p.starmap(train, zip(folders, gpus))
 
+def init_pool(l: Lock):
+    global lock
+    lock = l
 
 def train(folder: Path = None, gpu = 'GPU:0/'):
     
@@ -48,16 +55,15 @@ def train(folder: Path = None, gpu = 'GPU:0/'):
     eval_mask = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_gt_00.tif"))
 
     validation_data = (eval_images, eval_mask)
+    time.sleep(1)
+    lock.release()
 
-    print(latest_folder)
     benedict(SETTINGS).to_yaml(filepath = latest_folder / (NAME + "_settings.yaml"))
     model = create_model(SETTINGS["nb_filters"], SETTINGS["first_conv_size"], SETTINGS["nb_input_channels"])
 
     steps_per_epoch = np.floor(batch_generator.__len__())
 
     gpu = tf.device(gpu)
-    time.sleep(10)
-    lock.release()
     
     with gpu:
         history = model.fit(batch_generator,
@@ -73,9 +79,6 @@ def train(folder: Path = None, gpu = 'GPU:0/'):
 # 
 # for gpu in tf.config.experimental.list_physical_devices('GPU'):
 #     tf.config.experimental.set_memory_growth(gpu, True)
-
-
- 
 
 
 def get_latest_folder(parent_folder:Path):

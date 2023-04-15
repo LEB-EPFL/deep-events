@@ -1,1 +1,2 @@
 MAIN_PATH: \\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Lab members\Juan\230222_MitoSplitNet_TrainingSet_U2OS_iSIM
+CLUSTER: mongodb://lebpc13.epfl.ch/
