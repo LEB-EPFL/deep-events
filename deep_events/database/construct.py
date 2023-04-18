@@ -1,23 +1,23 @@
 #%%
 from deep_events.database.extract_yaml import MAIN_PATH
-from convenience import get_collection
+from deep_events.database import get_collection
 from pathlib import Path
 from pymongo import MongoClient
 from benedict import benedict
 
 def main():
-    construct_from_folder(MAIN_PATH, "mito_events")
+    reconstruct_from_folder(MAIN_PATH, "mito_events")
 
 
-def construct_from_folder(folder: Path, collection: str):
+def reconstruct_from_folder(folder: Path, collection: str):
     # Initialize database connection
     coll = get_collection(collection)
 
     #%% Get the db.yaml files from the folders
-    if "event_data" in folder:
+    if "event_data" in str(folder):
         event_list = list(Path(folder).rglob("*/event_db.yaml"))
         event_list = [benedict(str(event)) for event in event_list]
-    if "training_data" in folder:
+    elif "training_data" in str(folder):
         event_dirs = list(Path(folder).rglob("*/*settings.yaml"))
         event_list = []
         for event in event_dirs:

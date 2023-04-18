@@ -31,7 +31,7 @@ def main():
 
 def distributed_train(folders, gpus):
     l = Lock()
-    with Pool(len(folders), initializer=init_pool, initargs=(l,)) as p:
+    with Pool(min(3, len(folders)), initializer=init_pool, initargs=(l,)) as p:
         p.starmap(train, zip(folders, gpus))
 
 def init_pool(l: Lock):
@@ -39,7 +39,7 @@ def init_pool(l: Lock):
     lock = l
 
 def train(folder: Path = None, gpu = 'GPU:0/'):
-    
+    time.sleep(np.random.random()*3)
     lock.acquire()
     if folder is None:
         latest_folder = get_latest_folder(FOLDER)

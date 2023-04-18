@@ -103,15 +103,14 @@ def extract_foldername(folder_dict: Union[dict, str, Path], folder):
 
 
 
-
-
 #%%
 def extract_folders(path: Path):
-    folders = Path(path).iterdir()
+    folders = list(Path(path).glob("**/*.ome.tif"))
+    folders = [folder.parents[0] for folder in folders]
     for folder in folders:
-        folder = os.path.basename(str(folder))
+        print(folder)
         # pbar.set_description(str(folder))
-        extract_foldername(folder)
+        recursive_folder(folder)
 
         set_defaults(folder)
 
@@ -119,4 +118,4 @@ if __name__ == "__main__":
     # extract_folders(MAIN_PATH)
 
     folder = "//lebsrv2.epfl.ch/LEB_SHARED/_Lab members/Juan/230222_MitoSplitNet_TrainingSet_U2OS_iSIM"
-    extract_folders(folder)
+    recursive_folder(folder)
