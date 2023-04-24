@@ -16,10 +16,10 @@ KEYS_PATH = os.path.dirname(os.path.realpath(__file__)) + "/keys.yaml"
 keys = benedict(KEYS_PATH)
 
 
-def recursive_folder(folder: Path):
-    folder_dict = get_dict(folder)
+def recursive_folder(file: Path):
+    folder_dict = get_dict(os.path.dirname(file))
     folder_dict['type'] = 'original'
-    subpath = folder
+    subpath = file
     while subpath != os.path.dirname(subpath):
         set_manual(folder_dict, subpath)
         folder_dict = extract_foldername(folder_dict, subpath)
