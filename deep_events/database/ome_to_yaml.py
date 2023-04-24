@@ -68,8 +68,14 @@ def extract_params(tif: tifffile.TiffFile):
         return {}
     pixels = mdInfoDict['OME']['Image']["Pixels"]
     params = translate_ome_dict(pixels)
-    params["channel"] = translate_ome_dict(pixels["Channel"])
-    params["instrument"] = translate_ome_dict(mdInfoDict['OME']['Instrument'], True)
+    try:
+        params["channel"] = translate_ome_dict(pixels["Channel"])
+    except KeyError:
+        print("No channel information found")
+    try:
+        params["instrument"] = translate_ome_dict(mdInfoDict['OME']['Instrument'], True)
+    except KeyError:
+        print("No instrument information found")
     return params
 
 def translate_ome_dict(ome_dict: dict, recursive: bool = False):
