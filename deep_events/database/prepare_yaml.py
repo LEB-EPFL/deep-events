@@ -8,7 +8,7 @@ import deep_events.database.ome_to_yaml as ome_to_yaml
 
 
 folder = "Z:/_Lab members/Juan/230222_MitoSplitNet_TrainingSet_U2OS_iSIM/"
-
+folder = "C:/Users/stepp/Documents/05_Software/napari-event-annotate/test_data/"
 
 def prepare_all_folder(folder: str):
     #%%
@@ -32,12 +32,13 @@ def prepare_all_folder(folder: str):
     # The oldest one should have the most true OME data
     db_files = list(Path(folder).rglob(r'db.yaml'))
     tif_files = []
-    for db_file in db_files[1:]:
+    print(f"Found {len(db_files)} db files")
+    for db_file in db_files:
         print(db_file)
         tifs = sorted(Path(os.path.dirname(db_file)).glob(r'*.ome.tif'), key=os.path.getmtime)
         tif_files.append(tifs[0])
     tif_files = [str(file) for file in tif_files]
-
+    print("tif_files", tif_files)
 
     # Get the OME fields from the tif_files
 
