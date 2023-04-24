@@ -21,7 +21,7 @@ def prepare_all_folder(folder: str):
 
     # Do the yaml file from the information in files and folder names
     for file in tif_files:
-        extract_yaml.recursive_folder(os.path.dirname(file))
+        extract_yaml.recursive_folder(file)
         extract_yaml.set_defaults(os.path.dirname(file))
         minimal_present = extract_yaml.check_minimal(os.path.dirname(file))
         if not minimal_present:

@@ -21,9 +21,10 @@ def recursive_folder(file: Path):
     folder_dict['type'] = 'original'
     subpath = file
     while subpath != os.path.dirname(subpath):
-        set_manual(folder_dict, subpath)
+        folder_dict = set_manual(folder_dict, subpath)
         folder_dict = extract_foldername(folder_dict, subpath)
         subpath = os.path.dirname(subpath)
+    save_dict(folder_dict)
 
 
 def check_minimal(folder: Path):
@@ -117,5 +118,6 @@ def extract_folders(path: Path):
 if __name__ == "__main__":
     # extract_folders(MAIN_PATH)
 
-    folder = "//lebsrv2.epfl.ch/LEB_SHARED/_Lab members/Juan/230222_MitoSplitNet_TrainingSet_U2OS_iSIM"
-    recursive_folder(folder)
+    # folder = "//lebsrv2.epfl.ch/LEB_SHARED/_Lab members/Juan/230222_MitoSplitNet_TrainingSet_U2OS_iSIM"
+    file = "C:/Users/stepp/Documents/05_Software/napari-event-annotate/test_data/cos7_isim_mtstaygold.ome.tif"
+    recursive_folder(file)
