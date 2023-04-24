@@ -24,14 +24,15 @@ setup(
         "Operating System :: OS Independent",
     ],
     packages=packages,
-    package_data={},
+    package_data={"database/settings.yaml", "database/keys.yaml"},
     include_package_data=True,
     install_requires=[
         "python_benedict",
         "tifffile",
         "pandas",
         "bson",
-        "opencv-python"
+        "opencv-python",
+        "pymongo",
     ],
     python_requires=">=3.7",
 )
