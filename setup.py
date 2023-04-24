@@ -24,7 +24,7 @@ setup(
         "Operating System :: OS Independent",
     ],
     packages=packages,
-    package_data={"deep-events": ["*.yaml", "database/keys.yaml"]},
+    package_data={"": ["*.yaml", "database/keys.yaml"], "deep_events": ["*.yaml"]},
     include_package_data=True,
     install_requires=[
         "python_benedict",
