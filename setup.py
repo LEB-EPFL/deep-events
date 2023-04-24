@@ -33,6 +33,7 @@ setup(
         "bson",
         "opencv-python",
         "pymongo",
+        "xmltodict",
     ],
     python_requires=">=3.7",
 )
