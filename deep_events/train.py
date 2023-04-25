@@ -17,7 +17,8 @@ SETTINGS = {"nb_filters": 16,
             "nb_input_channels": 1,
             "batch_size": 16,
             "epochs": 20,
-            "n_augmentations": 10}
+            "n_augmentations": 10,
+            'brightness_range': [0.2, 1]}
 NAME = datetime.datetime.now().strftime("%Y%m%d_%H%M")
 
 
@@ -45,12 +46,13 @@ def train(folder: Path = None, gpu = 'GPU:0/'):
         latest_folder = get_latest_folder(FOLDER)
     else:
         latest_folder = folder
-    
+
     logdir = latest_folder.parents[0] / ("logs/scalars/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
 
     batch_generator = ArraySequence(latest_folder, SETTINGS["batch_size"],
-                                     n_augmentations=SETTINGS["n_augmentations"])
+                                     n_augmentations=SETTINGS["n_augmentations"],
+                                     brightness_rang=SETTINGS['brightness_range'])
     eval_images = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_images_00.tif"))
     eval_mask = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_gt_00.tif"))
 
@@ -64,7 +66,7 @@ def train(folder: Path = None, gpu = 'GPU:0/'):
     steps_per_epoch = np.floor(batch_generator.__len__())
 
     gpu = tf.device(gpu)
-    
+
     with gpu:
         history = model.fit(batch_generator,
                             batch_size = SETTINGS["batch_size"],
@@ -76,7 +78,7 @@ def train(folder: Path = None, gpu = 'GPU:0/'):
                             callbacks = [tensorboard_callback])
     model.save(latest_folder / (NAME + "_model.h5"))
 
-# 
+#
 # for gpu in tf.config.experimental.list_physical_devices('GPU'):
 #     tf.config.experimental.set_memory_growth(gpu, True)
 

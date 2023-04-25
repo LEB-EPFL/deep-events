@@ -7,19 +7,22 @@ from keras.preprocessing.image import ImageDataGenerator
 
 
 
+GENERATOR = ImageDataGenerator(
+            horizontal_flip=True,
+            rotation_range=30,
+        )
+BRIGHTNESS_ADJUST = [0, 1]
+
 def apply_augmentation(self, x, y):
     seed = np.random.randint(0, 1e7)
     # seed = np.random.RandomState(seed=None)
     params = self.generator.get_random_transform(x.shape, seed=seed)
     x = self.generator.apply_transform(x, params)
+    bright = np.random.default_rng().uniform(self.brightness_range[0], self.brightness_range[1], size=(1))
+    x = x*bright
     y = self.generator.apply_transform(y, params)
     return x, y
 
-
-GENERATOR = ImageDataGenerator(
-            horizontal_flip=True,
-            rotation_range=30
-        )
 
 
 class FileSequence(Sequence):
@@ -76,7 +79,7 @@ class FileSequence(Sequence):
 
                     if len(batch_x) >= self.batch_size:
                         break
-                    
+
 
                 if len(batch_x) >= self.batch_size:
                     break
@@ -91,11 +94,13 @@ class FileSequence(Sequence):
 
 
 class ArraySequence(Sequence):
-    def __init__(self, data_dir:Path, batch_size, augment=True, n_augmentations=10):
+    def __init__(self, data_dir:Path, batch_size, augment=True, n_augmentations=10,
+                 brightness_range=[0.9, 1]):
         self.data_dir = data_dir
         self.n_augmentations = n_augmentations
         self.batch_size = batch_size
         self.augment = augment
+        self.brightness_range = brightness_range
         self.generator = GENERATOR
 
         self.images_file = data_dir / "train_images_00.tif"
