@@ -1,0 +1,15 @@
+augmented: false
+cell_line:
+- cos7
+contrast:
+- fluorescence
+date: '220923'
+microscope:
+- zeiss
+original_folder: GFP_1
+original_path: D:\Users\stepp\Documents\01_Software\deep-events\tests\data\220927_mitotrackergreen_cos7_ZEISS_fl\GFP_1
+scale_csv: true
+stain:
+- mitotrackergreen
+type: original
+typically_use: true

@@ -1,0 +1,59 @@
+_id: 643a9c8cc961ee3e0ca48b33
+augmented: false
+cell_line:
+- cos7
+channel_contrast: null
+contrast:
+- fluorescence
+crop_box:
+- 1491
+- 749
+- 1747
+- 1005
+date: '220921'
+event_content: division
+event_path: \\lebnas1.epfl.ch\microsc125\deep_events\original_data\event_data\ev_cos7_isim_['fluorescence']_643a9c8cc961ee3e0ca48b33
+fps: 5.0
+frames:
+- 36
+- 47
+label_file: ground_truth.tiff
+microscope:
+- isim
+ome:
+  big_endian: 'false'
+  channel:
+    i_d: Channel:0:0
+    name: Default
+    samples_per_pixel: 1.0
+  dimension_order: XYCZT
+  i_d: Pixels:0
+  instrument:
+    detector:
+      i_d: Detector:0
+      manufacturer: PMPCIECam00
+      offset: 100.0
+    i_d: Instrument:0
+  physical_size_x: 0.056
+  physical_size_x_unit: "\xB5m"
+  physical_size_y: 0.056
+  physical_size_y_unit: "\xB5m"
+  physical_size_z: 1.0
+  physical_size_z_unit: "\xB5m"
+  size_c: 1.0
+  size_t: 100.0
+  size_x: 2048.0
+  size_y: 2048.0
+  size_z: 1.0
+  time_increment: 5000.0
+  time_increment_unit: ms
+  type: uint16
+original_file: 220921_mtstaygold_cos7_Fluorescent_3.ome.tif
+original_folder: GFP_3
+original_path: \\lebnas1.epfl.ch\microsc125\deep_events\original_data\220921_mtstaygold_cos7_iSIM_fl\GFP_3
+saving_scheme: ws_0.2
+scale_csv: true
+stain:
+- mtStayGold
+type: event
+typically_use: true
