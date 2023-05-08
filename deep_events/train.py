@@ -52,7 +52,7 @@ def train(folder: Path = None, gpu = 'GPU:0/'):
 
     batch_generator = ArraySequence(latest_folder, SETTINGS["batch_size"],
                                      n_augmentations=SETTINGS["n_augmentations"],
-                                     brightness_rang=SETTINGS['brightness_range'])
+                                     brightness_range=SETTINGS['brightness_range'])
     eval_images = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_images_00.tif"))
     eval_mask = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_gt_00.tif"))
 
