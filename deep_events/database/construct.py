@@ -5,7 +5,7 @@ from pathlib import Path
 from pymongo import MongoClient
 from benedict import benedict
 
-def main():
+def main(): #pragma: no cover
     reconstruct_from_folder(MAIN_PATH, "mito_events")
 
 

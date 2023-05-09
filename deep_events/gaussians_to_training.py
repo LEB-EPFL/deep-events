@@ -82,9 +82,12 @@ def handle_db(event, box, event_dict, events_folder = None):
     return event_dict
 
 
-if __name__ == "__main__":
+def main(): #pragma: no cover
     if (folder / "event_data").is_dir():
         shutil.rmtree(os.path.join(folder, "event_data"))
     db_files = list((folder).rglob(r'db.yaml'))
     with Pool(10) as p:
         p.starmap(extract_events, zip(db_files, ["GFP"]*len(db_files)))
+
+if __name__ == "__main__":
+    main()
