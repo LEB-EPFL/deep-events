@@ -5,6 +5,7 @@ from pathlib import Path
 from keras.utils import Sequence
 from keras.preprocessing.image import ImageDataGenerator
 
+import matplotlib.pyplot as plt
 
 
 GENERATOR = ImageDataGenerator(
@@ -76,7 +77,10 @@ class FileSequence(Sequence):
 
                     batch_x.append(x)
                     batch_y.append(y)
-
+                    plt.imshow(x)
+                    plt.figure()
+                    plt.imshow(y)
+                    plt.show()
                     if len(batch_x) >= self.batch_size:
                         break
 

@@ -11,14 +11,15 @@ import numpy as np
 from deep_events.training_functions import create_model
 from deep_events.generator import ArraySequence
 
-FOLDER = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Juan/training_data")
+FOLDER = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Emily/training_data")
 SETTINGS = {"nb_filters": 16,
-            "first_conv_size": 32,
+            "first_conv_size": 12,
             "nb_input_channels": 1,
             "batch_size": 16,
-            "epochs": 20,
-            "n_augmentations": 10,
-            'brightness_range': [0.2, 1]}
+            "epochs": 30,
+            "n_augmentations": 30,
+            'brightness_range': [0.6, 1],
+            "loss": 'binary_crossentropy'}
 NAME = datetime.datetime.now().strftime("%Y%m%d_%H%M")
 
 
@@ -39,7 +40,9 @@ def init_pool(l: Lock):
     global lock
     lock = l
 
-def train(folder: Path = None, gpu = 'GPU:0/'):
+lock = Lock()
+
+def train(folder: Path = None, gpu = 'GPU:2/'):
     time.sleep(np.random.random()*3)
     lock.acquire()
     if folder is None:
@@ -61,7 +64,7 @@ def train(folder: Path = None, gpu = 'GPU:0/'):
     lock.release()
 
     benedict(SETTINGS).to_yaml(filepath = latest_folder / (NAME + "_settings.yaml"))
-    model = create_model(SETTINGS["nb_filters"], SETTINGS["first_conv_size"], SETTINGS["nb_input_channels"])
+    model = create_model(SETTINGS)
 
     steps_per_epoch = np.floor(batch_generator.__len__())
 
@@ -76,7 +79,7 @@ def train(folder: Path = None, gpu = 'GPU:0/'):
                             validation_data = validation_data,
                             verbose = 1,
                             callbacks = [tensorboard_callback])
-    model.save(latest_folder / (NAME + "_model.h5"))
+    tf.keras.models.save_model(model, latest_folder / (NAME + "_model.h5"), save_traces=True)
 
 #
 # for gpu in tf.config.experimental.list_physical_devices('GPU'):
@@ -90,7 +93,7 @@ def get_latest_folder(parent_folder:Path):
                   datetime.datetime.strptime(f.name, datetime_format)]
     subfolders.sort(key=lambda x: datetime.datetime.strptime(x.name, datetime_format),
                     reverse=True)
-    return Path(subfolders[0]) if subfolders else None
+    return subfolders if subfolders else None
 
 
 def get_latest(pattern, folder:Path):
@@ -107,21 +110,25 @@ def adjust_tf_dimensions(stack:np.array):
 
 def test_model():
     import matplotlib.pyplot as plt
-    frame = 20
-    training_folder = get_latest_folder(FOLDER)
-    model_dir = get_latest("model", training_folder)
-    model = tf.keras.models.load_model(model_dir)
-    eval_images = adjust_tf_dimensions(tifffile.imread(training_folder / "eval_images_00.tif"))
-    output = model.predict(np.expand_dims(eval_images[frame],axis=0))
-    eval_mask = adjust_tf_dimensions(tifffile.imread(training_folder / "eval_gt_00.tif"))
-    plt.imshow(output[0, :, :, 0], vmax=0.5)
-    plt.figure()
-    plt.imshow(eval_mask[frame, :, :, 0])
-    plt.figure()
-    plt.imshow(eval_images[frame, :, :, 0])
-    plt.show()
+    gpu = tf.device("GPU:4/")
+    with gpu:
+        frame = 1
+        training_folder = Path(get_latest_folder(FOLDER)[0])
+        model_dir = get_latest("model", training_folder)
+        model = tf.keras.models.load_model(model_dir)
+        eval_images = adjust_tf_dimensions(tifffile.imread(training_folder / "eval_images_00.tif"))
+        eval_mask = adjust_tf_dimensions(tifffile.imread(training_folder / "eval_gt_00.tif"))
+        while True:
+            output = model.predict(np.expand_dims(eval_images[frame],axis=0))
+            f, axs = plt.subplots(1, 3)
+            f.set_size_inches(15,5)
+            axs[0].imshow(output[0, :, :, 0], vmax=0.5)
+            axs[1].imshow(eval_mask[frame, :, :, 0])
+            axs[2].imshow(eval_images[frame, :, :, 0])
+            plt.show()
+            frame = frame + 1
 
 if __name__ == "__main__":
     # import os
     # os.environ["CUDA_VISIBLE_DEVICES"] = "3" # set the GPU ID
-    train()
+    test_model()
