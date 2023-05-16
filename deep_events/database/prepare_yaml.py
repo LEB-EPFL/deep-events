@@ -7,8 +7,8 @@ import deep_events.database.extract_yaml as extract_yaml
 import deep_events.database.ome_to_yaml as ome_to_yaml
 
 
-folder = "Z:/_Lab members/Juan/230222_MitoSplitNet_TrainingSet_U2OS_iSIM/"
-folder = "C:/Users/stepp/Documents/05_Software/napari-event-annotate/test_data/"
+# folder = "Z:/_Lab members/Juan/230222_MitoSplitNet_TrainingSet_U2OS_iSIM/"
+folder = "Z:/_Lab members/Emily/20230321_FtsW_sfGFP_caulobacter_zeiss"
 
 def prepare_all_folder(folder: str):
     #%%
@@ -17,7 +17,6 @@ def prepare_all_folder(folder: str):
 
     #%% Get all of the tif files from that folder that we might be interested in
     tif_files = list(Path(folder).rglob(r'*.ome.tif*'))
-
 
     # Do the yaml file from the information in files and folder names
     for file in tif_files:

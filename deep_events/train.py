@@ -23,7 +23,7 @@ SETTINGS = {"nb_filters": 16,
 NAME = datetime.datetime.now().strftime("%Y%m%d_%H%M")
 
 
-def main():
+def main(): # pragma: no cover
     tf.keras.backend.clear_session()
     gpus = ['GPU:1/', 'GPU:2/', 'GPU:4/']
     folders = ["20230412_1622", "20230413_1436", "20230413_1750"]

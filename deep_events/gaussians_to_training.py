@@ -14,10 +14,19 @@ SAVING_SCHEME = "ws_0.2"
 
 
 def extract_events(db_file, images_identifier: str = "", channel_contrast: str = None, events_folder: str = None):
+    folder_dict = get_dict(Path(os.path.dirname(db_file)))
+
     if images_identifier != "":
         tif_identifier = r'*' + images_identifier + r'*.ome.tif'
+    if isinstance(list, channel_contrast):
+        for contrast in channel_contrast:
+            extract_events(db_file, contrast, events_folder)
+        return
+    elif channel_contrast is not None:
+        tif_identifier =  r'*' + folder_dict['contrast'][channel_contrast] + r'*.ome.tif'
     else:
         tif_identifier = r'*.ome.tif'
+
 
     tif_files = sorted(Path(os.path.dirname(db_file)).glob(tif_identifier), key=os.path.getmtime)
     if tif_files:
@@ -39,7 +48,6 @@ def extract_events(db_file, images_identifier: str = "", channel_contrast: str =
         return
     print(gaussians_file)
 
-    folder_dict = get_dict(Path(os.path.dirname(db_file)))
     event_dict = copy.deepcopy(folder_dict)
     event_dict['type'] = "event"
     event_dict['channel_contrast'] = channel_contrast
@@ -82,9 +90,12 @@ def handle_db(event, box, event_dict, events_folder = None):
     return event_dict
 
 
-if __name__ == "__main__":
+def main(): #pragma: no cover
     if (folder / "event_data").is_dir():
         shutil.rmtree(os.path.join(folder, "event_data"))
     db_files = list((folder).rglob(r'db.yaml'))
     with Pool(10) as p:
-        p.starmap(extract_events, zip(db_files, ["GFP"]*len(db_files)))
+        p.starmap(extract_events, zip(db_files, [""]*len(db_files), ["fluorescence", "brightfield"]*len(db_files)))
+
+if __name__ == "__main__":
+    main()

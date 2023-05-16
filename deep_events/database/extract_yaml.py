@@ -115,7 +115,7 @@ def extract_folders(path: Path):
 
         set_defaults(folder)
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     # extract_folders(MAIN_PATH)
 
     # folder = "//lebsrv2.epfl.ch/LEB_SHARED/_Lab members/Juan/230222_MitoSplitNet_TrainingSet_U2OS_iSIM"
