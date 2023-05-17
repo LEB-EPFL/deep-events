@@ -8,7 +8,7 @@ import deep_events.database.ome_to_yaml as ome_to_yaml
 
 
 # folder = "Z:/_Lab members/Juan/230222_MitoSplitNet_TrainingSet_U2OS_iSIM/"
-folder = "Z:/_Lab members/Emily/20230321_FtsW_sfGFP_caulobacter_zeiss"
+folder = "Z:/_Lab members/Emily/"
 
 def prepare_all_folder(folder: str):
     #%%
