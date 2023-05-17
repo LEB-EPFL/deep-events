@@ -97,7 +97,7 @@ def delete_automically_extracted_events(folder):
         event_dict = benedict(db_file)
         if "extraction_type" in event_dict.keys() and event_dict['extraction_type'] == 'manual':
             if event_dict['extraction_type'] == 'manual':
-                print(f"SKIPPING {db_file}")
+                print(f"Not deleting {db_file}")
                 continue
         shutil.rmtree(os.path.join(os.path.dirname(db_file)))
 
