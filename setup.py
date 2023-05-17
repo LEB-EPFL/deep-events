@@ -30,7 +30,6 @@ setup(
         "python_benedict",
         "tifffile",
         "pandas",
-        "bson",
         "opencv-python",
         "pymongo",
         "xmltodict",

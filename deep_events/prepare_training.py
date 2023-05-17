@@ -32,7 +32,7 @@ def main():
 
 
 
-def prepare_for_prompt(folder: Path, prompt: dict, collection: str):
+def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 0.2):
     coll = get_collection(collection)
 
     filtered_list = list(coll.find(prompt))
@@ -42,12 +42,13 @@ def prepare_for_prompt(folder: Path, prompt: dict, collection: str):
         db_files.append(Path(item['event_path']) / "event_db.yaml")
 
     training_folder = make_training_folder(folder)
+    prompt["train_val_split"] = test_size
     benedict(prompt).to_yaml(filepath=training_folder / "db_prompt.yaml")
 
     # Load and split
     all_images, all_gt = load_folder(folder, db_files, training_folder)
     images_train, images_eval, gt_train, gt_eval = train_test_split(all_images, all_gt,
-                                                                    test_size=0.2, random_state=42)
+                                                                    test_size=test_size, random_state=42)
     stacks = {"image":images_eval,"mask": gt_eval}
     stacks = normalize_stacks(stacks)
     save_data(training_folder, stacks['image'], stacks['mask'], "eval")
