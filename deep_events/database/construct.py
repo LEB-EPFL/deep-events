@@ -41,9 +41,7 @@ def reconstruct_from_folder(folder: Path, collection: str):
 
 
 def retrieve_filtered_list(coll, prompt = {}):
-    cluster = "mongodb://lebpc13.epfl.ch/"
-    client = MongoClient(cluster)
-    coll = client.deep_events[coll]
+    coll = get_collection(coll)
 
     # Example for filtering a collection in the database and retrieving the data as a list
     filtered_list = list(coll.find({'microscope': 'isim', 'cell_line': 'cos7'}))
