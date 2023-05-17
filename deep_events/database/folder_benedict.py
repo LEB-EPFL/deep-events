@@ -23,7 +23,7 @@ def get_dict(folder: str):
     except ValueError:
         folder_dict = benedict(benedict().
                                to_yaml(filepath=os.path.join(folder, "db.yaml")))
-    folder_dict['original_path'] = folder
+    folder_dict['original_path'] = os.path.realpath(folder)
     folder_dict['original_folder'] = os.path.basename(folder)
     return folder_dict
 

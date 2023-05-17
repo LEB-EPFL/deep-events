@@ -118,6 +118,6 @@ def extract_folders(path: Path):
 if __name__ == "__main__": # pragma: no cover
     # extract_folders(MAIN_PATH)
 
-    # folder = "//lebsrv2.epfl.ch/LEB_SHARED/_Lab members/Juan/230222_MitoSplitNet_TrainingSet_U2OS_iSIM"
-    file = "C:/Users/stepp/Documents/05_Software/napari-event-annotate/test_data/cos7_isim_mtstaygold.ome.tif"
+    folder = "//lebsrv2.epfl.ch/LEB_SHARED/_Lab members/Juan/230222_MitoSplitNet_TrainingSet_U2OS_iSIM"
+    # file = "C:/Users/stepp/Documents/05_Software/napari-event-annotate/test_data/cos7_isim_mtstaygold.ome.tif"
     recursive_folder(file)

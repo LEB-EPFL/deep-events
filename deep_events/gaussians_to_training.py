@@ -5,11 +5,12 @@ import os
 import shutil
 import copy
 from deep_events.database.folder_benedict import get_dict, save_dict
+from benedict import benedict
 from bson.objectid import ObjectId
 import numpy as np
 from multiprocessing import Pool
 
-folder = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Juan/230222_MitoSplitNet_TrainingSet_U2OS_iSIM/")
+folder = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Emily")
 SAVING_SCHEME = "ws_0.2"
 
 
@@ -90,9 +91,20 @@ def handle_db(event, box, event_dict, events_folder = None):
     return event_dict
 
 
+def delete_automically_extracted_events(folder):
+    db_files = list((folder).rglob(r'event_db.yaml'))
+    for db_file in db_files:
+        event_dict = benedict(db_file)
+        if "extraction_type" in event_dict.keys() and event_dict['extraction_type'] == 'manual':
+            if event_dict['extraction_type'] == 'manual':
+                print(f"SKIPPING {db_file}")
+                continue
+        shutil.rmtree(os.path.join(os.path.dirname(db_file)))
+
+
 def main(): #pragma: no cover
     if (folder / "event_data").is_dir():
-        shutil.rmtree(os.path.join(folder, "event_data"))
+        delete_automically_extracted_events(folder / "event_data")
     db_files = list((folder).rglob(r'db.yaml'))
     with Pool(10) as p:
         p.starmap(extract_events, zip(db_files, [""]*len(db_files), ["fluorescence", "brightfield"]*len(db_files)))
