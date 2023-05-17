@@ -19,15 +19,17 @@ def extract_events(db_file, images_identifier: str = "", channel_contrast: str =
 
     if images_identifier != "":
         tif_identifier = r'*' + images_identifier + r'*.ome.tif'
-    if isinstance(list, channel_contrast):
+    if isinstance(channel_contrast, list):
         for contrast in channel_contrast:
-            extract_events(db_file, contrast, events_folder)
+            extract_events(db_file, images_identifier, contrast, events_folder)
         return
     elif channel_contrast is not None:
         tif_identifier =  r'*' + folder_dict['contrast'][channel_contrast] + r'*.ome.tif'
     else:
         tif_identifier = r'*.ome.tif'
 
+    print(f"tif identifier: {tif_identifier}")
+    print(channel_contrast)
 
     tif_files = sorted(Path(os.path.dirname(db_file)).glob(tif_identifier), key=os.path.getmtime)
     if tif_files:
@@ -106,8 +108,10 @@ def main(): #pragma: no cover
     if (folder / "event_data").is_dir():
         delete_automically_extracted_events(folder / "event_data")
     db_files = list((folder).rglob(r'db.yaml'))
-    with Pool(10) as p:
-        p.starmap(extract_events, zip(db_files, [""]*len(db_files), ["fluorescence", "brightfield"]*len(db_files)))
+    # for db_file in db_files:
+    #     extract_events(db_file, "", ["brightfield", "fluorescence"])
+    with Pool(30) as p:
+        p.starmap(extract_events, zip(db_files, [""]*len(db_files), [["fluorescence", "brightfield"]]*len(db_files)))
 
 if __name__ == "__main__":
     main()

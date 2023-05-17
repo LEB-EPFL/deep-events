@@ -123,7 +123,9 @@ def test_model():
             f, axs = plt.subplots(1, 3)
             f.set_size_inches(15,5)
             axs[0].imshow(output[0, :, :, 0], vmax=0.5)
+            axs[0].set_title("prediction")
             axs[1].imshow(eval_mask[frame, :, :, 0])
+            axs[1].set_title("ground truth")
             axs[2].imshow(eval_images[frame, :, :, 0])
             plt.show()
             frame = frame + 1
