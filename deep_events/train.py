@@ -31,10 +31,14 @@ def main(): # pragma: no cover
     with Pool(3) as p:
         p.starmap(train, zip(folders, gpus))
 
-def distributed_train(folders, gpus):
+def distributed_train(folders, gpus, settings=SETTINGS):
     l = Lock()
+
+    if not isinstance(settings, list):
+        settings = [settings]*len(folders)
+
     with Pool(min(3, len(folders)), initializer=init_pool, initargs=(l,)) as p:
-        p.starmap(train, zip(folders, gpus))
+        p.starmap(train, zip(folders, gpus, settings))
 
 def init_pool(l: Lock):
     global lock
@@ -42,9 +46,10 @@ def init_pool(l: Lock):
 
 lock = Lock()
 
-def train(folder: Path = None, gpu = 'GPU:2/'):
-    time.sleep(np.random.random()*3)
+def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
+    time.sleep(np.random.random()*10)
     lock.acquire()
+    print("LOCKED")
     if folder is None:
         latest_folder = get_latest_folder(FOLDER)
     else:
@@ -53,32 +58,43 @@ def train(folder: Path = None, gpu = 'GPU:2/'):
     logdir = latest_folder.parents[0] / ("logs/scalars/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
 
-    batch_generator = ArraySequence(latest_folder, SETTINGS["batch_size"],
-                                     n_augmentations=SETTINGS["n_augmentations"],
-                                     brightness_range=SETTINGS['brightness_range'])
+    batch_generator = ArraySequence(latest_folder, settings["batch_size"],
+                                     n_augmentations=settings["n_augmentations"],
+                                     brightness_range=settings['brightness_range'])
     eval_images = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_images_00.tif"))
     eval_mask = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_gt_00.tif"))
 
     validation_data = (eval_images, eval_mask)
     time.sleep(1)
-    lock.release()
 
-    benedict(SETTINGS).to_yaml(filepath = latest_folder / (NAME + "_settings.yaml"))
-    model = create_model(SETTINGS)
+    benedict(settings).to_yaml(filepath = latest_folder / (NAME + "_settings.yaml"))
+    model = create_model(settings)
+    
+    lock.release()
+    print("UNLOCKED")
 
     steps_per_epoch = np.floor(batch_generator.__len__())
+    n_tries = 0
+    while n_tries < 10:
+        try:
+            gpu_device = tf.device(gpu)
+            with gpu_device:
+                history = model.fit(batch_generator,
+                                    batch_size = settings["batch_size"],
+                                    epochs = settings["epochs"],
+                                    steps_per_epoch = steps_per_epoch,
+                                    shuffle=True,
+                                    validation_data = validation_data,
+                                    verbose = 1,
+                                    callbacks = [tensorboard_callback])
+        except Exception as e:
+            print("------------------------------ COULD NOT TRAIN -----------------------------------------")
+            print(e)
+            gpu = gpu.replace(gpu[-2], str((int(gpu[-2])+1)%6))
+            n_tries += 1
+            time.sleep(10)
+            print(f"Try next GPU: {gpu}")
 
-    gpu = tf.device(gpu)
-
-    with gpu:
-        history = model.fit(batch_generator,
-                            batch_size = SETTINGS["batch_size"],
-                            epochs = SETTINGS["epochs"],
-                            steps_per_epoch = steps_per_epoch,
-                            shuffle=True,
-                            validation_data = validation_data,
-                            verbose = 1,
-                            callbacks = [tensorboard_callback])
     tf.keras.models.save_model(model, latest_folder / (NAME + "_model.h5"), save_traces=True)
 
 #
