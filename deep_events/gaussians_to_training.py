@@ -14,7 +14,8 @@ folder = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Emily")
 SAVING_SCHEME = "ws_0.2"
 
 
-def extract_events(db_file, images_identifier: str = "", channel_contrast: str = None, events_folder: str = None):
+def extract_events(db_file, images_identifier: str = "", channel_contrast: str = None,
+                   label: str = "", events_folder: str = None):
     folder_dict = get_dict(Path(os.path.dirname(db_file)))
 
     if images_identifier != "":
@@ -23,7 +24,7 @@ def extract_events(db_file, images_identifier: str = "", channel_contrast: str =
         for contrast in channel_contrast:
             extract_events(db_file, images_identifier, contrast, events_folder)
         return
-    elif channel_contrast is not None:
+    elif channel_contrast != "":
         tif_identifier =  r'*' + folder_dict['contrast'][channel_contrast] + r'*.ome.tif'
     else:
         tif_identifier = r'*.ome.tif'
@@ -62,10 +63,13 @@ def extract_events(db_file, images_identifier: str = "", channel_contrast: str =
 
     with tifffile.TiffFile(tif_file) as images, tifffile.TiffFile(gaussians_file) as gaussians:
         events = basic_scan(gaussians.asarray(), threshold=0.5)
+
+        if label != "":
+            channel = folder_dict['labels'][label]
         print(events)
         for event in events:
             gaussians_crop, box = crop_images(event, gaussians)
-            imgs_crop, box = crop_images(event, images)
+            imgs_crop, box = crop_images(event, images, channel)
             event_dict = handle_db(event, box, event_dict, events_folder)
 
             # tifffile.imwrite(os.path.join(event_dict['event_path'], "ground_truth.tif"),
@@ -110,8 +114,16 @@ def main(): #pragma: no cover
     db_files = list((folder).rglob(r'db.yaml'))
     # for db_file in db_files:
     #     extract_events(db_file, "", ["brightfield", "fluorescence"])
+    img_identifier = ""
+    channel_contrast = ["brightfield", "fluorescence"]
+    label = "mitochondria"
+    label = ""
+
     with Pool(30) as p:
-        p.starmap(extract_events, zip(db_files, [""]*len(db_files), [["fluorescence", "brightfield"]]*len(db_files)))
+        p.starmap(extract_events, zip(db_files,
+                                      [img_identifier]*len(db_files),
+                                      [channel_contrast]*len(db_files),
+                                      [label]*len(db_files)))
 
 if __name__ == "__main__":
     main()
