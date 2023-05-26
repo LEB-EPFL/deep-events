@@ -10,11 +10,11 @@ from bson.objectid import ObjectId
 import numpy as np
 from multiprocessing import Pool
 
-folder = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Juan/230511_PDA_TrainingSet_iSIM")
+
 SAVING_SCHEME = "ws_0.2"
 
 
-def extract_events(db_file, images_identifier: str = "", channel_contrast: str = None,
+def extract_events(db_file, images_identifier: str = "", channel_contrast: str = "",
                    label: str = "", events_folder: str = None):
     folder_dict = get_dict(Path(os.path.dirname(db_file)))
 
@@ -22,12 +22,14 @@ def extract_events(db_file, images_identifier: str = "", channel_contrast: str =
         tif_identifier = r'*' + images_identifier + r'*.ome.tif'
     if isinstance(channel_contrast, list):
         for contrast in channel_contrast:
-            extract_events(db_file, images_identifier, contrast, events_folder)
+            print("Running recursively on the channel constrast list")
+            extract_events(db_file, images_identifier, contrast, label, events_folder)
         return
     elif channel_contrast != "":
         tif_identifier =  r'*' + folder_dict['contrast'][channel_contrast] + r'*.ome.tif'
     else:
         tif_identifier = r'*.ome.tif'
+
 
     print(f"tif identifier: {tif_identifier}")
     print(channel_contrast)
@@ -35,6 +37,7 @@ def extract_events(db_file, images_identifier: str = "", channel_contrast: str =
     tif_files = sorted(Path(os.path.dirname(db_file)).glob(tif_identifier), key=os.path.getmtime)
     if tif_files:
         tif_file = tif_files[-1]
+        tif_files.remove(tif_file)
         print(tif_file)
     else:
         print(db_file)
@@ -62,27 +65,35 @@ def extract_events(db_file, images_identifier: str = "", channel_contrast: str =
     event_dict['event_content'] = 'division'
 
     with tifffile.TiffFile(tif_file) as images, tifffile.TiffFile(gaussians_file) as gaussians:
-        events = basic_scan(gaussians.asarray(), threshold=0.5)
+        # Open additional tifs to be able to read from them.
+        tifs = []
+        try:
+            for tif in tif_files:
+                tifs.append(open(tif, 'r'))
 
-        if label != "":
-            channel = folder_dict['labels'][label]
-        print(events)
-        for event in events:
-            gaussians_crop, box = crop_images(event, gaussians)
-            imgs_crop, box = crop_images(event, images, channel)
-            event_dict = handle_db(event, box, event_dict, events_folder)
+            events = basic_scan(gaussians.asarray(), threshold=0.5)
+            if label != "":
+                channel = folder_dict['labels'][label]
+                print(f"Channel: {channel}")
+            else:
+                channel = None
+            print(events)
+            for event in events:
+                gaussians_crop, box = crop_images(event, gaussians)
+                imgs_crop, box = crop_images(event, images, channel)
+                event_dict = handle_db(event, box, event_dict, events_folder)
 
-            # tifffile.imwrite(os.path.join(event_dict['event_path'], "ground_truth.tif"),
-            #                  (gaussians_crop).astype(np.uint16), photometric='minisblack')
-            tifffile.imwrite(os.path.join(event_dict['event_path'], "ground_truth.tif"),
-                             (gaussians_crop).astype(np.float16), photometric='minisblack')
-            tifffile.imwrite(os.path.join(event_dict['event_path'], "images.tif"),
-                             (imgs_crop).astype(np.float16), photometric='minisblack')
+                # tifffile.imwrite(os.path.join(event_dict['event_path'], "ground_truth.tif"),
+                #                  (gaussians_crop).astype(np.uint16), photometric='minisblack')
+                tifffile.imwrite(os.path.join(event_dict['event_path'], "ground_truth.tif"),
+                                (gaussians_crop).astype(np.float16), photometric='minisblack')
+                tifffile.imwrite(os.path.join(event_dict['event_path'], "images.tif"),
+                                (imgs_crop).astype(np.float16), photometric='minisblack')
+        finally:
+            for f in tifs:
+                f.close()
 
-
-def handle_db(event, box, event_dict, events_folder = None):
-    if events_folder is None:
-        events_folder = folder
+def handle_db(event, box, event_dict, events_folder):
     event_id = ObjectId()
     event_folder = f"ev_{event_dict['cell_line'][0]}_{event_dict['microscope'][0]}_{event_dict['contrast'][:4]}_{event_id}"
     path = os.path.join(events_folder, "event_data", event_folder)
@@ -109,21 +120,30 @@ def delete_automically_extracted_events(folder):
 
 
 def main(): #pragma: no cover
+
+    # folder = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Emily")
+    # channel_contrast = ["brightfield", "fluorescence"]
+    # label = ""
+
+    folder = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Juan/230511_PDA_TrainingSet_iSIM")
+    channel_contrast = ""
+    label = "mitochondria"
+
     if (folder / "event_data").is_dir():
         delete_automically_extracted_events(folder / "event_data")
     db_files = list((folder).rglob(r'db.yaml'))
     # for db_file in db_files:
     #     extract_events(db_file, "", ["brightfield", "fluorescence"])
     img_identifier = ""
-    channel_contrast = ["brightfield", "fluorescence"]
-    label = "mitochondria"
-    label = ""
+
+    # extract_events(db_files[0], img_identifier, channel_contrast, label, folder)
 
     with Pool(30) as p:
         p.starmap(extract_events, zip(db_files,
                                       [img_identifier]*len(db_files),
                                       [channel_contrast]*len(db_files),
-                                      [label]*len(db_files)))
+                                      [label]*len(db_files),
+                                      [folder]*len(db_files)))
 
 if __name__ == "__main__":
     main()

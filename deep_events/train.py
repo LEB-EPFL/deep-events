@@ -11,6 +11,8 @@ import numpy as np
 from deep_events.training_functions import create_model
 from deep_events.generator import ArraySequence
 
+
+
 FOLDER = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Emily/training_data")
 SETTINGS = {"nb_filters": 16,
             "first_conv_size": 12,
@@ -20,7 +22,7 @@ SETTINGS = {"nb_filters": 16,
             "n_augmentations": 30,
             'brightness_range': [0.6, 1],
             "loss": 'binary_crossentropy'}
-NAME = datetime.datetime.now().strftime("%Y%m%d_%H%M")
+
 
 
 def main(): # pragma: no cover
@@ -66,8 +68,11 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
 
     validation_data = (eval_images, eval_mask)
     time.sleep(1)
+    name = datetime.datetime.now().strftime("%Y%m%d_%H%M")
+    while Path(latest_folder / (name + "_settings.yaml")).is_file():
+        name = datetime.datetime.now().strftime("%Y%m%d_%H%M")
 
-    benedict(settings).to_yaml(filepath = latest_folder / (NAME + "_settings.yaml"))
+    benedict(settings).to_yaml(filepath = latest_folder / (name + "_settings.yaml"))
     model = create_model(settings)
     
     lock.release()
@@ -75,7 +80,9 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
 
     steps_per_epoch = np.floor(batch_generator.__len__())
     n_tries = 0
-    while n_tries < 10:
+    max_tries = 10
+    while n_tries < max_tries:
+        print(f"NUMBER OF EPOCHS: {settings['epochs']}" )
         try:
             gpu_device = tf.device(gpu)
             with gpu_device:
@@ -87,15 +94,16 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
                                     validation_data = validation_data,
                                     verbose = 1,
                                     callbacks = [tensorboard_callback])
+            n_tries = max_tries
         except Exception as e:
             print("------------------------------ COULD NOT TRAIN -----------------------------------------")
             print(e)
             gpu = gpu.replace(gpu[-2], str((int(gpu[-2])+1)%6))
-            n_tries += 1
             time.sleep(10)
             print(f"Try next GPU: {gpu}")
+        n_tries += 1
 
-    tf.keras.models.save_model(model, latest_folder / (NAME + "_model.h5"), save_traces=True)
+    tf.keras.models.save_model(model, latest_folder / (name + "_model.h5"), save_traces=True)
 
 #
 # for gpu in tf.config.experimental.list_physical_devices('GPU'):
