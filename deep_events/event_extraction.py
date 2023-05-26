@@ -54,6 +54,8 @@ def find_cool_thing_in_frame(frame, threshold: float, nbh_size: int) -> list:
 
     list of dictionaries having at the entries 'x', 'y' and 'z' the x, y nd z coordinate of every event center
     """
+    if frame.max() == 0:
+        return []
     if len(frame.shape) == 2:                         #To treat 2D images as 3D
         frame = np.expand_dims(frame, axis = 0)
     data_max = ndi.maximum_filter(frame, nbh_size, mode = 'constant', cval = 0)
