@@ -25,7 +25,8 @@ def get_lines_from_csv(csv_file: Path) -> List[List[float]]:
         csv_reader = csv.reader(csv_file, delimiter=',')
         lines = []
         for row in csv_reader:
-            line = [row[0]] + row[2:4] + [row[-1]] + [row[-2]]
+            # select relevant columns and reduce frame by 1 (java -> python)
+            line = [row[0]] + [row[2]] + [row[3]]-1 + [row[-1]] + [row[-2]]
             lines.append(line)
     return lines[1:]
 
