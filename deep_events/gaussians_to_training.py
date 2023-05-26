@@ -10,7 +10,7 @@ from bson.objectid import ObjectId
 import numpy as np
 from multiprocessing import Pool
 
-folder = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Emily")
+folder = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Juan/230511_PDA_TrainingSet_iSIM")
 SAVING_SCHEME = "ws_0.2"
 
 
