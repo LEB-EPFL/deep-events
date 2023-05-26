@@ -13,12 +13,12 @@ from deep_events.generator import ArraySequence
 
 
 
-FOLDER = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Emily/training_data")
+FOLDER = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Juan/training_data")
 SETTINGS = {"nb_filters": 16,
             "first_conv_size": 12,
             "nb_input_channels": 1,
             "batch_size": 16,
-            "epochs": 30,
+            "epochs": 20,
             "n_augmentations": 30,
             'brightness_range': [0.6, 1],
             "loss": 'binary_crossentropy'}
@@ -138,6 +138,7 @@ def test_model():
     with gpu:
         frame = 1
         training_folder = Path(get_latest_folder(FOLDER)[0])
+        print(training_folder)
         model_dir = get_latest("model", training_folder)
         model = tf.keras.models.load_model(model_dir)
         eval_images = adjust_tf_dimensions(tifffile.imread(training_folder / "eval_images_00.tif"))
@@ -146,7 +147,7 @@ def test_model():
             output = model.predict(np.expand_dims(eval_images[frame],axis=0))
             f, axs = plt.subplots(1, 3)
             f.set_size_inches(15,5)
-            axs[0].imshow(output[0, :, :, 0], vmax=0.5)
+            axs[0].imshow(output[0, :, :, 0], vmax=1)
             axs[0].set_title("prediction")
             axs[1].imshow(eval_mask[frame, :, :, 0])
             axs[1].set_title("ground truth")

@@ -41,8 +41,9 @@ def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 
     for item in filtered_list:
         db_files.append(Path(item['event_path']) / "event_db.yaml")
 
-    training_folder = make_training_folder(folder)
+    training_folder = make_training_folder(folder, prompt)
     prompt["train_val_split"] = test_size
+    prompt["collection"] = collection
     benedict(prompt).to_yaml(filepath=training_folder / "db_prompt.yaml")
 
     # Load and split
@@ -60,11 +61,13 @@ def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 
     save_data(training_folder, stacks['image'], stacks["mask"], "train")
     return training_folder
 
-def make_training_folder(folder:Path):
+def make_training_folder(folder:Path, prompt: dict):
     i = 0
     while True:
         folder_name = datetime.datetime.now().strftime("%Y%m%d_%H%M")
-        new_folder = folder.parents[0] / "training_data" / folder_name
+        for value in prompt.values():
+            folder_name = folder_name + "_" + value
+        new_folder = folder / "training_data" / folder_name
         try:
             new_folder.mkdir(parents=True)
             break
