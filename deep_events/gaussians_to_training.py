@@ -95,7 +95,10 @@ def extract_events(db_file, images_identifier: str = "", channel_contrast: str =
 
 def handle_db(event, box, event_dict, events_folder):
     event_id = ObjectId()
-    event_folder = f"ev_{event_dict['cell_line'][0]}_{event_dict['microscope'][0]}_{event_dict['contrast'][:4]}_{event_id}"
+    try:
+        event_folder = f"ev_{event_dict['cell_line'][0]}_{event_dict['microscope'][0]}_{event_dict['contrast'][:4]}_{event_id}"
+    except TypeError:
+        event_folder = f"ev_{event_dict['cell_line'][0]}_{event_dict['microscope']}_{event_id}"
     path = os.path.join(events_folder, "event_data", event_folder)
     print(path)
     Path(path).mkdir(parents=True, exist_ok=True)
