@@ -27,15 +27,31 @@ def recursive_folder(file: Path):
     save_dict(folder_dict)
 
 
-def check_minimal(folder: Path):
+def check_minimal(folder: Path, print_missing: bool = True):
     folder_dict = get_dict(folder)
     present_keys = folder_dict.keys()
     min_keys = list(keys.keys())
     min_keys.remove('defaults')
     min_keys.extend(list(keys['defaults'].keys()))
+    # Get the list with the brightfield names:
+    if check_brightfield(folder):
+        [min_keys.remove(x) for x in ['stain', 'labels']]
     matched_keys = [key in present_keys for key in min_keys]
+    if print_missing and not all(matched_keys):
+        print(folder)
+        print(f"Missing keys: {', '.join([key for key, matched in zip(min_keys, matched_keys) if not matched])}")
     return all(matched_keys)
 
+def check_brightfield(folder: Path):
+    #Check if the data might be brightfield only data
+    brightfield = False
+    for sublist in keys['contrast']:
+        if 'bf' in sublist:
+            bf_list = sublist
+    for bf_name in bf_list:
+        if bf_name in folder:
+            brightfield = True
+    return brightfield
 #%%
 
 def delete_db_files(folder: Path):

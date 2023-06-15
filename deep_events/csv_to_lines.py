@@ -23,22 +23,26 @@ def get_lines_from_csv(csv_file: Path) -> List[List[float]]:
     """
     with open(csv_file, 'r') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
+        next(csv_reader) # skip header line
         lines = []
         for row in csv_reader:
             # select relevant columns and reduce frame by 1 (java -> python)
-            line = [row[0]] + [row[2]] + [row[3]]-1 + [row[-1]] + [row[-2]]
+            line = [row[0]] + [row[2]] + [row[3]] + [row[-1]] + [row[-2]]
             lines.append(line)
-    return lines[1:]
+    return lines
 
 def translate_line_list(lines_info: list) -> List[Tuple[LineString, int]]:
     """Get lines array and put into lines"""
     lines = []
     line = [lines_info[0][-2:]]
-    for previous, row in zip(lines_info, lines_info[1:]):
-        if previous[0] == row[0]:
+    for idx, (row, previous) in enumerate(zip(lines_info[1:], lines_info)):
+        if previous[0] == row[0] and idx < len(lines_info) - 2:
             line.append(row[-2:])
-        else:
+        elif idx == len(lines_info) - 2:
+            line.append(row[-2:])
             lines.append((LineString(line), row[2]))
+        else:
+            lines.append((LineString(line), previous[2]))
             line = [row[-2:]]
     return lines
 
