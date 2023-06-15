@@ -16,7 +16,12 @@ def reconstruct_from_folder(folder: Path, collection: str):
     #%% Get the db.yaml files from the folders
     if "event_data" in str(folder):
         event_list = list(Path(folder).rglob("*/event_db.yaml"))
-        event_list = [benedict(str(event)) for event in event_list]
+        event_dicts = [benedict(str(event)) for event in event_list]
+        corrected_event_list = []
+        for event_dict, path in zip(event_dicts, event_list):
+            event_dict['event_path'] = str(Path(path).parents[0].resolve())
+            corrected_event_list.append(event_dict)
+        event_list = corrected_event_list
     elif "training_data" in str(folder):
         event_dirs = list(Path(folder).rglob("*/*settings.yaml"))
         event_list = []

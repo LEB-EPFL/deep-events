@@ -65,9 +65,10 @@ def make_training_folder(folder:Path, prompt: dict):
     i = 0
     while True:
         folder_name = datetime.datetime.now().strftime("%Y%m%d_%H%M")
+
         for value in prompt.values():
             folder_name = folder_name + "_" + value
-        new_folder = folder / "training_data" / folder_name
+        new_folder = folder.parents[0] / "training_data" / folder_name
         try:
             new_folder.mkdir(parents=True)
             break
@@ -76,6 +77,7 @@ def make_training_folder(folder:Path, prompt: dict):
                 print("Would be same folder name, wait")
                 i = 1
             time.sleep(3)
+    print(new_folder)
     return new_folder
 
 
