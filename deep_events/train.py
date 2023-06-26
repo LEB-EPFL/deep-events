@@ -82,8 +82,8 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
     max_tries = 10
     while n_tries < max_tries:
         os.environ['CUDA_VISIBLE_DEVICES'] = gpu[-2]
-        model = create_model(settings)
-        
+        model = create_model(settings, eval_images.shape)
+
         steps_per_epoch = np.floor(batch_generator.__len__())
         print(f"NUMBER OF EPOCHS: {settings['epochs']}" )
         try:

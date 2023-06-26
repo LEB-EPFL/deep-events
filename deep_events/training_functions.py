@@ -21,14 +21,14 @@ def dice_loss(y_true, y_pred, smooth=1.):
 
 @tf.keras.utils.register_keras_serializable()
 def focal_loss(y_true, y_pred, gamma=2.0, alpha=0.25):
-    
+
     # calculate focal loss coefficients
     ones = tf.ones_like(y_true)
     p_t = tf.where(tf.equal(y_true, ones), y_pred, ones-y_pred)
     alpha_factor = tf.where(tf.equal(y_true, ones), alpha, ones-alpha)
     modulating_factor = tf.pow(1.0-p_t, gamma)
     focal_loss = -alpha_factor * modulating_factor * tf.math.log(tf.clip_by_value(p_t, K.epsilon(), 1.0))
-    
+
     return tf.reduce_mean(focal_loss, axis=-1)
 
 @tf.keras.utils.register_keras_serializable()
@@ -52,16 +52,18 @@ def soft_focal_loss(y_true, y_pred, alpha=0.25, gamma=2.0):
 
 
 
-def create_model(settings, printSummary=False, ):
+def create_model(settings, data_shape, printSummary=False, ):
     nb_filters, firstConvSize = settings["nb_filters"], settings["first_conv_size"]
     #Hyperparameters
     optimizer_type = Adam(learning_rate=0.5e-3)
     custom_objects = {settings["loss"]: get_loss_function(settings)}
     loss = list(custom_objects.values())[0] #dice_loss # 'binary_crossentropy'  # 'mse'
-  
+
     metrics = [BinaryAccuracy(), MeanSquaredError()]
 
     #Network architecture
+    if len(data_shape) == 4:
+        settings["nb_input_channels"] = data_shape[1]
     input_shape = (None, None, settings["nb_input_channels"])
     inputs = Input(shape=input_shape)
 
@@ -129,7 +131,7 @@ def create_model(settings, printSummary=False, ):
 def get_loss_function(settings: dict = None):
     if settings is None:
         return "binary_crossentropy"
-    
+
     loss = settings["loss"]
     if loss == "dice":
         return dice_loss
