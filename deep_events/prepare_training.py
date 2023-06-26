@@ -31,8 +31,8 @@ def main():
     save_data(training_folder, all_images['image'], all_images["mask"], "train")
 
 
-
-def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 0.2):
+def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 0.2,
+                       n_timepoints = 1, fps = 1):
     coll = get_collection(collection)
 
     filtered_list = list(coll.find(prompt))
@@ -43,11 +43,13 @@ def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 
 
     training_folder = make_training_folder(folder, prompt)
     prompt["train_val_split"] = test_size
+    prompt["n_timepoints"]  = n_timepoints
+    prompt["fps"] = fps
     prompt["collection"] = collection
     benedict(prompt).to_yaml(filepath=training_folder / "db_prompt.yaml")
 
     # Load and split
-    all_images, all_gt = load_folder(folder, db_files, training_folder)
+    all_images, all_gt = load_folder(folder, db_files, training_folder, n_timepoints, fps)
     images_train, images_eval, gt_train, gt_eval = train_test_split(all_images, all_gt,
                                                                     test_size=test_size, random_state=42)
     stacks = {"image":images_eval,"mask": gt_eval}
@@ -60,6 +62,7 @@ def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 
 
     save_data(training_folder, stacks['image'], stacks["mask"], "train")
     return training_folder
+
 
 def make_training_folder(folder:Path, prompt: dict):
     i = 0
@@ -93,8 +96,8 @@ def save_data(folder:Path, images_eval:np.array, gt_eval:np.array, prefix:str = 
     tifffile.imwrite(gt_file, gt_eval)
 
 
-
-def load_folder(parent_folder:Path, db_files: List = None, training_folder: str = None):
+def load_folder(parent_folder:Path, db_files: List = None, training_folder: str = None,
+                n_timepoints: int = 1, fps: float = 1.):
     if db_files is None:
         db_files = list(parent_folder.rglob(r'event_db.yaml'))
     all_images = []
@@ -103,6 +106,15 @@ def load_folder(parent_folder:Path, db_files: List = None, training_folder: str 
     for db_file in db_files:
         folder = db_file.parents[0]
         images, ground_truth = load_tifs(folder)
+        if n_timepoints > 1:
+            original_fps = benedict(db_file)["fps"]
+
+            if images.shape[0] < n_timepoints:
+                continue
+            #TODO: Problem here for different framerates during imaging
+            images = make_time_series(images, n_timepoints)
+            ground_truth = make_time_series(ground_truth, n_timepoints)
+
         all_images.append(images)
         all_gt.append(ground_truth)
         # These things can get very big. Save inbetween, when memory almost full.
@@ -117,13 +129,21 @@ def load_folder(parent_folder:Path, db_files: List = None, training_folder: str 
     all_gt = np.concatenate(all_gt)
     return all_images, all_gt
 
+
+def make_time_series(images, n_timepoints):
+    image_matrix = []
+    for idx in range(images.shape[0]-n_timepoints+1):
+        image_matrix.append(images[idx:idx+n_timepoints])
+    return np.stack(image_matrix)
+
+
 def load_tifs(folder:Path):
     image_file = folder / "images.tif"
     gt_file = folder / "ground_truth.tif"
-
     images = tifffile.imread(image_file).astype(np.float32)
     ground_truth = tifffile.imread(gt_file).astype(np.float32)
     return images, ground_truth
+
 
 # def augment_stacks(stacks:dict, n_augmentations:int):
 #     transform = albs.Compose([albs.Rotate(limit=45, p=0.5),
@@ -150,6 +170,7 @@ def load_tifs(folder:Path):
 
 #     return augmented_stacks
 
+
 def normalize_stacks(stacks:dict):
     for key in stacks.keys():
         for index, frame in enumerate(stacks[key]):
@@ -158,7 +179,6 @@ def normalize_stacks(stacks:dict):
                 norm_frame = norm_frame/np.max(norm_frame)
             stacks[key][index] = norm_frame
     return stacks
-
 
 
 if __name__ == "__main__": #pragma: no cover
