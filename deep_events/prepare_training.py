@@ -32,7 +32,8 @@ def main():
 
 
 
-def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 0.2):
+def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 0.2,
+                       n_timepoints = 1):
     coll = get_collection(collection)
 
     filtered_list = list(coll.find(prompt))
@@ -47,7 +48,7 @@ def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 
     benedict(prompt).to_yaml(filepath=training_folder / "db_prompt.yaml")
 
     # Load and split
-    all_images, all_gt = load_folder(folder, db_files, training_folder)
+    all_images, all_gt = load_folder(folder, db_files, training_folder, n_timepoints)
     images_train, images_eval, gt_train, gt_eval = train_test_split(all_images, all_gt,
                                                                     test_size=test_size, random_state=42)
     stacks = {"image":images_eval,"mask": gt_eval}
@@ -92,7 +93,8 @@ def save_data(folder:Path, images_eval:np.array, gt_eval:np.array, prefix:str = 
 
 
 
-def load_folder(parent_folder:Path, db_files: List = None, training_folder: str = None):
+def load_folder(parent_folder:Path, db_files: List = None, training_folder: str = None,
+                n_timepoints: int = 1):
     if db_files is None:
         db_files = list(parent_folder.rglob(r'event_db.yaml'))
     all_images = []
@@ -101,6 +103,13 @@ def load_folder(parent_folder:Path, db_files: List = None, training_folder: str 
     for db_file in db_files:
         folder = db_file.parents[0]
         images, ground_truth = load_tifs(folder)
+        if n_timepoints > 1:
+            if images.shape[0] < n_timepoints:
+                continue
+            # Problem here for different framerates during imaging
+            images = make_time_series(images, n_timepoints)
+            ground_truth = make_time_series(ground_truth, n_timepoints)
+
         all_images.append(images)
         all_gt.append(ground_truth)
         # These things can get very big. Save inbetween, when memory almost full.
@@ -115,10 +124,17 @@ def load_folder(parent_folder:Path, db_files: List = None, training_folder: str 
     all_gt = np.concatenate(all_gt)
     return all_images, all_gt
 
+
+def make_time_series(images, n_timepoints):
+    image_matrix = []
+    for idx in range(images.shape[0]-n_timepoints+1):
+        image_matrix.append(images[idx:idx+n_timepoints])
+    return np.stack(image_matrix)
+
+
 def load_tifs(folder:Path):
     image_file = folder / "images.tif"
     gt_file = folder / "ground_truth.tif"
-
     images = tifffile.imread(image_file).astype(np.float32)
     ground_truth = tifffile.imread(gt_file).astype(np.float32)
     return images, ground_truth
