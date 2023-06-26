@@ -49,7 +49,7 @@ def extract_fps(tif: tifffile.TiffFile):
 
     for plane in mdInfoDict['OME']['Image']['Pixels']['Plane']:
         elapsed.append(float(plane['@DeltaT']))
-    fpu = np.mean(np.diff(elapsed))
+    upf = np.mean(np.diff(elapsed))  # units per frame
 
     #TODO: Can this also be 'min'?
     try:
@@ -57,7 +57,7 @@ def extract_fps(tif: tifffile.TiffFile):
     except KeyError:
         multiplier = 1
     # rounds the fps to 100s of ms
-    fps = round(fpu/multiplier*10)/10
+    fps = 1/(round(upf/multiplier*10)/10)
     return fps
 
 #%%
