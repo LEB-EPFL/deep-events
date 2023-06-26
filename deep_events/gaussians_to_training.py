@@ -13,10 +13,10 @@ from multiprocessing import Pool
 
 SAVING_SCHEME = "ws_0.2"
 
-
-def extract_events(db_file, images_identifier: str = "", channel_contrast: str = "",
-                   label: str = "", events_folder: str = None):
+def extract_events(db_file, events_folder: str, images_identifier: str = "", channel_contrast: str = "",
+                   label: str = ""):
     folder_dict = get_dict(Path(os.path.dirname(db_file)))
+
 
     if images_identifier != "":
         tif_identifier = r'*' + images_identifier + r'*.ome.tif'
@@ -58,11 +58,12 @@ def extract_events(db_file, images_identifier: str = "", channel_contrast: str =
     event_dict = copy.deepcopy(folder_dict)
     event_dict['type'] = "event"
     event_dict['channel_contrast'] = channel_contrast
-    if channel_contrast is not None:
+    if channel_contrast != "":
         event_dict['contrast'] = channel_contrast
     event_dict['original_file'] = os.path.basename(tif_file)
     event_dict['label_file'] = os.path.basename(gaussians_file)
     event_dict['event_content'] = 'division'
+    event_dict['extraction_type'] = 'automatic'
 
     with tifffile.TiffFile(tif_file) as images, tifffile.TiffFile(gaussians_file) as gaussians:
         # Open additional tifs to be able to read from them.
@@ -76,7 +77,7 @@ def extract_events(db_file, images_identifier: str = "", channel_contrast: str =
                 channel = folder_dict['labels'][label]
                 print(f"Channel: {channel}")
             else:
-                channel = None
+                channel = 0
             print(events)
             for event in events:
                 gaussians_crop, box = crop_images(event, gaussians)
@@ -89,6 +90,7 @@ def extract_events(db_file, images_identifier: str = "", channel_contrast: str =
                                 (gaussians_crop).astype(np.float16), photometric='minisblack')
                 tifffile.imwrite(os.path.join(event_dict['event_path'], "images.tif"),
                                 (imgs_crop).astype(np.float16), photometric='minisblack')
+                print(f" EVENT PATH: {event_dict['event_path']}")
         finally:
             for f in tifs:
                 f.close()
@@ -120,6 +122,23 @@ def delete_automically_extracted_events(folder):
                 print(f"Not deleting {db_file}")
                 continue
         shutil.rmtree(os.path.join(os.path.dirname(db_file)))
+
+
+def reextract_events(folder, channel_contrast = "", label="", img_identifier = ""):
+    "Delete old automatically extracted events and replace them with newly extracted ones"
+    if (folder / "event_data").is_dir():
+        delete_automically_extracted_events(folder / "event_data")
+    db_files = list((folder).rglob(r'db.yaml'))
+    print(db_files)
+    # extract_events(db_files[30], folder/"event_data")
+    with Pool(30) as p:
+        p.starmap(extract_events, zip(db_files,
+                                      [folder]*len(db_files),
+                                      [img_identifier]*len(db_files),
+                                      [channel_contrast]*len(db_files),
+                                      [label]*len(db_files),))
+
+
 
 
 def main(): #pragma: no cover
