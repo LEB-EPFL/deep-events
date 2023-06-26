@@ -7,6 +7,7 @@ from benedict import benedict
 import tifffile
 import tensorflow as tf
 import numpy as np
+import os
 
 from deep_events.training_functions import create_model
 from deep_events.generator import ArraySequence
@@ -73,15 +74,17 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
         name = datetime.datetime.now().strftime("%Y%m%d_%H%M")
 
     benedict(settings).to_yaml(filepath = latest_folder / (name + "_settings.yaml"))
-    model = create_model(settings)
-    
     lock.release()
     print("UNLOCKED")
 
-    steps_per_epoch = np.floor(batch_generator.__len__())
+
     n_tries = 0
     max_tries = 10
     while n_tries < max_tries:
+        os.environ['CUDA_VISIBLE_DEVICES'] = gpu[-2]
+        model = create_model(settings)
+        
+        steps_per_epoch = np.floor(batch_generator.__len__())
         print(f"NUMBER OF EPOCHS: {settings['epochs']}" )
         try:
             gpu_device = tf.device(gpu)
