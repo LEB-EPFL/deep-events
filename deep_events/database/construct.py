@@ -1,6 +1,6 @@
 #%%
 from deep_events.database.extract_yaml import MAIN_PATH
-from deep_events.database import get_collection
+from deep_events.database import get_collection, get_cluster
 from pathlib import Path
 from pymongo import MongoClient
 from benedict import benedict
@@ -37,7 +37,7 @@ def reconstruct_from_folder(folder: Path, collection: str):
             event_list.append(event)
             print(event)
 
-
+    benedict({"cluster": get_cluster(), "collection": collection}).to_yaml(filepath=folder/"collection.yaml")
     #%% Reset the database and add all of the events
     coll.delete_many({})
     for event in event_list:
