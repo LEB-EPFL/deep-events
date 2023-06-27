@@ -62,7 +62,7 @@ def create_model(settings, data_shape, printSummary=False, ):
     metrics = [BinaryAccuracy(), MeanSquaredError()]
 
     #Network architecture
-    if len(data_shape) == 4:
+    if len(data_shape) == 5:
         settings["nb_input_channels"] = data_shape[1]
     input_shape = (None, None, settings["nb_input_channels"])
     inputs = Input(shape=input_shape)

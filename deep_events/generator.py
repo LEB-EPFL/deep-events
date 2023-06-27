@@ -110,9 +110,9 @@ class ArraySequence(Sequence):
         self.images_file = data_dir / "train_images_00.tif"
         self.gt_file = data_dir / "train_gt_00.tif"
         with tifffile.TiffFile(self.images_file) as tif_input, tifffile.TiffFile(self.gt_file) as tif_gt:
-            self.num_samples = len(tif_input.pages)
             self.images_array = tif_input.asarray()
             self.gt_array = tif_gt.asarray()
+            self.num_samples = self.images_array.shape[0]
         print("Number of frames in generator: ", self.num_samples)
 
     def __len__(self):
