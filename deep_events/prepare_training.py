@@ -178,7 +178,9 @@ def normalize_stacks(stacks:dict):
     for key in stacks.keys():
         for index, frame in enumerate(stacks[key]):
             norm_frame = (frame-np.min(frame))
-            if np.max(norm_frame) > 0:
+            if np.max(norm_frame) > 1:
+                norm_frame = norm_frame/255
+            if np.max(norm_frame) > 0.2:
                 norm_frame = norm_frame/np.max(norm_frame)
             stacks[key][index] = norm_frame
     return stacks
