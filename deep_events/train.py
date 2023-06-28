@@ -14,7 +14,7 @@ from deep_events.generator import ArraySequence
 
 
 
-FOLDER = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Juan/training_data")
+FOLDER = Path("//lebnas1.epfl.ch/microsc125/deep_events/data/training_data/")
 SETTINGS = {"nb_filters": 16,
             "first_conv_size": 12,
             "nb_input_channels": 1,
@@ -64,10 +64,17 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
     batch_generator = ArraySequence(latest_folder, settings["batch_size"],
                                      n_augmentations=settings["n_augmentations"],
                                      brightness_range=settings['brightness_range'])
-    eval_images = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_images_00.tif"))
-    eval_mask = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_gt_00.tif"))
+    validation_generator = ArraySequence(latest_folder, settings["batch_size"],
+                                     n_augmentations=settings["n_augmentations"],
+                                     brightness_range=settings['brightness_range'],
+                                     validation=True)
+    # eval_images = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_images_00.tif"))
+    # eval_mask = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_gt_00.tif"))
 
-    validation_data = (eval_images, eval_mask)
+    # if len(eval_images.shape) > len(eval_mask.shape):
+    #     eval_mask = np.expand_dims(eval_mask, 1)
+
+    # validation_data = (eval_images, eval_mask)
     time.sleep(1)
     name = datetime.datetime.now().strftime("%Y%m%d_%H%M")
     while Path(latest_folder / (name + "_settings.yaml")).is_file():
@@ -82,7 +89,7 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
     max_tries = 10
     while n_tries < max_tries:
         os.environ['CUDA_VISIBLE_DEVICES'] = gpu[-2]
-        model = create_model(settings, eval_images.shape)
+        model = create_model(settings, batch_generator.__getitem__(0)[0].shape)
 
         steps_per_epoch = np.floor(batch_generator.__len__())
         print(f"NUMBER OF EPOCHS: {settings['epochs']}" )
@@ -90,13 +97,14 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
             gpu_device = tf.device(gpu)
             with gpu_device:
                 history = model.fit(batch_generator,
+                                    validation_data = validation_generator,
                                     batch_size = settings["batch_size"],
                                     epochs = settings["epochs"],
                                     steps_per_epoch = steps_per_epoch,
                                     shuffle=True,
-                                    validation_data = validation_data,
                                     verbose = 1,
-                                    callbacks = [tensorboard_callback])
+                                    callbacks = [tensorboard_callback],
+                                    validation_steps=1)
             n_tries = max_tries
         except Exception as e:
             print("------------------------------ COULD NOT TRAIN -----------------------------------------")
@@ -116,9 +124,9 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
 def get_latest_folder(parent_folder:Path):
     subfolders = [f for f in parent_folder.glob('*') if f.is_dir()]
     datetime_format = '%Y%m%d_%H%M'
-    subfolders = [f for f in subfolders if f.name.count('_') == 1 and
-                  datetime.datetime.strptime(f.name, datetime_format)]
-    subfolders.sort(key=lambda x: datetime.datetime.strptime(x.name, datetime_format),
+    subfolders = [f for f in subfolders if f.name.count('_') > 1 and
+                  datetime.datetime.strptime("_".join(f.name.split("_")[:2]), datetime_format)]
+    subfolders.sort(key=lambda x: datetime.datetime.strptime("_".join(x.name.split("_")[:2]), datetime_format),
                     reverse=True)
     return subfolders if subfolders else None
 
@@ -132,7 +140,11 @@ def get_latest(pattern, folder:Path):
 
 
 def adjust_tf_dimensions(stack:np.array):
-    return np.expand_dims(stack, axis=-1)
+    if len(stack.shape) < 4:
+        return np.expand_dims(stack, axis=-1)
+    else:
+        return np.moveaxis(stack, 1, -1)
+        # return np.expand_dims(stack, 1)
 
 
 def test_model():

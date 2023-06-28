@@ -17,11 +17,18 @@ BRIGHTNESS_ADJUST = [0, 1]
 def apply_augmentation(self, x, y):
     seed = np.random.randint(0, 1e7)
     # seed = np.random.RandomState(seed=None)
-    params = self.generator.get_random_transform(x.shape, seed=seed)
-    x = self.generator.apply_transform(x, params)
+    params = self.generator.get_random_transform(x.shape[:-1], seed=seed)
     bright = np.random.default_rng().uniform(self.brightness_range[0], self.brightness_range[1], size=(1))
+    # print(f"SHAPE in augmentation: x: {x.shape}, y: {y.shape}")
+    if len(x.shape) > 3:
+        for c in x.shape[-1]:
+            x[..., c] = self.generator.apply_transform(x[..., c], params)
+        y[..., 0] = self.generator.apply_transform(y[..., 0], params)
+
+    else:
+        x = self.generator.apply_transform(x, params)
+        y = self.generator.apply_transform(y, params)
     x = x*bright
-    y = self.generator.apply_transform(y, params)
     return x, y
 
 
@@ -99,7 +106,7 @@ class FileSequence(Sequence):
 
 class ArraySequence(Sequence):
     def __init__(self, data_dir:Path, batch_size, augment=True, n_augmentations=10,
-                 brightness_range=[0.9, 1]):
+                 brightness_range=[0.9, 1], validation=False):
         self.data_dir = data_dir
         self.n_augmentations = n_augmentations
         self.batch_size = batch_size
@@ -107,12 +114,22 @@ class ArraySequence(Sequence):
         self.brightness_range = brightness_range
         self.generator = GENERATOR
 
-        self.images_file = data_dir / "train_images_00.tif"
-        self.gt_file = data_dir / "train_gt_00.tif"
+        if validation:
+            self.images_file = data_dir / "eval_images_00.tif"
+            self.gt_file = data_dir / "eval_gt_00.tif"
+        else:
+            self.images_file = data_dir / "train_images_00.tif"
+            self.gt_file = data_dir / "train_gt_00.tif"
         with tifffile.TiffFile(self.images_file) as tif_input, tifffile.TiffFile(self.gt_file) as tif_gt:
             self.images_array = tif_input.asarray()
             self.gt_array = tif_gt.asarray()
-            self.num_samples = self.images_array.shape[0]
+        self.num_samples = self.images_array.shape[0]
+
+        #Correct dimensions for tensorflow
+        if len(self.images_array.shape) > 3:
+            self.images_array = np.moveaxis(self.images_array, 1, -1)
+            self.gt_array = np.expand_dims(self.gt_array, -1)
+
         print("Number of frames in generator: ", self.num_samples)
 
     def __len__(self):

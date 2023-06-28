@@ -114,8 +114,7 @@ def load_folder(parent_folder:Path, db_files: List = None, training_folder: str 
                 or (original_fps/fps%1 > 0.25 and original_fps/fps%1 < 0.75) #frame rate mismatch
                 or images.shape[0] < n_timepoints*time_increment): # not enough data
                 continue
-            images = make_time_series(images, n_timepoints, time_increment)
-            ground_truth = make_time_series(ground_truth, n_timepoints, time_increment)
+            images, ground_truth = make_time_series(images, ground_truth, n_timepoints, time_increment)
 
         all_images.append(images)
         all_gt.append(ground_truth)
@@ -132,11 +131,13 @@ def load_folder(parent_folder:Path, db_files: List = None, training_folder: str 
     return all_images, all_gt
 
 
-def make_time_series(images, n_timepoints, time_increment = 1):
+def make_time_series(images, ground_truth, n_timepoints, time_increment = 1):
     image_matrix = []
+    gt_matrix = []
     for idx in range(images.shape[0]-(n_timepoints*time_increment)+1):
         image_matrix.append(images[idx:idx+(n_timepoints*time_increment):time_increment])
-    return np.stack(image_matrix)
+        gt_matrix.append(ground_truth[idx+(n_timepoints*time_increment) - 1])
+    return np.stack(image_matrix), np.stack(gt_matrix)
 
 
 def load_tifs(folder:Path):
