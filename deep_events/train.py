@@ -11,7 +11,7 @@ import os
 
 from deep_events.training_functions import create_model
 from deep_events.generator import ArraySequence
-
+from database.convenience import get_latest_folder
 
 
 FOLDER = Path("//lebnas1.epfl.ch/microsc125/deep_events/data/training_data/")
@@ -121,24 +121,6 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
 #     tf.config.experimental.set_memory_growth(gpu, True)
 
 
-def get_latest_folder(parent_folder:Path):
-    subfolders = [f for f in parent_folder.glob('*') if f.is_dir()]
-    datetime_format = '%Y%m%d_%H%M'
-    subfolders = [f for f in subfolders if f.name.count('_') > 1 and
-                  datetime.datetime.strptime("_".join(f.name.split("_")[:2]), datetime_format)]
-    subfolders.sort(key=lambda x: datetime.datetime.strptime("_".join(x.name.split("_")[:2]), datetime_format),
-                    reverse=True)
-    return subfolders if subfolders else None
-
-
-def get_latest(pattern, folder:Path):
-    files = [f for f in folder.glob('*') if f.is_file()]
-    files = [f for f in files if pattern in f.name]
-    files.sort(reverse=True)
-    print(files)
-    return folder / files[0]
-
-
 def adjust_tf_dimensions(stack:np.array):
     if len(stack.shape) < 4:
         return np.expand_dims(stack, axis=-1)
@@ -147,30 +129,9 @@ def adjust_tf_dimensions(stack:np.array):
         # return np.expand_dims(stack, 1)
 
 
-def test_model():
-    import matplotlib.pyplot as plt
-    gpu = tf.device("GPU:4/")
-    with gpu:
-        frame = 1
-        training_folder = Path(get_latest_folder(FOLDER)[0])
-        print(training_folder)
-        model_dir = get_latest("model", training_folder)
-        model = tf.keras.models.load_model(model_dir)
-        eval_images = adjust_tf_dimensions(tifffile.imread(training_folder / "eval_images_00.tif"))
-        eval_mask = adjust_tf_dimensions(tifffile.imread(training_folder / "eval_gt_00.tif"))
-        while True:
-            output = model.predict(np.expand_dims(eval_images[frame],axis=0))
-            f, axs = plt.subplots(1, 3)
-            f.set_size_inches(15,5)
-            axs[0].imshow(output[0, :, :, 0], vmax=1)
-            axs[0].set_title("prediction")
-            axs[1].imshow(eval_mask[frame, :, :, 0])
-            axs[1].set_title("ground truth")
-            axs[2].imshow(eval_images[frame, :, :, 0])
-            plt.show()
-            frame = frame + 1
+
 
 if __name__ == "__main__":
+    pass
     # import os
     # os.environ["CUDA_VISIBLE_DEVICES"] = "3" # set the GPU ID
-    test_model()
