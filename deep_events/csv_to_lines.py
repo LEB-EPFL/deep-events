@@ -11,9 +11,10 @@ from typing import List, Tuple
 import matplotlib.pyplot as plt
 import cv2
 from tqdm import tqdm
+from benedict import benedict
 
 #%% Get tif file
-FOLDER = Path('//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Juan/230511_PDA_TrainingSet_iSIM')
+FOLDER = Path('Z:/_Scientific projects/ADA_WS_JCL/230511_PDA_TrainingSet_iSIM/Images_mtStayGold-TfamRFP_iSIM')
 
 
 #%% Get data from csv and construct Linestrings
@@ -76,15 +77,16 @@ def get_lines(csv_file: Path) -> List[Tuple[LineString, int]]:
     lines = translate_line_list(lines)
     return lines
 
-def draw_lines(lines: List[Tuple[LineString, int]], shape: tuple) -> np.ndarray:
+def draw_lines(lines: List[Tuple[LineString, int]], shape: tuple, width: int) -> np.ndarray:
     line_images = np.zeros(shape).astype(np.uint8)
     for line in lines:
-        line_images = draw_line_to_frame(line[0], line[1], line_images)
+        line_images = draw_line_to_frame(line[0], line[1], line_images, width)
     return line_images
 
 
 # %%
 if __name__ == '__main__':
+    WIDTH = 3
     csv_files = FOLDER.rglob('pearls.csv')
     for csv_file in tqdm(csv_files):
         print(csv_file.parts[-3:-1])
@@ -93,7 +95,10 @@ if __name__ == '__main__':
         lines = get_lines(csv_file)
         shape = get_shape_from_tif(tif_file)
         print(shape)
-        line_images = draw_lines(lines, shape)
+        line_images = draw_lines(lines, shape, WIDTH)
+        folder_dict = benedict(csv_file.parent / "db.yaml")
+        folder_dict['line_width'] = WIDTH
+        folder_dict.to_yaml(filepath=csv_file.parent / "db.yaml")
         tifffile.imwrite(csv_file.parent / "ground_truth.tif", line_images, dtype=np.uint8)
 
 # %%

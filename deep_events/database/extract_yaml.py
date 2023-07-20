@@ -12,7 +12,6 @@ from typing import Union
 MAIN_PATH = benedict(os.path.dirname(os.path.realpath(__file__)) + "/settings.yaml")['MAIN_PATH']
 KEYS_PATH = os.path.dirname(os.path.realpath(__file__)) + "/keys.yaml"
 
-
 keys = benedict(KEYS_PATH)
 
 

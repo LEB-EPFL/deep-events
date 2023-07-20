@@ -146,14 +146,13 @@ def main(): #pragma: no cover
     # folder = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Emily")
     # channel_contrast = ["brightfield", "fluorescence"]
     # label = ""
-
-    folder = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Juan/230511_PDA_TrainingSet_iSIM")
+    FOLDER = Path('Z:/_Scientific projects/ADA_WS_JCL/230511_PDA_TrainingSet_iSIM/Images_mtStayGold-TfamRFP_iSIM')
     channel_contrast = ""
     label = "mitochondria"
 
-    if (folder / "event_data").is_dir():
-        delete_automically_extracted_events(folder / "event_data")
-    db_files = list((folder).rglob(r'db.yaml'))
+    if (FOLDER / "event_data").is_dir():
+        delete_automically_extracted_events(FOLDER / "event_data")
+    db_files = list((FOLDER).rglob(r'db.yaml'))
     # for db_file in db_files:
     #     extract_events(db_file, "", ["brightfield", "fluorescence"])
     img_identifier = ""
@@ -165,7 +164,7 @@ def main(): #pragma: no cover
                                       [img_identifier]*len(db_files),
                                       [channel_contrast]*len(db_files),
                                       [label]*len(db_files),
-                                      [folder]*len(db_files)))
+                                      [FOLDER]*len(db_files)))
 
 if __name__ == "__main__":
     main()
