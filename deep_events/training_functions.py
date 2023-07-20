@@ -32,7 +32,7 @@ def focal_loss(y_true, y_pred, gamma=2.0, alpha=0.25):
     return tf.reduce_mean(focal_loss, axis=-1)
 
 @tf.keras.utils.register_keras_serializable()
-def soft_dice_loss(y_true, y_pred, smooth=1e-7):
+def soft_dice_loss(y_true, y_pred, smooth=1):
     intersection = tf.reduce_sum(y_true * y_pred)
     denominator = tf.reduce_sum(y_true) + tf.reduce_sum(y_pred)
     return 1 - (2 * intersection + smooth) / (denominator + smooth)
@@ -69,7 +69,7 @@ def create_model(settings, data_shape, printSummary=False, ):
     inputs = Input(shape=input_shape)
 
     if settings["loss"] == "soft_dice":
-        final_activation = "linear"
+        final_activation = "sigmoid" #"linear"
     else:
         final_activation = "sigmoid"
 

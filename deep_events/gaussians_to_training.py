@@ -17,7 +17,8 @@ def extract_events(db_file, events_folder: str, images_identifier: str = "", cha
                    label: str = ""):
     folder_dict = get_dict(Path(os.path.dirname(db_file)))
 
-
+    print(images_identifier, channel_contrast, label )
+    print(folder_dict)
     if images_identifier != "":
         tif_identifier = r'*' + images_identifier + r'*.ome.tif'
     if isinstance(channel_contrast, list):
@@ -99,7 +100,7 @@ def handle_db(event, box, event_dict, events_folder):
     event_id = ObjectId()
     try:
         event_folder = f"ev_{event_dict['cell_line'][0]}_{event_dict['microscope'][0]}_{event_dict['contrast'][:4]}_{event_id}"
-    except TypeError:
+    except (TypeError, KeyError) as e:
         event_folder = f"ev_{event_dict['cell_line'][0]}_{event_dict['microscope']}_{event_id}"
     path = os.path.join(events_folder, "event_data", event_folder)
     print(path)
@@ -157,10 +158,12 @@ def main(): #pragma: no cover
     #     extract_events(db_file, "", ["brightfield", "fluorescence"])
     img_identifier = ""
 
-    # extract_events(db_files[0], img_identifier, channel_contrast, label, folder)
+    # events_folder = folder/"event_data"
+    # extract_events(db_files[0], folder, img_identifier, channel_contrast, label)
 
     with Pool(30) as p:
         p.starmap(extract_events, zip(db_files,
+                                      [folder]*len(db_files),
                                       [img_identifier]*len(db_files),
                                       [channel_contrast]*len(db_files),
                                       [label]*len(db_files),
