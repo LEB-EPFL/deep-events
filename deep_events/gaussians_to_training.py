@@ -163,11 +163,10 @@ def main(): #pragma: no cover
 
     with Pool(30) as p:
         p.starmap(extract_events, zip(db_files,
-                                      [folder]*len(db_files),
+                                      [FOLDER]*len(db_files),
                                       [img_identifier]*len(db_files),
                                       [channel_contrast]*len(db_files),
-                                      [label]*len(db_files),
-                                      [FOLDER]*len(db_files)))
+                                      [label]*len(db_files)))
 
 if __name__ == "__main__":
     main()
