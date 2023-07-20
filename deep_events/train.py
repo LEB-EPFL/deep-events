@@ -4,15 +4,21 @@ from multiprocessing import Pool, Lock
 import time
 
 from benedict import benedict
-import tifffile
 import tensorflow as tf
 import numpy as np
 import os
 
+def adjust_tf_dimensions(stack:np.array):
+    if len(stack.shape) < 4:
+        return np.expand_dims(stack, axis=-1)
+    else:
+        return np.moveaxis(stack, 1, -1)
+
+
 from deep_events.training_functions import create_model
 from deep_events.generator import ArraySequence
-from database.convenience import get_latest_folder
-
+from deep_events.database.convenience import get_latest_folder
+from deep_events import performance
 
 FOLDER = Path("//lebnas1.epfl.ch/microsc125/deep_events/data/training_data/")
 SETTINGS = {"nb_filters": 16,
@@ -40,7 +46,8 @@ def distributed_train(folders, gpus, settings=SETTINGS):
     if not isinstance(settings, list):
         settings = [settings]*len(folders)
 
-    with Pool(min(3, len(folders)), initializer=init_pool, initargs=(l,)) as p:
+    # folders = [str(x) for x in folders]
+    with Pool(min(4, len(folders)), initializer=init_pool, initargs=(l,)) as p:
         p.starmap(train, zip(folders, gpus, settings))
 
 def init_pool(l: Lock):
@@ -80,6 +87,8 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
     while Path(latest_folder / (name + "_settings.yaml")).is_file():
         name = datetime.datetime.now().strftime("%Y%m%d_%H%M")
 
+    settings_folder = str(latest_folder / (name + "_settings.yaml"))
+    print(F"SETTINGS LOCATION: {settings_folder}")
     benedict(settings).to_yaml(filepath = latest_folder / (name + "_settings.yaml"))
     lock.release()
     print("UNLOCKED")
@@ -115,20 +124,7 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
         n_tries += 1
 
     tf.keras.models.save_model(model, latest_folder / (name + "_model.h5"), save_traces=True)
-
-#
-# for gpu in tf.config.experimental.list_physical_devices('GPU'):
-#     tf.config.experimental.set_memory_growth(gpu, True)
-
-
-def adjust_tf_dimensions(stack:np.array):
-    if len(stack.shape) < 4:
-        return np.expand_dims(stack, axis=-1)
-    else:
-        return np.moveaxis(stack, 1, -1)
-        # return np.expand_dims(stack, 1)
-
-
+    performance.main(latest_folder / (name + "_model.h5"))
 
 
 if __name__ == "__main__":

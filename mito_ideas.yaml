@@ -1,0 +1,37 @@
+# Main settings, if others needed, make new yaml file
+folder: //lebnas1.epfl.ch/microsc125/deep_events/data/original_data/event_data
+collection: mito_events
+
+# Each db_prompt will make a new folder and get data from the collection defined above
+db_prompt: 
+  contrast: brightfield
+  cell_line: cos7
+# Each settings will be one model trained on the data from the db_prompt above
+# Settings that are not defined here will be filled from the default settings in scheduled_train.py
+settings:
+  loss: 'binary_crossentropy'
+settings_1:
+  loss: 'soft_dice'
+
+db_prompt_2: 
+  contrast: fluorescence
+  microscope: zeiss
+  cell_line: cos7
+# There are default settings in scheduled_train.py, use those completely
+settings_2: default
+
+# Brightfield for time EDA
+db_prompt_3:
+  contrast: brightfield
+  cell_line: cos7
+  n_timepoints: 3
+  fps: 0.5
+settings_3: default
+
+# # Brightfield for time EDA
+db_prompt_4:
+  contrast: brightfield
+  cell_line: cos7
+  n_timepoints: 3
+  fps: 1
+settings_4: default
