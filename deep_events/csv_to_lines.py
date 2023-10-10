@@ -86,7 +86,7 @@ def draw_lines(lines: List[Tuple[LineString, int]], shape: tuple, width: int) ->
 
 # %%
 if __name__ == '__main__':
-    WIDTH = 3
+    WIDTH = 7
     csv_files = FOLDER.rglob('pearls.csv')
     for csv_file in tqdm(csv_files):
         print(csv_file.parts[-3:-1])

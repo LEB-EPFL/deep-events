@@ -28,6 +28,11 @@ def apply_augmentation(self, x, y):
     else:
         x = self.generator.apply_transform(x, params)
         y = self.generator.apply_transform(y, params)
+
+    poisson_here = np.random.default_rng().uniform(0, self.poisson, size=(1))
+    if poisson_here > 0.01:
+        x = np.random.poisson(x * 100 / self.poisson) / (200 / self.poisson)
+        x = np.clip(x, 0, 1)
     x = x*bright
     return x, y
 
@@ -84,10 +89,10 @@ class FileSequence(Sequence):
 
                     batch_x.append(x)
                     batch_y.append(y)
-                    plt.imshow(x)
-                    plt.figure()
-                    plt.imshow(y)
-                    plt.show()
+                    # plt.imshow(x)
+                    # plt.figure()
+                    # plt.imshow(y)
+                    # plt.show()
                     if len(batch_x) >= self.batch_size:
                         break
 
@@ -106,12 +111,13 @@ class FileSequence(Sequence):
 
 class ArraySequence(Sequence):
     def __init__(self, data_dir:Path, batch_size, augment=True, n_augmentations=10,
-                 brightness_range=[0.9, 1], validation=False):
+                 brightness_range=[0.9, 1], poisson=0, validation=False):
         self.data_dir = data_dir
         self.n_augmentations = n_augmentations
         self.batch_size = batch_size
         self.augment = augment
         self.brightness_range = brightness_range
+        self.poisson = poisson
         self.generator = GENERATOR
 
         if validation:

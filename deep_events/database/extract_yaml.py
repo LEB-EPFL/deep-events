@@ -122,6 +122,7 @@ def extract_foldername(folder_dict: Union[dict, str, Path], folder):
 #%%
 def extract_folders(path: Path):
     folders = list(Path(path).glob("**/*.ome.tif"))
+    print(folders)
     folders = [folder.parents[0] for folder in folders]
     for folder in folders:
         print(folder)

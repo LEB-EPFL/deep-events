@@ -28,7 +28,8 @@ SETTINGS = {"nb_filters": 16,
             "epochs": 20,
             "n_augmentations": 30,
             'brightness_range': [0.6, 1],
-            "loss": 'binary_crossentropy'}
+            "loss": 'binary_crossentropy',
+            "poisson": 0}
 
 
 
@@ -70,10 +71,12 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
 
     batch_generator = ArraySequence(latest_folder, settings["batch_size"],
                                      n_augmentations=settings["n_augmentations"],
-                                     brightness_range=settings['brightness_range'])
+                                     brightness_range=settings['brightness_range'],
+                                     poisson=settings["poisson"])
     validation_generator = ArraySequence(latest_folder, settings["batch_size"],
                                      n_augmentations=settings["n_augmentations"],
                                      brightness_range=settings['brightness_range'],
+                                     poisson=settings["poisson"],
                                      validation=True)
     # eval_images = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_images_00.tif"))
     # eval_mask = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_gt_00.tif"))

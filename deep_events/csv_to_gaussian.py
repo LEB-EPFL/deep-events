@@ -7,7 +7,7 @@ import tifffile
 import pandas as pd
 from deep_events.myfunctions import poi
 
-folder = "Z:/_Lab members/Juan/230222_MitoSplitNet_TrainingSet_U2OS_iSIM/"
+folder = "//lebnas1.epfl.ch/microsc125/deep_events/data/original_data/20231010_cos7_bf_zeiss/"
 SIGMA = 5
 
 
@@ -29,7 +29,9 @@ for csv in csv_files:
 
     img_file = sorted(Path(os.path.dirname(csv)).glob(r'*.ome.tif'), key=os.path.getmtime)[-1]
     meta = get_dict(os.path.dirname(img_file))
-    if meta['scale_csv']:
+    if meta['scale_csv'] == "inverse":
+        scale_value = 1/meta['ome']['physical_size_x']
+    elif meta['scale_csv']:
         scale_value = meta['ome']['physical_size_x']
     else:
         scale_value = 1
@@ -38,7 +40,8 @@ for csv in csv_files:
     print('scaling by',scale_value)
     print(csv['axis-1'][1])
     csv['axis-1']=csv['axis-1']*(1/scale_value)
-    print(csv['axis-1'][1])
+    print(csv['axis-1'][1], "<- should be >0 and <image_size (2048)")
+    print("If not, check scale_csv value in db.yaml file.")
     csv['axis-2']=csv['axis-2']*(1/scale_value)
 
     sigma = (SIGMA, SIGMA)

@@ -147,7 +147,8 @@ def main(): #pragma: no cover
     # folder = Path("//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Emily")
     # channel_contrast = ["brightfield", "fluorescence"]
     # label = ""
-    FOLDER = Path('Z:/_Scientific projects/ADA_WS_JCL/230511_PDA_TrainingSet_iSIM/Images_mtStayGold-TfamRFP_iSIM')
+    FOLDER = Path('Z:/SHARED/_Scientific projects/ADA_WS_JCL/230511_PDA_TrainingSet_iSIM')
+    
     channel_contrast = ""
     label = "mitochondria"
 

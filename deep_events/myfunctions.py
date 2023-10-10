@@ -286,8 +286,8 @@ def poi(datacsv,input_name, sigma_trial, size_trial,total_frames, shape=(2048, 2
 
     for row_number in tqdm(range(0, len(datacsv))):
         framenumber_in_row= int(datacsv.loc[row_number, 'axis-0'])
-        fission_ycoord = int(datacsv.loc[row_number, 'axis-1'])
-        fission_xcoord = int(datacsv.loc[row_number, 'axis-2'])
+        fission_ycoord = datacsv.loc[row_number, 'axis-1']
+        fission_xcoord = datacsv.loc[row_number, 'axis-2']
         fission_coords = (fission_ycoord,fission_xcoord)
         gaussian_points = get_gaussian(fission_coords,sigma_trial,size_trial)                                     #gets gaussian points at a single frame
         gaussian_points = gaussian_points.numpy()                                                               #convers tensor into numpy array
@@ -302,7 +302,8 @@ def poi(datacsv,input_name, sigma_trial, size_trial,total_frames, shape=(2048, 2
 
     #TODO We could save this as float and save all of the work when we load it later
     tifffile.imwrite(input_name, (points_of_interest*254).astype(np.uint8))
-    return
+    print("MAX in ground truth", points_of_interest.max())
+    return 
 
 import cv2 as cv
 def find_int(int_dir, thresh):

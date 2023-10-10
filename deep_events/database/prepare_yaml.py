@@ -10,7 +10,7 @@ import deep_events.database.ome_to_yaml as ome_to_yaml
 # folder = "//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Juan/230511_PDA_TrainingSet_iSIM"
 # folder = "Z:/_Lab members/Emily/"
 # folder = Path("//lebnas1.epfl.ch/microsc125/deep_events/data/original_data/20230619_cos7_bf_zeiss")
-folder = Path("//lebnas1.epfl.ch/microsc125/deep_events/data/original_data/")
+folder = Path("//lebnas1.epfl.ch/microsc125/deep_events/data/original_data/20231010_cos7_bf_zeiss")
 
 
 def prepare_all_folder(folder: str):
