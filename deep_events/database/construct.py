@@ -12,14 +12,15 @@ def main(): #pragma: no cover
 def reconstruct_from_folder(folder: Path, collection: str):
     # Initialize database connection
     coll = get_collection(collection)
-
-    #%% Get the db.yaml files from the folders
+    print(folder)
+    # Get the db.yaml files from the folders
     if "event_data" in str(folder):
         event_list = list(Path(folder).rglob("*/event_db.yaml"))
         event_dicts = [benedict(str(event)) for event in event_list]
         corrected_event_list = []
         for event_dict, path in zip(event_dicts, event_list):
             event_dict['event_path'] = str(Path(path).parents[0].resolve())
+            event_dict.to_yaml(filepath=event_dict['event_path'] + "/event_db.yaml")
             corrected_event_list.append(event_dict)
         event_list = corrected_event_list
     elif "training_data" in str(folder):
@@ -38,10 +39,12 @@ def reconstruct_from_folder(folder: Path, collection: str):
             print(event)
 
     benedict({"cluster": get_cluster(), "collection": collection}).to_yaml(filepath=folder/"collection.yaml")
-    #%% Reset the database and add all of the events
+    # Reset the database and add all of the events
     coll.delete_many({})
+    print(len(event_list))
     for event in event_list:
         coll.insert_one(event)
+    print(event)
 
 
 

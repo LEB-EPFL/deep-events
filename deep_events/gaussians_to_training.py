@@ -14,7 +14,7 @@ from multiprocessing import Pool
 SAVING_SCHEME = "ws_0.2"
 
 def extract_events(db_file, events_folder: str, images_identifier: str = "", channel_contrast: str = "",
-                   label: str = ""):
+                   label: str = "", event_content:str=""):
     folder_dict = get_dict(Path(os.path.dirname(db_file)))
 
     print(images_identifier, channel_contrast, label )
@@ -24,12 +24,18 @@ def extract_events(db_file, events_folder: str, images_identifier: str = "", cha
     if isinstance(channel_contrast, list):
         for contrast in channel_contrast:
             print("Running recursively on the channel constrast list")
-            extract_events(db_file, images_identifier, contrast, label, events_folder)
+            extract_events(db_file, events_folder, images_identifier, contrast, label, event_content)
         return
     elif channel_contrast != "":
         tif_identifier =  r'*' + folder_dict['contrast'][channel_contrast] + r'*.ome.tif'
     else:
         tif_identifier = r'*.ome.tif'
+
+    if isinstance(label, list):
+        print("Running recursively on the labels list")
+        for this_label in label:
+            extract_events(db_file, events_folder, images_identifier, channel_contrast, this_label, event_content)
+        return
 
 
     print(f"tif identifier: {tif_identifier}")
@@ -61,9 +67,10 @@ def extract_events(db_file, events_folder: str, images_identifier: str = "", cha
     event_dict['channel_contrast'] = channel_contrast
     if channel_contrast != "":
         event_dict['contrast'] = channel_contrast
+    event_dict['label'] = label
     event_dict['original_file'] = os.path.basename(tif_file)
     event_dict['label_file'] = os.path.basename(gaussians_file)
-    event_dict['event_content'] = 'division'
+    event_dict['event_content'] = event_content
     event_dict['extraction_type'] = 'automatic'
 
     with tifffile.TiffFile(tif_file) as images, tifffile.TiffFile(gaussians_file) as gaussians:

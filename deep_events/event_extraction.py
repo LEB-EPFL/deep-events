@@ -10,7 +10,7 @@ from tqdm import tqdm
 def basic_scan(data, size=256, threshold=0.7):
     open_events = []
     framenumber = len(data)
-    ev_n = 1
+    ev_n = 0
     for i in tqdm(range(framenumber)):
         actualist = find_cool_thing_in_frame(data[i],
                                              threshold=threshold, nbh_size = size)
@@ -20,7 +20,7 @@ def basic_scan(data, size=256, threshold=0.7):
                 if all([abs(ev.c_p['x'] - actualist[0]['x'])<size,
                         abs(ev.c_p['y'] - actualist[0]['y'])<size,
                         abs(ev.c_p['z'] - actualist[0]['z'])<size,
-                        ev.last_frame == i-1]):
+                        i - ev.last_frame < 3]):
                     ev.last_frame = i
                     new_event = False
             if new_event:
@@ -86,13 +86,13 @@ class EDA_Event():
 
 
 def crop_images(event, imgs, channel=0, size=256):
-    dataar=np.zeros((event.last_frame-event.first_frame - 1, size, size))
+    dataar=np.zeros((event.last_frame-event.first_frame, size, size))
     if len(imgs.series[0].shape) == 4:
         n_channels = imgs.series[0].shape[1]
     else:
         n_channels = 1
 
-    for index, frame in enumerate(range(event.first_frame + 1, event.last_frame)):
+    for index, frame in enumerate(range(event.first_frame + 1, event.last_frame + 1)):
         box = box_from_pos(event.c_p['x'], event.c_p['y'], size)
         box = box_edge_check(box, imgs.pages[0].shape[-2:])
         frame = frame*n_channels+channel

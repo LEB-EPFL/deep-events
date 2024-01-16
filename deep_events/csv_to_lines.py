@@ -84,6 +84,23 @@ def draw_lines(lines: List[Tuple[LineString, int]], shape: tuple, width: int) ->
     return line_images
 
 
+def create_ground_thruth(folder, filename):
+    WIDTH = 7
+    csv_files = Path(folder).rglob(filename)
+    for csv_file in tqdm(csv_files):
+        print(csv_file.parts[-3:-1])
+        # get newest tif file
+        tif_file = max(csv_file.parent.glob('*.ome.tif'), key=lambda x: x.stat().st_mtime)
+        lines = get_lines(csv_file)
+        shape = get_shape_from_tif(tif_file)
+        print(shape)
+        line_images = draw_lines(lines, shape, WIDTH)
+        folder_dict = benedict(csv_file.parent / "db.yaml")
+        folder_dict['line_width'] = WIDTH
+        folder_dict.to_yaml(filepath=csv_file.parent / "db.yaml")
+        tifffile.imwrite(csv_file.parent / "ground_truth.tif", line_images, dtype=np.uint8)
+
+
 # %%
 if __name__ == '__main__':
     WIDTH = 7

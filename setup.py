@@ -33,6 +33,9 @@ setup(
         "opencv-python",
         "pymongo",
         "xmltodict",
+        "pyyaml",
+        "tqdm",
+        "scikit-image"
     ],
     python_requires=">=3.7",
 )

@@ -4,9 +4,11 @@ stain:
   - mitoGFP
   - TfamRFP
   - FtsW_sfGFP
+  - mtScarlet
+  - ERStayGold
 
 labels:
-  - [mitochondria, mt]
+  - [mitochondria, mito]
   - [mtDNA, mtdna, nucleoids]
 
 cell_line:

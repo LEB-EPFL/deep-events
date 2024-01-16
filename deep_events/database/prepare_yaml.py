@@ -13,7 +13,7 @@ import deep_events.database.ome_to_yaml as ome_to_yaml
 folder = Path("//lebnas1.epfl.ch/microsc125/deep_events/data/original_data/20231010_cos7_bf_zeiss")
 
 
-def prepare_all_folder(folder: str):
+def  prepare_all_folder(folder: str):
     #%%
     extract_yaml.delete_db_files(folder)
 
@@ -35,7 +35,6 @@ def prepare_all_folder(folder: str):
     tif_files = []
     print(f"Found {len(db_files)} db files")
     for db_file in db_files:
-        print(db_file)
         tifs = sorted(Path(os.path.dirname(db_file)).glob(r'*.ome.tif'), key=os.path.getmtime)
         tif_files.append(tifs[0])
     tif_files = [str(file) for file in tif_files]
