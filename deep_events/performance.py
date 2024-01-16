@@ -56,7 +56,7 @@ def main(model_dir: Path = None, write_yaml: bool = True):
         settings.to_yaml(filepath=str(model_dir).replace("model.h5", "settings.yaml"))
 
 
-def visual_eval(training_folder = Path(get_latest_folder(FOLDER)[0]), model_name = None):
+def visual_eval(training_folder, model_name = None):
     import matplotlib.pyplot as plt
     frame = 1
     if model_name is None:
@@ -84,6 +84,8 @@ if __name__ == "__main__":
 #     main(Path("W:/deep_events/data/original_data/training_data/20230626_1508_brightfield_cos7/20230626_1509_model.h5"))
     # main(Path("W:/deep_events/data/original_data/training_data/20230626_1509_fluorescence_zeiss_cos7/20230626_1509_model.h5"))
     # main(Path("Z:/_Lab members/Juan/Experiments/230222_MitoSplitNet_TrainingSet_U2OS_iSIM/training_data/20230611_0201_isim_cos7/20230611_0202_model.h5"))
-    visual_eval(Path("Z:/SHARED/_Scientific projects/ADA_WS_JCL/230511_PDA_TrainingSet_iSIM/training_data/20230719_1539_isim_s3"), "20230719_1541_model.h5")
+    folder = Path("W:/deep_events/data/original_data/training_data/20231028_1108_brightfield_cos7_n3_f0.5")
+    model = "20231028_1111_model.h5"
+    visual_eval(folder, model)
     # visual_eval(Path("W:/deep_events/data/original_data/training_data/20230718_0123_brightfield_cos7"),
     #             "20230718_0128_model.h5")
