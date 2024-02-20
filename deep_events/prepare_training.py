@@ -49,6 +49,10 @@ def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 
     coll = get_collection(collection)
     filtered_list = list(coll.find(prompt))
     db_files = []
+
+    # print("ATTENTION! FILTERED LIST IS TRUNCATED")
+    # filtered_list = filtered_list[::20]
+
     for item in filtered_list:
         db_files.append(Path(item['event_path']) / "event_db.yaml")
 

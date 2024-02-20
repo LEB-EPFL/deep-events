@@ -26,7 +26,7 @@ SETTINGS = {"nb_filters": 16,
             "nb_input_channels": 1,
             "batch_size": 16,
             "epochs": 20,
-            "n_augmentations": 30,
+            "n_augmentations": 10,
             'brightness_range': [0.6, 1],
             "loss": 'binary_crossentropy',
             "poisson": 0}
@@ -46,9 +46,10 @@ def distributed_train(folders, gpus, settings=SETTINGS):
 
     if not isinstance(settings, list):
         settings = [settings]*len(folders)
-
+    # os.environ['TF_GPU_ALLOCATOR'] = ""
+    os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = "true"
     # folders = [str(x) for x in folders]
-    with Pool(min(4, len(folders)), initializer=init_pool, initargs=(l,)) as p:
+    with Pool(min(5, len(folders)), initializer=init_pool, initargs=(l,)) as p:
         p.starmap(train, zip(folders, gpus, settings))
 
 def init_pool(l: Lock):
@@ -90,6 +91,7 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
     while Path(latest_folder / (name + "_settings.yaml")).is_file():
         name = datetime.datetime.now().strftime("%Y%m%d_%H%M")
 
+    settings["logdir"] = logdir.name
     settings_folder = str(latest_folder / (name + "_settings.yaml"))
     print(F"SETTINGS LOCATION: {settings_folder}")
     benedict(settings).to_yaml(filepath = latest_folder / (name + "_settings.yaml"))

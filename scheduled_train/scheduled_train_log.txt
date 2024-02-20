@@ -1,830 +1,140 @@
 ERROR 
-  File "C:\Internal\deep_events\deep-events\local\scheduled_train.py", line 43, in main
+  File "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py", line 36, in main
+    settings_dict = benedict(settings_yaml)
+  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\__init__.py", line 54, in __init__
+    super().__init__(*args, **kwargs)
+  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\keyattr\keyattr_dict.py", line 11, in __init__
+    super().__init__(*args, **kwargs)
+  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\keypath\keypath_dict.py", line 11, in __init__
+    super().__init__(*args, **kwargs)
+  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\keylist\keylist_dict.py", line 8, in __init__
+    super().__init__(*args, **kwargs)
+  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\io\io_dict.py", line 20, in __init__
+    d = IODict._decode_init(arg, **kwargs)
+  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\io\io_dict.py", line 31, in _decode_init
+    return IODict._decode(s, format, **kwargs)
+  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\io\io_dict.py", line 42, in _decode
+    raise ValueError(
+C
+Maybe data has moved?
+ERROR 
+  File "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py", line 54, in main
     distributed_train(folders, gpus, settings)
-  File "C:\Internal\deep_events\deep-events\deep_events\train.py", line 51, in distributed_train
+  File "C:\Internal\deep_events\deep-events\deep_events\train.py", line 52, in distributed_train
     p.starmap(train, zip(folders, gpus, settings))
   File "C:\Program Files\Python310\lib\multiprocessing\pool.py", line 375, in starmap
     return self._map_async(func, iterable, starmapstar, chunksize).get()
   File "C:\Program Files\Python310\lib\multiprocessing\pool.py", line 774, in get
     raise self._value
-\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20230710_1215_brightfield_cos7
-\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20230710_1215_brightfield_cos7
-Sun 07/16/2023  2:00:00.84 
-Starting scheduled train 
-Sun 07/16/2023  2:02:07.00 
-Finished scheduled train 
-------------------------  
-Mon 07/17/2023 16:17:19.68 
-Starting scheduled train 
+\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20231114_1822_brightfield_cos7
+\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20231114_1822_brightfield_cos7
+\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20231114_1822_fluorescence_zeiss_cos7
+\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20231114_1822_brightfield_cos7_n3_f0.5
+\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20231114_1822_brightfield_cos7_n3_f1
 ERROR 
-  File "C:\Internal\deep_events\deep-events\local\scheduled_train.py", line 31, in main
+  File "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py", line 55, in main
+    distributed_train(folders, gpus, settings)
+  File "C:\Internal\deep_events\deep-events\deep_events\train.py", line 52, in distributed_train
+    p.starmap(train, zip(folders, gpus, settings))
+  File "C:\Program Files\Python310\lib\multiprocessing\pool.py", line 375, in starmap
+    return self._map_async(func, iterable, starmapstar, chunksize).get()
+  File "C:\Program Files\Python310\lib\multiprocessing\pool.py", line 774, in get
+    raise self._value
+\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20231114_1840_brightfield_cos7
+\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20231114_1840_brightfield_cos7
+\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20231114_1840_fluorescence_zeiss_cos7
+\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20231114_1840_brightfield_cos7_n3_f0.5
+\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20231114_1840_brightfield_cos7_n3_f1
+ERROR 
+  File "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py", line 55, in main
+    distributed_train(folders, gpus, settings)
+  File "C:\Internal\deep_events\deep-events\deep_events\train.py", line 52, in distributed_train
+    p.starmap(train, zip(folders, gpus, settings))
+  File "C:\Program Files\Python310\lib\multiprocessing\pool.py", line 375, in starmap
+    return self._map_async(func, iterable, starmapstar, chunksize).get()
+  File "C:\Program Files\Python310\lib\multiprocessing\pool.py", line 774, in get
+    raise self._value
+\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231118_0200_isim_cos7
+\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231118_0201_isim_u2os
+\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231118_0201_isim
+ERROR 
+  File "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py", line 59, in main
+    distributed_train(folders, gpus, settings)
+  File "C:\Internal\deep_events\deep-events\deep_events\train.py", line 52, in distributed_train
+    p.starmap(train, zip(folders, gpus, settings))
+  File "C:\Program Files\Python310\lib\multiprocessing\pool.py", line 375, in starmap
+    return self._map_async(func, iterable, starmapstar, chunksize).get()
+  File "C:\Program Files\Python310\lib\multiprocessing\pool.py", line 774, in get
+    raise self._value
+\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231216_0202_isim_cos7
+\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231216_0203_isim_u2os
+\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231216_0203_isim
+ERROR 
+  File "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py", line 59, in main
+    distributed_train(folders, gpus, settings)
+  File "C:\Internal\deep_events\deep-events\deep_events\train.py", line 52, in distributed_train
+    p.starmap(train, zip(folders, gpus, settings))
+  File "C:\Program Files\Python310\lib\multiprocessing\pool.py", line 375, in starmap
+    return self._map_async(func, iterable, starmapstar, chunksize).get()
+  File "C:\Program Files\Python310\lib\multiprocessing\pool.py", line 774, in get
+    raise self._value
+\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231223_0202_isim_cos7
+\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231223_0203_isim_u2os
+\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231223_0203_isim
+ERROR 
+  File "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py", line 59, in main
+    distributed_train(folders, gpus, settings)
+  File "C:\Internal\deep_events\deep-events\deep_events\train.py", line 52, in distributed_train
+    p.starmap(train, zip(folders, gpus, settings))
+  File "C:\Program Files\Python310\lib\multiprocessing\pool.py", line 375, in starmap
+    return self._map_async(func, iterable, starmapstar, chunksize).get()
+  File "C:\Program Files\Python310\lib\multiprocessing\pool.py", line 774, in get
+    raise self._value
+\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231230_0202_isim_cos7
+\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231230_0203_isim_u2os
+\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231230_0203_isim
+ERROR 
+  File "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py", line 59, in main
+    distributed_train(folders, gpus, settings)
+  File "C:\Internal\deep_events\deep-events\deep_events\train.py", line 52, in distributed_train
+    p.starmap(train, zip(folders, gpus, settings))
+  File "C:\Program Files\Python310\lib\multiprocessing\pool.py", line 375, in starmap
+    return self._map_async(func, iterable, starmapstar, chunksize).get()
+  File "C:\Program Files\Python310\lib\multiprocessing\pool.py", line 774, in get
+    raise self._value
+\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20240106_0202_isim_cos7
+\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20240106_0203_isim_u2os
+\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20240106_0203_isim
+ERROR 
+  File "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py", line 59, in main
+    distributed_train(folders, gpus, settings)
+  File "C:\Internal\deep_events\deep-events\deep_events\train.py", line 49, in distributed_train
+    os.env['TF_GPU_ALLOCATOR'] = "cuda_malloc_async"
+\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20240112_1016_brightfield_cos7
+\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20240112_1017_fluorescence_zeiss_cos7
+\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20240112_1017_fluorescence_zeiss_cos7
+\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20240112_1017_brightfield_cos7_n3_f0.2
+\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20240112_1017_brightfield_cos7_n3_f0.2
+\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20240112_1018_brightfield_cos7_n3_f1
+\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20240112_1018_brightfield_cos7_n3_f1
+ERROR 
+  File "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py", line 40, in main
     folders, settings = gather_settings(settings_dict)
-  File "C:\Internal\deep_events\deep-events\local\scheduled_train.py", line 64, in gather_settings
+  File "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py", line 84, in gather_settings
     folder = prepare_for_prompt(Path(settings_dict["folder"]), settings_dict[key],
-  File "C:\Internal\deep_events\deep-events\deep_events\prepare_training.py", line 63, in prepare_for_prompt
+  File "C:\Internal\deep_events\deep-events\deep_events\prepare_training.py", line 67, in prepare_for_prompt
     all_images, all_gt = load_folder(folder, db_files, training_folder, n_timepoints, fps)
-  File "C:\Internal\deep_events\deep-events\deep_events\prepare_training.py", line 146, in load_folder
-    all_images = np.concatenate(all_images)
-  File "<__array_function__ internals>", line 180, in concatenate
-C:\Internal\deep_events\scheduled_settings\pearls.yaml
-Maybe data has moved?
-Sun 07/23/2023  2:00:00.83 
-Starting scheduled train 
-Sun 07/23/2023  2:02:05.57 
-Finished scheduled train 
-------------------------  
-Sun 07/30/2023  2:00:00.76 
-Starting scheduled train 
-Sun 07/30/2023  2:02:04.45 
-Finished scheduled train 
-------------------------  
-ERROR 
-  File "C:\Internal\deep_events\deep-events\local\scheduled_train.py", line 31, in main
-    folders, settings = gather_settings(settings_dict)
-  File "C:\Internal\deep_events\deep-events\local\scheduled_train.py", line 64, in gather_settings
-    folder = prepare_for_prompt(Path(settings_dict["folder"]), settings_dict[key],
-  File "C:\Internal\deep_events\deep-events\deep_events\prepare_training.py", line 63, in prepare_for_prompt
-    all_images, all_gt = load_folder(folder, db_files, training_folder, n_timepoints, fps)
-  File "C:\Internal\deep_events\deep-events\deep_events\prepare_training.py", line 147, in load_folder
-    all_images = np.concatenate(all_images)
-  File "<__array_function__ internals>", line 180, in concatenate
-C:\Internal\deep_events\scheduled_settings\juan_fission.yaml
-Maybe data has moved?
-Sun 08/06/2023  2:00:00.59 
-Starting scheduled train 
-Sun 08/06/2023  2:00:12.48 
-Finished scheduled train 
-------------------------  
-Sun 08/13/2023  2:00:01.12 
-Starting scheduled train 
-Sun 08/13/2023  2:02:06.89 
-Finished scheduled train 
-------------------------  
-Mon 08/14/2023 11:55:17.38 
-Starting scheduled train 
-Tue 08/15/2023 12:37:50.93 
-Finished scheduled train 
-------------------------  
-Sun 08/20/2023  2:00:00.74 
-Starting scheduled train 
-Sun 08/20/2023  2:01:59.93 
-Finished scheduled train 
-------------------------  
-Tue 08/22/2023  9:11:24.38 
-Starting scheduled train 
-Sun 08/27/2023  2:00:01.05 
-Starting scheduled train 
-Sun 08/27/2023  2:02:13.67 
-Finished scheduled train 
-------------------------  
-Tue 08/29/2023 23:18:44.95 
-Starting scheduled train 
-Tue 08/29/2023 23:18:48.01 
-Finished scheduled train 
-------------------------  
-Tue 08/29/2023 23:40:49.49 
-Starting scheduled train 
-Wed 08/30/2023 22:12:00.81 
-Finished scheduled train 
-------------------------  
-Sun 09/03/2023  2:00:01.62 
-Starting scheduled train 
-Sun 09/03/2023  2:02:09.84 
-Finished scheduled train 
-------------------------  
-Sun 09/10/2023  2:00:00.87 
-Starting scheduled train 
-Sun 09/10/2023  2:02:12.96 
-Finished scheduled train 
-------------------------  
-Sun 09/17/2023  2:00:01.24 
-Starting scheduled train 
-Sun 09/17/2023  2:02:05.94 
-Finished scheduled train 
-------------------------  
-Sun 09/24/2023  2:00:01.52 
-Starting scheduled train 
-Sun 09/24/2023  2:02:07.95 
-Finished scheduled train 
-------------------------  
-Thu 09/28/2023  9:08:26.96 
-Starting scheduled train 
-Sat 09/30/2023  2:00:00.74 
-Starting scheduled train 
-Sat 09/30/2023  2:00:27.13 
-Finished scheduled train 
-------------------------  
-Sat 09/30/2023  3:53:21.31 
-Finished scheduled train 
-------------------------  
-Sat 10/07/2023  2:00:01.00 
-Starting scheduled train 
-Sat 10/07/2023  2:02:09.69 
-Finished scheduled train 
-------------------------  
-Mon 10/09/2023 10:05:59.25 
-Starting scheduled train 
-ERROR 
-  File "C:\Internal\deep_events\deep-events\local\scheduled_train.py", line 31, in main
-    reconstruct_from_folder(Path(settings_dict["folder"]), settings_dict["collection"])
-  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\__init__.py", line 68, in __getitem__
-    return self._cast(super().__getitem__(key))
-  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\keypath\keypath_dict.py", line 31, in __getitem__
-    return super().__getitem__(self._parse_key(key))
-  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\keylist\keylist_dict.py", line 40, in __getitem__
-    return super().__getitem__(key)
-  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\base\base_dict.py", line 58, in __getitem__
-    return self._dict[key]
+  File "C:\Internal\deep_events\deep-events\deep_events\prepare_training.py", line 130, in load_folder
+    images, ground_truth = load_tifs(folder)
+  File "C:\Internal\deep_events\deep-events\deep_events\prepare_training.py", line 168, in load_tifs
+    images = tifffile.imread(image_file).astype(np.float32)
+  File "C:\Internal\deep_events\.env\lib\site-packages\tifffile\tifffile.py", line 1008, in imread
+    with TiffFile(
+  File "C:\Internal\deep_events\.env\lib\site-packages\tifffile\tifffile.py", line 3832, in __init__
+    fh = FileHandle(file, mode=mode, name=name, offset=offset, size=size)
+  File "C:\Internal\deep_events\.env\lib\site-packages\tifffile\tifffile.py", line 13088, in __init__
+    self.open()
+  File "C:\Internal\deep_events\.env\lib\site-packages\tifffile\tifffile.py", line 13103, in open
+    self._fh = open(self._file, self._mode)  # type: ignore
 C:\Internal\deep_events\scheduled_settings\mito_ideas.yaml
 Maybe data has moved?
-Mon 10/09/2023 10:08:03.31 
-Finished scheduled train 
-------------------------  
-Thu 10/12/2023 16:17:32.83 
-Starting scheduled train 
-Thu 10/12/2023 16:18:05.23 
-Finished scheduled train 
-------------------------  
-Thu 10/12/2023 16:19:57.12 
-Starting scheduled train 
-Thu 10/12/2023 16:27:32.95 
-Starting scheduled train 
-Thu 10/12/2023 16:27:41.48 
-Finished scheduled train 
-------------------------  
-Thu 10/12/2023 16:29:58.01 
-Starting scheduled train 
-Thu 10/12/2023 16:30:05.65 
-Finished scheduled train 
-------------------------  
-Thu 10/12/2023 16:31:10.84 
-Starting scheduled train 
-Thu 10/12/2023 16:31:18.85 
-Finished scheduled train 
-------------------------  
-Thu 10/12/2023 16:31:25.38 
-Starting scheduled train 
-Thu 10/12/2023 16:31:33.14 
-Finished scheduled train 
-------------------------  
-Thu 10/12/2023 16:31:52.87 
-Starting scheduled train 
-Thu 10/12/2023 16:32:37.57 
-Starting scheduled train 
-Thu 10/12/2023 16:32:45.27 
-Finished scheduled train 
-------------------------  
-Thu 10/12/2023 16:33:14.73 
-Starting scheduled train 
-Thu 10/12/2023 16:34:47.33 
-Finished scheduled train 
-------------------------  
-Thu 10/12/2023 16:35:18.90 
-Starting scheduled train 
-\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231012_1635_isim_cos7\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231012_1635_isim_u2os\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231012_1636_isimThu 10/12/2023 16:38:07.52 
-Starting scheduled train 
-Thu 10/12/2023 16:38:15.34 
-Finished scheduled train 
-------------------------  
-Thu 10/12/2023 16:38:36.32 
-Starting scheduled train 
-Thu 10/12/2023 16:38:43.97 
-Finished scheduled train 
-------------------------  
-Thu 10/12/2023 16:39:53.73 
-Starting scheduled train 
-Thu 10/12/2023 16:40:02.06 
-Finished scheduled train 
-------------------------  
-Thu 10/12/2023 16:41:06.65 
-Starting scheduled train 
-Thu 10/12/2023 16:41:14.59 
-Finished scheduled train 
-------------------------  
-Thu 10/12/2023 16:42:11.38 
-Starting scheduled train 
-Thu 10/12/2023 16:42:18.92 
-Finished scheduled train 
-------------------------  
-Thu 10/12/2023 16:44:54.02 
-Starting scheduled train 
-Thu 10/12/2023 16:46:59.15 
-Finished scheduled train 
-------------------------  
-Thu 10/12/2023 16:47:20.41 
-Starting scheduled train 
-\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231012_1647_isim_cos7
-\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231012_1648_isim_u2os
-\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231012_1648_isim
-DONE 
-\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20231013_0150_brightfield_cos7
-\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20231013_0150_brightfield_cos7
-\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20231013_0151_fluorescence_zeiss_cos7
-\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20231013_0151_brightfield_cos7_n3_f0.5
-\\lebnas1.epfl.ch\microsc125\deep_events\data\original_data\training_data\20231013_0152_brightfield_cos7_n3_f1
-DONE 
-\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230511_PDA_TrainingSet_iSIM\training_data\20231013_1231_isim_s2
-\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230511_PDA_TrainingSet_iSIM\training_data\20231013_1231_isim_s0
-\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230511_PDA_TrainingSet_iSIM\training_data\20231013_1231_isim_s1
-\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230511_PDA_TrainingSet_iSIM\training_data\20231013_1232_isim_s1
-DONE 
-Fri 10/13/2023 23:53:51.32 
-Finished scheduled train 
-------------------------  
-Sat 10/14/2023  2:00:01.32 
-Starting scheduled train 
-Sat 10/14/2023  2:00:20.29 
-Finished scheduled train 
-------------------------  
-Sun 10/15/2023  9:17:40.74 
-Starting scheduled train 
-Sun 10/15/2023  9:18:04.28 
-Finished scheduled train 
-------------------------  
-Sun 10/15/2023  9:28:08.78 
-Starting scheduled train 
-Sun 10/15/2023  9:28:17.03 
-Finished scheduled train 
-------------------------  
-Sun 10/15/2023  9:30:20.49 
-Starting scheduled train 
-VENV activated 
-Sun 10/15/2023  9:30:28.37 
-Finished scheduled train 
-------------------------  
-Sun 10/15/2023  9:31:34.80 
-Starting scheduled train 
-VENV activated 
-Sun 10/15/2023  9:31:42.49 
-Finished scheduled train 
-------------------------  
-Sun 10/15/2023  9:41:13.36 
-Starting scheduled train 
-VENV activated 
-Sun 10/15/2023  9:41:21.32 
-Finished scheduled train 
-------------------------  
-Sun 10/15/2023 10:38:41.26 
-Starting scheduled train 
-VENV activated 
-Sun 10/15/2023 10:38:49.20 
-Finished scheduled train 
-------------------------  
-Sun 10/15/2023 10:41:57.76 
-Starting scheduled train 
-Sun 10/15/2023 10:42:05.28 
-Finished scheduled train 
-------------------------  
-Sun 10/15/2023 10:55:49.84 
-Starting scheduled train 
-Sun 10/15/2023 10:55:57.88 
-Finished scheduled train 
-------------------------  
-Sun 10/15/2023 10:56:37.70 
-Starting scheduled train 
-Sun 10/15/2023 10:58:37.51 
-Starting scheduled train 
-Sun 10/15/2023 11:18:33.05 
-Starting scheduled train 
-Sun 10/15/2023 11:18:41.25 
-Finished scheduled train 
-------------------------  
-Sun 10/15/2023 11:19:12.72 
-Starting scheduled train 
-Sun 10/15/2023 11:19:20.45 
-Finished scheduled train 
-------------------------  
-Sun 10/15/2023 11:19:39.00 
-Starting scheduled train 
-Sun 10/15/2023 11:19:46.94 
-Finished scheduled train 
-------------------------  
-Sun 10/15/2023 11:20:28.00 
-Starting scheduled train 
-Sun 10/15/2023 11:20:35.53 
-Finished scheduled train 
-------------------------  
-Sun 10/15/2023 11:25:15.24 
-Starting scheduled train 
-Sun 10/15/2023 11:25:28.90 
-Finished scheduled train 
-------------------------  
-Sun 10/15/2023 11:26:19.84 
-Starting scheduled train 
-LOCKED
-Number of frames in generator:  1064
-Number of frames in generator:  267
-SETTINGS LOCATION: \\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231015_1126_isim_cos7\20231015_1128_settings.yaml
-UNLOCKED
-INPUT SHAPE (None, None, 1)
-* Start Encoder Section *
-* Start Center Section *
-NUMBER OF EPOCHS: 20
-Epoch 1/20
-LOCKED
-Number of frames in generator:  4237
-Number of frames in generator:  1060
-SETTINGS LOCATION: \\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231015_1127_isim\20231015_1128_settings.yaml
-UNLOCKED
-INPUT SHAPE (None, None, 1)
-* Start Encoder Section *
-* Start Center Section *
-NUMBER OF EPOCHS: 20
-Epoch 1/20
-LOCKED
-Number of frames in generator:  3172
-Number of frames in generator:  794
-SETTINGS LOCATION: \\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231015_1126_isim_u2os\20231015_1128_settings.yaml
-UNLOCKED
-INPUT SHAPE (None, None, 1)
-* Start Encoder Section *
-* Start Center Section *
-NUMBER OF EPOCHS: 20
-Epoch 1/20
-
-   1/1995 [..............................] - ETA: 7:08:38 - loss: 0.8196 - binary_accuracy: 0.4005 - mean_squared_error: 0.3048
-   2/1995 [..............................] - ETA: 6:13 - loss: 0.7990 - binary_accuracy: 0.5089 - mean_squared_error: 0.2851   
-   3/1995 [..............................] - ETA: 6:13 - loss: 0.7793 - binary_accuracy: 0.5415 - mean_squared_error: 0.2765
-   4/1995 [..............................] - ETA: 6:13 - loss: 0.7569 - binary_accuracy: 0.5689 - mean_squared_error: 0.2674
-   5/1995 [..............................] - ETA: 6:13 - loss: 0.7381 - binary_accuracy: 0.5824 - mean_squared_error: 0.2601
-   6/1995 [..............................] - ETA: 6:15 - loss: 0.7202 - binary_accuracy: 0.6070 - mean_squared_error: 0.2526
-   7/1995 [..............................] - ETA: 6:15 - loss: 0.7037 - binary_accuracy: 0.6250 - mean_squared_error: 0.2457
-   8/1995 [..............................] - ETA: 6:14 - loss: 0.6881 - binary_accuracy: 0.6471 - mean_squared_error: 0.2389
-   1/7945 [..............................] - ETA: 22:47:44 - loss: 0.5317 - binary_accuracy: 0.6635 - mean_squared_error: 0.1824
-   9/1995 [..............................] - ETA: 6:14 - loss: 0.6753 - binary_accuracy: 0.6624 - mean_squared_error: 0.2334
-   2/7945 [..............................] - ETA: 24:54 - loss: 0.4909 - binary_accuracy: 0.7663 - mean_squared_error: 0.1610   
-  10/1995 [..............................] - ETA: 6:13 - loss: 0.6621 - binary_accuracy: 0.6787 - mean_squared_error: 0.2277
-   3/7945 [..............................] - ETA: 24:50 - loss: 0.4641 - binary_accuracy: 0.8147 - mean_squared_error: 0.1474
-  11/1995 [..............................] - ETA: 6:13 - loss: 0.6505 - binary_accuracy: 0.6916 - mean_squared_error: 0.2228
-   4/7945 [..............................] - ETA: 24:54 - loss: 0.4441 - binary_accuracy: 0.8439 - mean_squared_error: 0.1376
-  12/1995 [..............................] - ETA: 6:13 - loss: 0.6395 - binary_accuracy: 0.7049 - mean_squared_error: 0.2180
-   5/7945 [..............................] - ETA: 24:52 - loss: 0.4291 - binary_accuracy: 0.8637 - mean_squared_error: 0.1302
-  13/1995 [..............................] - ETA: 6:13 - loss: 0.6283 - binary_accuracy: 0.7196 - mean_squared_error: 0.2131
-   6/7945 [..............................] - ETA: 24:55 - loss: 0.4182 - binary_accuracy: 0.8773 - mean_squared_error: 0.1250
-  14/1995 [..............................] - ETA: 6:13 - loss: 0.6175 - binary_accuracy: 0.7338 - mean_squared_error: 0.2083
-   7/7945 [..............................] - ETA: 24:56 - loss: 0.4085 - binary_accuracy: 0.8891 - mean_squared_error: 0.1204
-  15/1995 [..............................] - ETA: 6:13 - loss: 0.6071 - binary_accuracy: 0.7474 - mean_squared_error: 0.2037
-   8/7945 [..............................] - ETA: 24:57 - loss: 0.4000 - binary_accuracy: 0.8987 - mean_squared_error: 0.1164
-  16/1995 [..............................] - ETA: 6:13 - loss: 0.5980 - binary_accuracy: 0.7587 - mean_squared_error: 0.1997
-   9/7945 [..............................] - ETA: 24:57 - loss: 0.3922 - binary_accuracy: 0.9070 - mean_squared_error: 0.1128
-  17/1995 [..............................] - ETA: 6:13 - loss: 0.5891 - binary_accuracy: 0.7693 - mean_squared_error: 0.1957
-  10/7945 [..............................] - ETA: 24:55 - loss: 0.3845 - binary_accuracy: 0.9148 - mean_squared_error: 0.1092
-  18/1995 [..............................] - ETA: 6:13 - loss: 0.5808 - binary_accuracy: 0.7791 - mean_squared_error: 0.1920
-  11/7945 [..............................] - ETA: 24:55 - loss: 0.3782 - binary_accuracy: 0.9213 - mean_squared_error: 0.1063
-  19/1995 [..............................] - ETA: 6:12 - loss: 0.5731 - binary_accuracy: 0.7879 - mean_squared_error: 0.1886
-  12/7945 [..............................] - ETA: 24:57 - loss: 0.3717 - binary_accuracy: 0.9272 - mean_squared_error: 0.1033
-  20/1995 [..............................] - ETA: 6:12 - loss: 0.5647 - binary_accuracy: 0.7968 - mean_squared_error: 0.1849
-  13/7945 [..............................] - ETA: 24:57 - loss: 0.3656 - binary_accuracy: 0.9322 - mean_squared_error: 0.1006
-  21/1995 [..............................] - ETA: 6:12 - loss: 0.5572 - binary_accuracy: 0.8049 - mean_squared_error: 0.1816
-  14/7945 [..............................] - ETA: 24:57 - loss: 0.3595 - binary_accuracy: 0.9365 - mean_squared_error: 0.0979
-  22/1995 [..............................] - ETA: 6:12 - loss: 0.5498 - binary_accuracy: 0.8127 - mean_squared_error: 0.1783
-   1/5948 [..............................] - ETA: 12:03:12 - loss: 0.6882 - binary_accuracy: 0.6159 - mean_squared_error: 0.2451
-  15/7945 [..............................] - ETA: 24:56 - loss: 0.3539 - binary_accuracy: 0.9402 - mean_squared_error: 0.0955
-  23/1995 [..............................] - ETA: 6:12 - loss: 0.5429 - binary_accuracy: 0.8201 - mean_squared_error: 0.1752
-   2/5948 [..............................] - ETA: 18:21 - loss: 0.6663 - binary_accuracy: 0.6460 - mean_squared_error: 0.2359   
-  16/7945 [..............................] - ETA: 24:57 - loss: 0.3484 - binary_accuracy: 0.9435 - mean_squared_error: 0.0931
-  24/1995 [..............................] - ETA: 6:12 - loss: 0.5359 - binary_accuracy: 0.8271 - mean_squared_error: 0.1721
-   3/5948 [..............................] - ETA: 18:21 - loss: 0.6471 - binary_accuracy: 0.7260 - mean_squared_error: 0.2268
-  17/7945 [..............................] - ETA: 24:57 - loss: 0.3434 - binary_accuracy: 0.9465 - mean_squared_error: 0.0910
-  25/1995 [..............................] - ETA: 6:11 - loss: 0.5296 - binary_accuracy: 0.8336 - mean_squared_error: 0.1693
-   4/5948 [..............................] - ETA: 18:22 - loss: 0.6318 - binary_accuracy: 0.7639 - mean_squared_error: 0.2196
-  18/7945 [..............................] - ETA: 24:56 - loss: 0.3384 - binary_accuracy: 0.9492 - mean_squared_error: 0.0889
-  26/1995 [..............................] - ETA: 6:11 - loss: 0.5231 - binary_accuracy: 0.8398 - mean_squared_error: 0.1664
-   5/5948 [..............................] - ETA: 18:23 - loss: 0.6186 - binary_accuracy: 0.7901 - mean_squared_error: 0.2132
-  19/7945 [..............................] - ETA: 24:56 - loss: 0.3335 - binary_accuracy: 0.9517 - mean_squared_error: 0.0869
-   6/5948 [..............................] - ETA: 18:26 - loss: 0.6059 - binary_accuracy: 0.8110 - mean_squared_error: 0.2071
-  27/1995 [..............................] - ETA: 6:11 - loss: 0.5168 - binary_accuracy: 0.8456 - mean_squared_error: 0.1636
-  20/7945 [..............................] - ETA: 24:56 - loss: 0.3288 - binary_accuracy: 0.9540 - mean_squared_error: 0.0849
-   7/5948 [..............................] - ETA: 18:26 - loss: 0.5946 - binary_accuracy: 0.8256 - mean_squared_error: 0.2017
-  28/1995 [..............................] - ETA: 6:11 - loss: 0.5109 - binary_accuracy: 0.8509 - mean_squared_error: 0.1610
-  21/7945 [..............................] - ETA: 24:56 - loss: 0.3243 - binary_accuracy: 0.9561 - mean_squared_error: 0.0831
-   8/5948 [..............................] - ETA: 18:25 - loss: 0.5844 - binary_accuracy: 0.8383 - mean_squared_error: 0.1967
-  29/1995 [..............................] - ETA: 6:11 - loss: 0.5051 - binary_accuracy: 0.8559 - mean_squared_error: 0.1585
-  22/7945 [..............................] - ETA: 24:57 - loss: 0.3202 - binary_accuracy: 0.9579 - mean_squared_error: 0.0814
-   9/5948 [..............................] - ETA: 18:25 - loss: 0.5748 - binary_accuracy: 0.8505 - mean_squared_error: 0.1921
-  30/1995 [..............................] - ETA: 6:11 - loss: 0.4995 - binary_accuracy: 0.8605 - mean_squared_error: 0.1561
-  23/7945 [..............................] - ETA: 24:56 - loss: 0.3163 - binary_accuracy: 0.9597 - mean_squared_error: 0.0799
-  10/5948 [..............................] - ETA: 18:24 - loss: 0.5670 - binary_accuracy: 0.8593 - mean_squared_error: 0.1884
-  31/1995 [..............................] - ETA: 6:10 - loss: 0.4942 - binary_accuracy: 0.8647 - mean_squared_error: 0.1538
-  24/7945 [..............................] - ETA: 24:56 - loss: 0.3125 - binary_accuracy: 0.9612 - mean_squared_error: 0.0784
-  11/5948 [..............................] - ETA: 18:24 - loss: 0.5594 - binary_accuracy: 0.8681 - mean_squared_error: 0.1847
-  32/1995 [..............................] - ETA: 6:10 - loss: 0.4892 - binary_accuracy: 0.8687 - mean_squared_error: 0.1515
-  25/7945 [..............................] - ETA: 24:56 - loss: 0.3088 - binary_accuracy: 0.9627 - mean_squared_error: 0.0769
-  12/5948 [..............................] - ETA: 18:24 - loss: 0.5521 - binary_accuracy: 0.8758 - mean_squared_error: 0.1812
-  33/1995 [..............................] - ETA: 6:10 - loss: 0.4844 - binary_accuracy: 0.8724 - mean_squared_error: 0.1494
-  26/7945 [..............................] - ETA: 24:56 - loss: 0.3052 - binary_accuracy: 0.9641 - mean_squared_error: 0.0755
-  13/5948 [..............................] - ETA: 18:24 - loss: 0.5454 - binary_accuracy: 0.8826 - mean_squared_error: 0.1780
-  34/1995 [..............................] - ETA: 6:10 - loss: 0.4797 - binary_accuracy: 0.8760 - mean_squared_error: 0.1474
-  27/7945 [..............................] - ETA: 24:56 - loss: 0.3018 - binary_accuracy: 0.9653 - mean_squared_error: 0.0742
-  14/5948 [..............................] - ETA: 18:24 - loss: 0.5395 - binary_accuracy: 0.8885 - mean_squared_error: 0.1751
-  35/1995 [..............................] - ETA: 6:10 - loss: 0.4752 - binary_accuracy: 0.8794 - mean_squared_error: 0.1454
-  28/7945 [..............................] - ETA: 24:56 - loss: 0.2986 - binary_accuracy: 0.9665 - mean_squared_error: 0.0729
-  15/5948 [..............................] - ETA: 18:24 - loss: 0.5336 - binary_accuracy: 0.8945 - mean_squared_error: 0.1722
-  36/1995 [..............................] - ETA: 6:10 - loss: 0.4708 - binary_accuracy: 0.8827 - mean_squared_error: 0.1434
-  29/7945 [..............................] - ETA: 24:55 - loss: 0.2954 - binary_accuracy: 0.9676 - mean_squared_error: 0.0717
-  16/5948 [..............................] - ETA: 18:24 - loss: 0.5284 - binary_accuracy: 0.8995 - mean_squared_error: 0.1697
-  37/1995 [..............................] - ETA: 6:09 - loss: 0.4672 - binary_accuracy: 0.8857 - mean_squared_error: 0.1418
-  30/7945 [..............................] - ETA: 24:56 - loss: 0.2924 - binary_accuracy: 0.9686 - mean_squared_error: 0.0705
-  17/5948 [..............................] - ETA: 18:23 - loss: 0.5233 - binary_accuracy: 0.9040 - mean_squared_error: 0.1672
-  38/1995 [..............................] - ETA: 6:09 - loss: 0.4630 - binary_accuracy: 0.8886 - mean_squared_error: 0.1400
-  31/7945 [..............................] - ETA: 24:55 - loss: 0.2895 - binary_accuracy: 0.9695 - mean_squared_error: 0.0694
-  18/5948 [..............................] - ETA: 18:23 - loss: 0.5183 - binary_accuracy: 0.9082 - mean_squared_error: 0.1648
-  39/1995 [..............................] - ETA: 6:09 - loss: 0.4591 - binary_accuracy: 0.8912 - mean_squared_error: 0.1383
-  32/7945 [..............................] - ETA: 24:55 - loss: 0.2866 - binary_accuracy: 0.9704 - mean_squared_error: 0.0683
-  19/5948 [..............................] - ETA: 18:23 - loss: 0.5137 - binary_accuracy: 0.9118 - mean_squared_error: 0.1626
-  40/1995 [..............................] - ETA: 6:09 - loss: 0.4554 - binary_accuracy: 0.8937 - mean_squared_error: 0.1368
-  33/7945 [..............................] - ETA: 24:56 - loss: 0.2838 - binary_accuracy: 0.9712 - mean_squared_error: 0.0673
-  20/5948 [..............................] - ETA: 18:23 - loss: 0.5092 - binary_accuracy: 0.9152 - mean_squared_error: 0.1604
-  41/1995 [..............................] - ETA: 6:09 - loss: 0.4520 - binary_accuracy: 0.8961 - mean_squared_error: 0.1353
-  21/5948 [..............................] - ETA: 18:22 - loss: 0.5048 - binary_accuracy: 0.9184 - mean_squared_error: 0.1583
-  34/7945 [..............................] - ETA: 24:55 - loss: 0.2813 - binary_accuracy: 0.9720 - mean_squared_error: 0.0663
-  42/1995 [..............................] - ETA: 6:09 - loss: 0.4487 - binary_accuracy: 0.8984 - mean_squared_error: 0.1339
-  22/5948 [..............................] - ETA: 18:22 - loss: 0.5006 - binary_accuracy: 0.9214 - mean_squared_error: 0.1563
-  35/7945 [..............................] - ETA: 24:55 - loss: 0.2787 - binary_accuracy: 0.9728 - mean_squared_error: 0.0653
-  43/1995 [..............................] - ETA: 6:09 - loss: 0.4453 - binary_accuracy: 0.9007 - mean_squared_error: 0.1324
-  23/5948 [..............................] - ETA: 18:22 - loss: 0.4966 - binary_accuracy: 0.9242 - mean_squared_error: 0.1544
-  36/7945 [..............................] - ETA: 24:55 - loss: 0.2765 - binary_accuracy: 0.9735 - mean_squared_error: 0.0645
-  44/1995 [..............................] - ETA: 6:08 - loss: 0.4421 - binary_accuracy: 0.9029 - mean_squared_error: 0.1310
-  24/5948 [..............................] - ETA: 18:22 - loss: 0.4926 - binary_accuracy: 0.9268 - mean_squared_error: 0.1525
-  37/7945 [..............................] - ETA: 24:55 - loss: 0.2742 - binary_accuracy: 0.9741 - mean_squared_error: 0.0636
-  45/1995 [..............................] - ETA: 6:08 - loss: 0.4389 - binary_accuracy: 0.9050 - mean_squared_error: 0.1296
-  25/5948 [..............................] - ETA: 18:22 - loss: 0.4888 - binary_accuracy: 0.9292 - mean_squared_error: 0.1507
-  38/7945 [..............................] - ETA: 24:55 - loss: 0.2721 - binary_accuracy: 0.9747 - mean_squared_error: 0.0628
-  46/1995 [..............................] - ETA: 6:08 - loss: 0.4359 - binary_accuracy: 0.9070 - mean_squared_error: 0.1283
-  26/5948 [..............................] - ETA: 18:22 - loss: 0.4850 - binary_accuracy: 0.9315 - mean_squared_error: 0.1489
-  39/7945 [..............................] - ETA: 24:55 - loss: 0.2701 - binary_accuracy: 0.9753 - mean_squared_error: 0.0620
-  47/1995 [..............................] - ETA: 6:08 - loss: 0.4327 - binary_accuracy: 0.9089 - mean_squared_error: 0.1269
-  27/5948 [..............................] - ETA: 18:22 - loss: 0.4811 - binary_accuracy: 0.9337 - mean_squared_error: 0.1471
-  40/7945 [..............................] - ETA: 24:55 - loss: 0.2681 - binary_accuracy: 0.9759 - mean_squared_error: 0.0613
-  48/1995 [..............................] - ETA: 6:08 - loss: 0.4296 - binary_accuracy: 0.9107 - mean_squared_error: 0.1256
-  28/5948 [..............................] - ETA: 18:21 - loss: 0.4773 - binary_accuracy: 0.9358 - mean_squared_error: 0.1454
-  41/7945 [..............................] - ETA: 24:55 - loss: 0.2662 - binary_accuracy: 0.9765 - mean_squared_error: 0.0606
-  49/1995 [..............................] - ETA: 6:08 - loss: 0.4266 - binary_accuracy: 0.9125 - mean_squared_error: 0.1244
-  29/5948 [..............................] - ETA: 18:21 - loss: 0.4739 - binary_accuracy: 0.9378 - mean_squared_error: 0.1438
-  42/7945 [..............................] - ETA: 24:54 - loss: 0.2644 - binary_accuracy: 0.9770 - mean_squared_error: 0.0599
-  50/1995 [..............................] - ETA: 6:08 - loss: 0.4240 - binary_accuracy: 0.9142 - mean_squared_error: 0.1232
-  30/5948 [..............................] - ETA: 18:21 - loss: 0.4707 - binary_accuracy: 0.9396 - mean_squared_error: 0.1422
-  43/7945 [..............................] - ETA: 24:54 - loss: 0.2626 - binary_accuracy: 0.9775 - mean_squared_error: 0.0592
-  51/1995 [..............................] - ETA: 6:08 - loss: 0.4212 - binary_accuracy: 0.9157 - mean_squared_error: 0.1220
-  31/5948 [..............................] - ETA: 18:21 - loss: 0.4677 - binary_accuracy: 0.9413 - mean_squared_error: 0.1408
-  44/7945 [..............................] - ETA: 24:54 - loss: 0.2608 - binary_accuracy: 0.9780 - mean_squared_error: 0.0586
-  52/1995 [..............................] - ETA: 6:07 - loss: 0.4184 - binary_accuracy: 0.9173 - mean_squared_error: 0.1209
-  32/5948 [..............................] - ETA: 18:21 - loss: 0.4646 - binary_accuracy: 0.9428 - mean_squared_error: 0.1394
-  45/7945 [..............................] - ETA: 24:54 - loss: 0.2591 - binary_accuracy: 0.9784 - mean_squared_error: 0.0580
-  53/1995 [..............................] - ETA: 6:07 - loss: 0.4157 - binary_accuracy: 0.9187 - mean_squared_error: 0.1197
-  33/5948 [..............................] - ETA: 18:21 - loss: 0.4617 - binary_accuracy: 0.9442 - mean_squared_error: 0.1380
-  46/7945 [..............................] - ETA: 24:54 - loss: 0.2573 - binary_accuracy: 0.9789 - mean_squared_error: 0.0573
-  54/1995 [..............................] - ETA: 6:07 - loss: 0.4131 - binary_accuracy: 0.9201 - mean_squared_error: 0.1186
-  34/5948 [..............................] - ETA: 18:21 - loss: 0.4587 - binary_accuracy: 0.9455 - mean_squared_error: 0.1366
-  47/7945 [..............................] - ETA: 24:54 - loss: 0.2555 - binary_accuracy: 0.9793 - mean_squared_error: 0.0567
-  55/1995 [..............................] - ETA: 6:07 - loss: 0.4105 - binary_accuracy: 0.9215 - mean_squared_error: 0.1175
-  35/5948 [..............................] - ETA: 18:21 - loss: 0.4559 - binary_accuracy: 0.9468 - mean_squared_error: 0.1354
-  48/7945 [..............................] - ETA: 24:54 - loss: 0.2538 - binary_accuracy: 0.9796 - mean_squared_error: 0.0560
-  56/1995 [..............................] - ETA: 6:07 - loss: 0.4081 - binary_accuracy: 0.9229 - mean_squared_error: 0.1165
-  36/5948 [..............................] - ETA: 18:21 - loss: 0.4530 - binary_accuracy: 0.9480 - mean_squared_error: 0.1340
-  49/7945 [..............................] - ETA: 24:54 - loss: 0.2522 - binary_accuracy: 0.9800 - mean_squared_error: 0.0555
-  57/1995 [..............................] - ETA: 6:06 - loss: 0.4056 - binary_accuracy: 0.9242 - mean_squared_error: 0.1155
-  37/5948 [..............................] - ETA: 18:21 - loss: 0.4503 - binary_accuracy: 0.9493 - mean_squared_error: 0.1328
-  50/7945 [..............................] - ETA: 24:54 - loss: 0.2506 - binary_accuracy: 0.9804 - mean_squared_error: 0.0549
-  58/1995 [..............................] - ETA: 6:06 - loss: 0.4031 - binary_accuracy: 0.9255 - mean_squared_error: 0.1144
-  38/5948 [..............................] - ETA: 18:20 - loss: 0.4480 - binary_accuracy: 0.9504 - mean_squared_error: 0.1317
-  51/7945 [..............................] - ETA: 24:54 - loss: 0.2490 - binary_accuracy: 0.9807 - mean_squared_error: 0.0543
-  59/1995 [..............................] - ETA: 6:06 - loss: 0.4008 - binary_accuracy: 0.9267 - mean_squared_error: 0.1134
-  39/5948 [..............................] - ETA: 18:20 - loss: 0.4454 - binary_accuracy: 0.9515 - mean_squared_error: 0.1305
-  52/7945 [..............................] - ETA: 24:53 - loss: 0.2475 - binary_accuracy: 0.9811 - mean_squared_error: 0.0538
-  60/1995 [..............................] - ETA: 6:06 - loss: 0.3984 - binary_accuracy: 0.9279 - mean_squared_error: 0.1124
-  40/5948 [..............................] - ETA: 18:20 - loss: 0.4429 - binary_accuracy: 0.9525 - mean_squared_error: 0.1294
-  53/7945 [..............................] - ETA: 24:53 - loss: 0.2460 - binary_accuracy: 0.9814 - mean_squared_error: 0.0532
-  61/1995 [..............................] - ETA: 6:06 - loss: 0.3962 - binary_accuracy: 0.9290 - mean_squared_error: 0.1115
-  41/5948 [..............................] - ETA: 18:20 - loss: 0.4406 - binary_accuracy: 0.9534 - mean_squared_error: 0.1283
-  54/7945 [..............................] - ETA: 24:53 - loss: 0.2444 - binary_accuracy: 0.9817 - mean_squared_error: 0.0527
-  62/1995 [..............................] - ETA: 6:06 - loss: 0.3939 - binary_accuracy: 0.9301 - mean_squared_error: 0.1106
-  42/5948 [..............................] - ETA: 18:20 - loss: 0.4382 - binary_accuracy: 0.9544 - mean_squared_error: 0.1272
-  55/7945 [..............................] - ETA: 24:53 - loss: 0.2430 - binary_accuracy: 0.9820 - mean_squared_error: 0.0522
-  63/1995 [..............................] - ETA: 6:05 - loss: 0.3918 - binary_accuracy: 0.9311 - mean_squared_error: 0.1097
-  43/5948 [..............................] - ETA: 18:20 - loss: 0.4361 - binary_accuracy: 0.9553 - mean_squared_error: 0.1263
-  56/7945 [..............................] - ETA: 24:53 - loss: 0.2416 - binary_accuracy: 0.9823 - mean_squared_error: 0.0517
-  64/1995 [..............................] - ETA: 6:05 - loss: 0.3898 - binary_accuracy: 0.9322 - mean_squared_error: 0.1088
-  44/5948 [..............................] - ETA: 18:20 - loss: 0.4338 - binary_accuracy: 0.9561 - mean_squared_error: 0.1253
-  57/7945 [..............................] - ETA: 24:53 - loss: 0.2403 - binary_accuracy: 0.9826 - mean_squared_error: 0.0512
-  65/1995 [..............................] - ETA: 6:05 - loss: 0.3877 - binary_accuracy: 0.9331 - mean_squared_error: 0.1080
-  45/5948 [..............................] - ETA: 18:19 - loss: 0.4316 - binary_accuracy: 0.9569 - mean_squared_error: 0.1243
-  58/7945 [..............................] - ETA: 24:53 - loss: 0.2389 - binary_accuracy: 0.9828 - mean_squared_error: 0.0507
-  66/1995 [..............................] - ETA: 6:05 - loss: 0.3857 - binary_accuracy: 0.9341 - mean_squared_error: 0.1072
-  46/5948 [..............................] - ETA: 18:19 - loss: 0.4295 - binary_accuracy: 0.9577 - mean_squared_error: 0.1234
-  59/7945 [..............................] - ETA: 24:53 - loss: 0.2375 - binary_accuracy: 0.9831 - mean_squared_error: 0.0502
-  67/1995 [>.............................] - ETA: 6:05 - loss: 0.3838 - binary_accuracy: 0.9350 - mean_squared_error: 0.1064
-  47/5948 [..............................] - ETA: 18:19 - loss: 0.4273 - binary_accuracy: 0.9584 - mean_squared_error: 0.1224
-  60/7945 [..............................] - ETA: 24:53 - loss: 0.2362 - binary_accuracy: 0.9834 - mean_squared_error: 0.0498
-  68/1995 [>.............................] - ETA: 6:04 - loss: 0.3819 - binary_accuracy: 0.9359 - mean_squared_error: 0.1056
-  48/5948 [..............................] - ETA: 18:19 - loss: 0.4251 - binary_accuracy: 0.9592 - mean_squared_error: 0.1214
-  61/7945 [..............................] - ETA: 24:53 - loss: 0.2349 - binary_accuracy: 0.9836 - mean_squared_error: 0.0493
-  69/1995 [>.............................] - ETA: 6:04 - loss: 0.3799 - binary_accuracy: 0.9368 - mean_squared_error: 0.1047
-  49/5948 [..............................] - ETA: 18:19 - loss: 0.4230 - binary_accuracy: 0.9599 - mean_squared_error: 0.1205
-  62/7945 [..............................] - ETA: 24:53 - loss: 0.2337 - binary_accuracy: 0.9839 - mean_squared_error: 0.0489
-  70/1995 [>.............................] - ETA: 6:04 - loss: 0.3780 - binary_accuracy: 0.9377 - mean_squared_error: 0.1040
-  50/5948 [..............................] - ETA: 18:19 - loss: 0.4209 - binary_accuracy: 0.9607 - mean_squared_error: 0.1196
-  63/7945 [..............................] - ETA: 24:53 - loss: 0.2324 - binary_accuracy: 0.9841 - mean_squared_error: 0.0485
-  71/1995 [>.............................] - ETA: 6:04 - loss: 0.3762 - binary_accuracy: 0.9386 - mean_squared_error: 0.1032
-  51/5948 [..............................] - ETA: 18:19 - loss: 0.4191 - binary_accuracy: 0.9614 - mean_squared_error: 0.1188
-  64/7945 [..............................] - ETA: 24:53 - loss: 0.2312 - binary_accuracy: 0.9843 - mean_squared_error: 0.0480
-  72/1995 [>.............................] - ETA: 6:04 - loss: 0.3745 - binary_accuracy: 0.9394 - mean_squared_error: 0.1025
-  52/5948 [..............................] - ETA: 18:18 - loss: 0.4172 - binary_accuracy: 0.9620 - mean_squared_error: 0.1180
-  65/7945 [..............................] - ETA: 24:53 - loss: 0.2300 - binary_accuracy: 0.9845 - mean_squared_error: 0.0476
-  73/1995 [>.............................] - ETA: 6:04 - loss: 0.3727 - binary_accuracy: 0.9402 - mean_squared_error: 0.1018
-  53/5948 [..............................] - ETA: 18:18 - loss: 0.4152 - binary_accuracy: 0.9626 - mean_squared_error: 0.1172
-  66/7945 [..............................] - ETA: 24:52 - loss: 0.2288 - binary_accuracy: 0.9847 - mean_squared_error: 0.0472
-  74/1995 [>.............................] - ETA: 6:03 - loss: 0.3710 - binary_accuracy: 0.9409 - mean_squared_error: 0.1010
-  54/5948 [..............................] - ETA: 18:18 - loss: 0.4133 - binary_accuracy: 0.9632 - mean_squared_error: 0.1164
-  67/7945 [..............................] - ETA: 24:52 - loss: 0.2276 - binary_accuracy: 0.9849 - mean_squared_error: 0.0468
-  75/1995 [>.............................] - ETA: 6:03 - loss: 0.3692 - binary_accuracy: 0.9417 - mean_squared_error: 0.1003
-  55/5948 [..............................] - ETA: 18:18 - loss: 0.4116 - binary_accuracy: 0.9638 - mean_squared_error: 0.1156
-  68/7945 [..............................] - ETA: 24:52 - loss: 0.2265 - binary_accuracy: 0.9851 - mean_squared_error: 0.0464
-  76/1995 [>.............................] - ETA: 6:03 - loss: 0.3675 - binary_accuracy: 0.9424 - mean_squared_error: 0.0996
-  56/5948 [..............................] - ETA: 18:18 - loss: 0.4098 - binary_accuracy: 0.9643 - mean_squared_error: 0.1149
-  69/7945 [..............................] - ETA: 24:52 - loss: 0.2254 - binary_accuracy: 0.9853 - mean_squared_error: 0.0461
-  77/1995 [>.............................] - ETA: 6:03 - loss: 0.3662 - binary_accuracy: 0.9431 - mean_squared_error: 0.0991
-  57/5948 [..............................] - ETA: 18:18 - loss: 0.4081 - binary_accuracy: 0.9648 - mean_squared_error: 0.1141
-  70/7945 [..............................] - ETA: 24:52 - loss: 0.2243 - binary_accuracy: 0.9855 - mean_squared_error: 0.0457
-  78/1995 [>.............................] - ETA: 6:03 - loss: 0.3646 - binary_accuracy: 0.9438 - mean_squared_error: 0.0984
-  58/5948 [..............................] - ETA: 18:18 - loss: 0.4064 - binary_accuracy: 0.9653 - mean_squared_error: 0.1134
-  71/7945 [..............................] - ETA: 24:52 - loss: 0.2232 - binary_accuracy: 0.9857 - mean_squared_error: 0.0453
-  79/1995 [>.............................] - ETA: 6:03 - loss: 0.3629 - binary_accuracy: 0.9445 - mean_squared_error: 0.0977
-  59/5948 [..............................] - ETA: 18:18 - loss: 0.4047 - binary_accuracy: 0.9658 - mean_squared_error: 0.1127
-  72/7945 [..............................] - ETA: 24:52 - loss: 0.2221 - binary_accuracy: 0.9859 - mean_squared_error: 0.0450
-  80/1995 [>.............................] - ETA: 6:02 - loss: 0.3614 - binary_accuracy: 0.9451 - mean_squared_error: 0.0971
-  60/5948 [..............................] - ETA: 18:18 - loss: 0.4031 - binary_accuracy: 0.9663 - mean_squared_error: 0.1120
-  73/7945 [..............................] - ETA: 24:52 - loss: 0.2210 - binary_accuracy: 0.9860 - mean_squared_error: 0.0446
-  81/1995 [>.............................] - ETA: 6:02 - loss: 0.3599 - binary_accuracy: 0.9458 - mean_squared_error: 0.0965
-  61/5948 [..............................] - ETA: 18:17 - loss: 0.4015 - binary_accuracy: 0.9668 - mean_squared_error: 0.1113
-  74/7945 [..............................] - ETA: 24:52 - loss: 0.2200 - binary_accuracy: 0.9862 - mean_squared_error: 0.0443
-  82/1995 [>.............................] - ETA: 6:02 - loss: 0.3584 - binary_accuracy: 0.9464 - mean_squared_error: 0.0959
-  62/5948 [..............................] - ETA: 18:17 - loss: 0.3999 - binary_accuracy: 0.9672 - mean_squared_error: 0.1106
-  75/7945 [..............................] - ETA: 24:52 - loss: 0.2190 - binary_accuracy: 0.9864 - mean_squared_error: 0.0439
-  83/1995 [>.............................] - ETA: 6:02 - loss: 0.3570 - binary_accuracy: 0.9470 - mean_squared_error: 0.0953
-  63/5948 [..............................] - ETA: 18:17 - loss: 0.3983 - binary_accuracy: 0.9677 - mean_squared_error: 0.1100
-  76/7945 [..............................] - ETA: 24:52 - loss: 0.2180 - binary_accuracy: 0.9865 - mean_squared_error: 0.0436
-  64/5948 [..............................] - ETA: 18:17 - loss: 0.3968 - binary_accuracy: 0.9681 - mean_squared_error: 0.1093
-  84/1995 [>.............................] - ETA: 6:02 - loss: 0.3555 - binary_accuracy: 0.9476 - mean_squared_error: 0.0947
-  77/7945 [..............................] - ETA: 24:51 - loss: 0.2170 - binary_accuracy: 0.9867 - mean_squared_error: 0.0433
-  65/5948 [..............................] - ETA: 18:17 - loss: 0.3952 - binary_accuracy: 0.9686 - mean_squared_error: 0.1087
-  85/1995 [>.............................] - ETA: 6:02 - loss: 0.3540 - binary_accuracy: 0.9482 - mean_squared_error: 0.0941
-  78/7945 [..............................] - ETA: 24:51 - loss: 0.2160 - binary_accuracy: 0.9868 - mean_squared_error: 0.0429
-  66/5948 [..............................] - ETA: 18:17 - loss: 0.3937 - binary_accuracy: 0.9690 - mean_squared_error: 0.1080
-  86/1995 [>.............................] - ETA: 6:01 - loss: 0.3526 - binary_accuracy: 0.9488 - mean_squared_error: 0.0936
-  79/7945 [..............................] - ETA: 24:51 - loss: 0.2151 - binary_accuracy: 0.9870 - mean_squared_error: 0.0426
-  67/5948 [..............................] - ETA: 18:17 - loss: 0.3922 - binary_accuracy: 0.9694 - mean_squared_error: 0.1074
-  87/1995 [>.............................] - ETA: 6:01 - loss: 0.3512 - binary_accuracy: 0.9493 - mean_squared_error: 0.0930
-  80/7945 [..............................] - ETA: 24:51 - loss: 0.2142 - binary_accuracy: 0.9871 - mean_squared_error: 0.0423
-  68/5948 [..............................] - ETA: 18:17 - loss: 0.3907 - binary_accuracy: 0.9698 - mean_squared_error: 0.1067
-  88/1995 [>.............................] - ETA: 6:01 - loss: 0.3497 - binary_accuracy: 0.9499 - mean_squared_error: 0.0924
-  81/7945 [..............................] - ETA: 24:51 - loss: 0.2133 - binary_accuracy: 0.9873 - mean_squared_error: 0.0420
-  69/5948 [..............................] - ETA: 18:16 - loss: 0.3892 - binary_accuracy: 0.9702 - mean_squared_error: 0.1061
-  89/1995 [>.............................] - ETA: 6:01 - loss: 0.3485 - binary_accuracy: 0.9504 - mean_squared_error: 0.0919
-  82/7945 [..............................] - ETA: 24:51 - loss: 0.2124 - binary_accuracy: 0.9874 - mean_squared_error: 0.0417
-  70/5948 [..............................] - ETA: 18:16 - loss: 0.3877 - binary_accuracy: 0.9706 - mean_squared_error: 0.1054
-  90/1995 [>.............................] - ETA: 6:01 - loss: 0.3472 - binary_accuracy: 0.9510 - mean_squared_error: 0.0913
-  83/7945 [..............................] - ETA: 24:51 - loss: 0.2114 - binary_accuracy: 0.9875 - mean_squared_error: 0.0414
-  71/5948 [..............................] - ETA: 18:16 - loss: 0.3863 - binary_accuracy: 0.9709 - mean_squared_error: 0.1048
-  91/1995 [>.............................] - ETA: 6:01 - loss: 0.3458 - binary_accuracy: 0.9515 - mean_squared_error: 0.0908
-  84/7945 [..............................] - ETA: 24:51 - loss: 0.2105 - binary_accuracy: 0.9877 - mean_squared_error: 0.0411
-  72/5948 [..............................] - ETA: 18:16 - loss: 0.3848 - binary_accuracy: 0.9713 - mean_squared_error: 0.1042
-  92/1995 [>.............................] - ETA: 6:00 - loss: 0.3446 - binary_accuracy: 0.9519 - mean_squared_error: 0.0903
-  85/7945 [..............................] - ETA: 24:50 - loss: 0.2097 - binary_accuracy: 0.9878 - mean_squared_error: 0.0409
-  73/5948 [..............................] - ETA: 18:16 - loss: 0.3834 - binary_accuracy: 0.9717 - mean_squared_error: 0.1036
-  93/1995 [>.............................] - ETA: 6:00 - loss: 0.3433 - binary_accuracy: 0.9524 - mean_squared_error: 0.0898
-  86/7945 [..............................] - ETA: 24:51 - loss: 0.2088 - binary_accuracy: 0.9879 - mean_squared_error: 0.0406
-  74/5948 [..............................] - ETA: 18:16 - loss: 0.3820 - binary_accuracy: 0.9720 - mean_squared_error: 0.1030
-  94/1995 [>.............................] - ETA: 6:00 - loss: 0.3421 - binary_accuracy: 0.9529 - mean_squared_error: 0.0893
-  87/7945 [..............................] - ETA: 24:51 - loss: 0.2080 - binary_accuracy: 0.9880 - mean_squared_error: 0.0403
-  75/5948 [..............................] - ETA: 18:16 - loss: 0.3807 - binary_accuracy: 0.9723 - mean_squared_error: 0.1024
-  95/1995 [>.............................] - ETA: 6:00 - loss: 0.3409 - binary_accuracy: 0.9534 - mean_squared_error: 0.0888
-  88/7945 [..............................] - ETA: 24:51 - loss: 0.2072 - binary_accuracy: 0.9882 - mean_squared_error: 0.0400
-  76/5948 [..............................] - ETA: 18:15 - loss: 0.3793 - binary_accuracy: 0.9726 - mean_squared_error: 0.1018
-  96/1995 [>.............................] - ETA: 6:00 - loss: 0.3397 - binary_accuracy: 0.9538 - mean_squared_error: 0.0883
-  89/7945 [..............................] - ETA: 24:51 - loss: 0.2063 - binary_accuracy: 0.9883 - mean_squared_error: 0.0398
-  77/5948 [..............................] - ETA: 18:15 - loss: 0.3780 - binary_accuracy: 0.9730 - mean_squared_error: 0.1012
-  97/1995 [>.............................] - ETA: 6:00 - loss: 0.3385 - binary_accuracy: 0.9543 - mean_squared_error: 0.0878
-  78/5948 [..............................] - ETA: 18:15 - loss: 0.3766 - binary_accuracy: 0.9733 - mean_squared_error: 0.1007
-  90/7945 [..............................] - ETA: 24:50 - loss: 0.2055 - binary_accuracy: 0.9884 - mean_squared_error: 0.0395
-  98/1995 [>.............................] - ETA: 5:59 - loss: 0.3373 - binary_accuracy: 0.9547 - mean_squared_error: 0.0874
-  79/5948 [..............................] - ETA: 18:15 - loss: 0.3754 - binary_accuracy: 0.9736 - mean_squared_error: 0.1001
-  91/7945 [..............................] - ETA: 24:50 - loss: 0.2047 - binary_accuracy: 0.9885 - mean_squared_error: 0.0393
-  99/1995 [>.............................] - ETA: 5:59 - loss: 0.3361 - binary_accuracy: 0.9552 - mean_squared_error: 0.0869
-  80/5948 [..............................] - ETA: 18:15 - loss: 0.3741 - binary_accuracy: 0.9739 - mean_squared_error: 0.0996
-  92/7945 [..............................] - ETA: 24:50 - loss: 0.2040 - binary_accuracy: 0.9886 - mean_squared_error: 0.0390
- 100/1995 [>.............................] - ETA: 5:59 - loss: 0.3349 - binary_accuracy: 0.9556 - mean_squared_error: 0.0864
-  81/5948 [..............................] - ETA: 18:15 - loss: 0.3728 - binary_accuracy: 0.9742 - mean_squared_error: 0.0990
-  93/7945 [..............................] - ETA: 24:50 - loss: 0.2032 - binary_accuracy: 0.9887 - mean_squared_error: 0.0388
- 101/1995 [>.............................] - ETA: 5:59 - loss: 0.3338 - binary_accuracy: 0.9560 - mean_squared_error: 0.0860
-  82/5948 [..............................] - ETA: 18:15 - loss: 0.3716 - binary_accuracy: 0.9744 - mean_squared_error: 0.0985
-  94/7945 [..............................] - ETA: 24:50 - loss: 0.2024 - binary_accuracy: 0.9888 - mean_squared_error: 0.0385
- 102/1995 [>.............................] - ETA: 5:59 - loss: 0.3327 - binary_accuracy: 0.9564 - mean_squared_error: 0.0855
-  83/5948 [..............................] - ETA: 18:15 - loss: 0.3704 - binary_accuracy: 0.9747 - mean_squared_error: 0.0980
-  95/7945 [..............................] - ETA: 24:50 - loss: 0.2016 - binary_accuracy: 0.9889 - mean_squared_error: 0.0383
- 103/1995 [>.............................] - ETA: 5:59 - loss: 0.3316 - binary_accuracy: 0.9568 - mean_squared_error: 0.0851
-  84/5948 [..............................] - ETA: 18:15 - loss: 0.3694 - binary_accuracy: 0.9749 - mean_squared_error: 0.0975
-  96/7945 [..............................] - ETA: 24:50 - loss: 0.2009 - binary_accuracy: 0.9890 - mean_squared_error: 0.0380
- 104/1995 [>.............................] - ETA: 5:59 - loss: 0.3304 - binary_accuracy: 0.9572 - mean_squared_error: 0.0846
-  85/5948 [..............................] - ETA: 18:15 - loss: 0.3683 - binary_accuracy: 0.9751 - mean_squared_error: 0.0971
-  97/7945 [..............................] - ETA: 24:51 - loss: 0.2001 - binary_accuracy: 0.9891 - mean_squared_error: 0.0378
- 105/1995 [>.............................] - ETA: 5:58 - loss: 0.3301 - binary_accuracy: 0.9576 - mean_squared_error: 0.0845
-  86/5948 [..............................] - ETA: 18:14 - loss: 0.3673 - binary_accuracy: 0.9753 - mean_squared_error: 0.0966
-  98/7945 [..............................] - ETA: 24:51 - loss: 0.1993 - binary_accuracy: 0.9892 - mean_squared_error: 0.0376
- 106/1995 [>.............................] - ETA: 5:58 - loss: 0.3291 - binary_accuracy: 0.9579 - mean_squared_error: 0.0841
-  87/5948 [..............................] - ETA: 18:14 - loss: 0.3663 - binary_accuracy: 0.9755 - mean_squared_error: 0.0962
-  99/7945 [..............................] - ETA: 24:51 - loss: 0.1986 - binary_accuracy: 0.9893 - mean_squared_error: 0.0373
- 107/1995 [>.............................] - ETA: 5:58 - loss: 0.3282 - binary_accuracy: 0.9583 - mean_squared_error: 0.0837
-  88/5948 [..............................] - ETA: 18:14 - loss: 0.3652 - binary_accuracy: 0.9757 - mean_squared_error: 0.0958
- 100/7945 [..............................] - ETA: 24:50 - loss: 0.1979 - binary_accuracy: 0.9894 - mean_squared_error: 0.0371
- 108/1995 [>.............................] - ETA: 5:58 - loss: 0.3274 - binary_accuracy: 0.9587 - mean_squared_error: 0.0834
-  89/5948 [..............................] - ETA: 18:14 - loss: 0.3642 - binary_accuracy: 0.9759 - mean_squared_error: 0.0954
- 101/7945 [..............................] - ETA: 24:51 - loss: 0.1972 - binary_accuracy: 0.9895 - mean_squared_error: 0.0369
- 109/1995 [>.............................] - ETA: 5:58 - loss: 0.3267 - binary_accuracy: 0.9590 - mean_squared_error: 0.0831
-  90/5948 [..............................] - ETA: 18:14 - loss: 0.3632 - binary_accuracy: 0.9762 - mean_squared_error: 0.0950
- 102/7945 [..............................] - ETA: 24:50 - loss: 0.1965 - binary_accuracy: 0.9896 - mean_squared_error: 0.0367
- 110/1995 [>.............................] - ETA: 5:58 - loss: 0.3261 - binary_accuracy: 0.9594 - mean_squared_error: 0.0828
-  91/5948 [..............................] - ETA: 18:14 - loss: 0.3621 - binary_accuracy: 0.9764 - mean_squared_error: 0.0945
- 103/7945 [..............................] - ETA: 24:50 - loss: 0.1958 - binary_accuracy: 0.9896 - mean_squared_error: 0.0365
- 111/1995 [>.............................] - ETA: 5:57 - loss: 0.3255 - binary_accuracy: 0.9597 - mean_squared_error: 0.0826
-  92/5948 [..............................] - ETA: 18:14 - loss: 0.3611 - binary_accuracy: 0.9766 - mean_squared_error: 0.0941
- 104/7945 [..............................] - ETA: 24:50 - loss: 0.1951 - binary_accuracy: 0.9897 - mean_squared_error: 0.0363
- 112/1995 [>.............................] - ETA: 5:57 - loss: 0.3249 - binary_accuracy: 0.9601 - mean_squared_error: 0.0823
-  93/5948 [..............................] - ETA: 18:13 - loss: 0.3600 - binary_accuracy: 0.9769 - mean_squared_error: 0.0937
- 105/7945 [..............................] - ETA: 24:50 - loss: 0.1945 - binary_accuracy: 0.9898 - mean_squared_error: 0.0360
- 113/1995 [>.............................] - ETA: 5:57 - loss: 0.3243 - binary_accuracy: 0.9604 - mean_squared_error: 0.0821
-  94/5948 [..............................] - ETA: 18:13 - loss: 0.3590 - binary_accuracy: 0.9771 - mean_squared_error: 0.0933
- 106/7945 [..............................] - ETA: 24:50 - loss: 0.1938 - binary_accuracy: 0.9899 - mean_squared_error: 0.0358
- 114/1995 [>.............................] - ETA: 5:57 - loss: 0.3237 - binary_accuracy: 0.9608 - mean_squared_error: 0.0818
-  95/5948 [..............................] - ETA: 18:13 - loss: 0.3580 - binary_accuracy: 0.9773 - mean_squared_error: 0.0929
- 107/7945 [..............................] - ETA: 24:50 - loss: 0.1931 - binary_accuracy: 0.9900 - mean_squared_error: 0.0356
- 115/1995 [>.............................] - ETA: 5:57 - loss: 0.3231 - binary_accuracy: 0.9611 - mean_squared_error: 0.0815
-  96/5948 [..............................] - ETA: 18:13 - loss: 0.3570 - binary_accuracy: 0.9775 - mean_squared_error: 0.0925
- 108/7945 [..............................] - ETA: 24:50 - loss: 0.1924 - binary_accuracy: 0.9900 - mean_squared_error: 0.0354
- 116/1995 [>.............................] - ETA: 5:57 - loss: 0.3224 - binary_accuracy: 0.9614 - mean_squared_error: 0.0812
-  97/5948 [..............................] - ETA: 18:13 - loss: 0.3560 - binary_accuracy: 0.9777 - mean_squared_error: 0.0920
- 109/7945 [..............................] - ETA: 24:50 - loss: 0.1918 - binary_accuracy: 0.9901 - mean_squared_error: 0.0352
- 117/1995 [>.............................] - ETA: 5:56 - loss: 0.3218 - binary_accuracy: 0.9617 - mean_squared_error: 0.0810
-  98/5948 [..............................] - ETA: 18:13 - loss: 0.3550 - binary_accuracy: 0.9779 - mean_squared_error: 0.0917
- 110/7945 [..............................] - ETA: 24:50 - loss: 0.1911 - binary_accuracy: 0.9902 - mean_squared_error: 0.0350
- 118/1995 [>.............................] - ETA: 5:56 - loss: 0.3211 - binary_accuracy: 0.9620 - mean_squared_error: 0.0807
-  99/5948 [..............................] - ETA: 18:13 - loss: 0.3541 - binary_accuracy: 0.9781 - mean_squared_error: 0.0913
- 111/7945 [..............................] - ETA: 24:49 - loss: 0.1905 - binary_accuracy: 0.9903 - mean_squared_error: 0.0348
- 119/1995 [>.............................] - ETA: 5:56 - loss: 0.3204 - binary_accuracy: 0.9623 - mean_squared_error: 0.0804
- 100/5948 [..............................] - ETA: 18:13 - loss: 0.3531 - binary_accuracy: 0.9783 - mean_squared_error: 0.0909
- 112/7945 [..............................] - ETA: 24:49 - loss: 0.1899 - binary_accuracy: 0.9903 - mean_squared_error: 0.0346
- 120/1995 [>.............................] - ETA: 5:56 - loss: 0.3197 - binary_accuracy: 0.9626 - mean_squared_error: 0.0801
- 101/5948 [..............................] - ETA: 18:12 - loss: 0.3521 - binary_accuracy: 0.9785 - mean_squared_error: 0.0905
- 113/7945 [..............................] - ETA: 24:49 - loss: 0.1892 - binary_accuracy: 0.9904 - mean_squared_error: 0.0344
- 121/1995 [>.............................] - ETA: 5:56 - loss: 0.3190 - binary_accuracy: 0.9629 - mean_squared_error: 0.0798
- 102/5948 [..............................] - ETA: 18:12 - loss: 0.3511 - binary_accuracy: 0.9787 - mean_squared_error: 0.0901
- 114/7945 [..............................] - ETA: 24:49 - loss: 0.1886 - binary_accuracy: 0.9905 - mean_squared_error: 0.0342
- 122/1995 [>.............................] - ETA: 5:56 - loss: 0.3182 - binary_accuracy: 0.9632 - mean_squared_error: 0.0795
- 103/5948 [..............................] - ETA: 18:12 - loss: 0.3502 - binary_accuracy: 0.9788 - mean_squared_error: 0.0897
- 115/7945 [..............................] - ETA: 24:49 - loss: 0.1880 - binary_accuracy: 0.9905 - mean_squared_error: 0.0341
- 123/1995 [>.............................] - ETA: 5:55 - loss: 0.3174 - binary_accuracy: 0.9635 - mean_squared_error: 0.0792
- 104/5948 [..............................] - ETA: 18:12 - loss: 0.3492 - binary_accuracy: 0.9790 - mean_squared_error: 0.0893
- 116/7945 [..............................] - ETA: 24:49 - loss: 0.1873 - binary_accuracy: 0.9906 - mean_squared_error: 0.0339
- 124/1995 [>.............................] - ETA: 5:55 - loss: 0.3167 - binary_accuracy: 0.9637 - mean_squared_error: 0.0789
- 105/5948 [..............................] - ETA: 18:12 - loss: 0.3483 - binary_accuracy: 0.9792 - mean_squared_error: 0.0889
- 117/7945 [..............................] - ETA: 24:49 - loss: 0.1867 - binary_accuracy: 0.9907 - mean_squared_error: 0.0337
- 125/1995 [>.............................] - ETA: 5:55 - loss: 0.3159 - binary_accuracy: 0.9640 - mean_squared_error: 0.0786
- 106/5948 [..............................] - ETA: 18:12 - loss: 0.3474 - binary_accuracy: 0.9793 - mean_squared_error: 0.0885
- 118/7945 [..............................] - ETA: 24:48 - loss: 0.1861 - binary_accuracy: 0.9908 - mean_squared_error: 0.0335
- 107/5948 [..............................] - ETA: 18:12 - loss: 0.3464 - binary_accuracy: 0.9795 - mean_squared_error: 0.0881
- 119/7945 [..............................] - ETA: 24:48 - loss: 0.1855 - binary_accuracy: 0.9908 - mean_squared_error: 0.0333
- 108/5948 [..............................] - ETA: 18:11 - loss: 0.3455 - binary_accuracy: 0.9797 - mean_squared_error: 0.0878
- 120/7945 [..............................] - ETA: 24:48 - loss: 0.1850 - binary_accuracy: 0.9909 - mean_squared_error: 0.0332
- 109/5948 [..............................] - ETA: 18:11 - loss: 0.3445 - binary_accuracy: 0.9798 - mean_squared_error: 0.0874
- 121/7945 [..............................] - ETA: 24:48 - loss: 0.1844 - binary_accuracy: 0.9909 - mean_squared_error: 0.0330
- 110/5948 [..............................] - ETA: 18:11 - loss: 0.3436 - binary_accuracy: 0.9800 - mean_squared_error: 0.0870
- 122/7945 [..............................] - ETA: 24:48 - loss: 0.1838 - binary_accuracy: 0.9910 - mean_squared_error: 0.0328
- 111/5948 [..............................] - ETA: 18:11 - loss: 0.3427 - binary_accuracy: 0.9801 - mean_squared_error: 0.0867
- 123/7945 [..............................] - ETA: 24:48 - loss: 0.1832 - binary_accuracy: 0.9911 - mean_squared_error: 0.0326
- 112/5948 [..............................] - ETA: 18:11 - loss: 0.3418 - binary_accuracy: 0.9803 - mean_squared_error: 0.0863
- 124/7945 [..............................] - ETA: 24:48 - loss: 0.1826 - binary_accuracy: 0.9911 - mean_squared_error: 0.0325
- 113/5948 [..............................] - ETA: 18:11 - loss: 0.3409 - binary_accuracy: 0.9804 - mean_squared_error: 0.0860
- 125/7945 [..............................] - ETA: 24:48 - loss: 0.1821 - binary_accuracy: 0.9912 - mean_squared_error: 0.0323
- 114/5948 [..............................] - ETA: 18:11 - loss: 0.3400 - binary_accuracy: 0.9806 - mean_squared_error: 0.0856
- 126/7945 [..............................] - ETA: 24:48 - loss: 0.1815 - binary_accuracy: 0.9912 - mean_squared_error: 0.0321
- 115/5948 [..............................] - ETA: 18:11 - loss: 0.3391 - binary_accuracy: 0.9807 - mean_squared_error: 0.0853
- 127/7945 [..............................] - ETA: 24:48 - loss: 0.1809 - binary_accuracy: 0.9913 - mean_squared_error: 0.0320
- 116/5948 [..............................] - ETA: 18:10 - loss: 0.3382 - binary_accuracy: 0.9809 - mean_squared_error: 0.0849
- 128/7945 [..............................] - ETA: 24:47 - loss: 0.1804 - binary_accuracy: 0.9913 - mean_squared_error: 0.0318
- 129/7945 [..............................] - ETA: 24:47 - loss: 0.1798 - binary_accuracy: 0.9914 - mean_squared_error: 0.0317
- 130/7945 [..............................] - ETA: 24:47 - loss: 0.1793 - binary_accuracy: 0.9915 - mean_squared_error: 0.0315
- 131/7945 [..............................] - ETA: 24:47 - loss: 0.1788 - binary_accuracy: 0.9915 - mean_squared_error: 0.0313
- 132/7945 [..............................] - ETA: 24:47 - loss: 0.1782 - binary_accuracy: 0.9916 - mean_squared_error: 0.0312
- 133/7945 [..............................] - ETA: 24:47 - loss: 0.1777 - binary_accuracy: 0.9916 - mean_squared_error: 0.0310
- 134/7945 [..............................] - ETA: 24:47 - loss: 0.1772 - binary_accuracy: 0.9917 - mean_squared_error: 0.0309
- 135/7945 [..............................] - ETA: 24:47 - loss: 0.1767 - binary_accuracy: 0.9917 - mean_squared_error: 0.0307
- 136/7945 [..............................] - ETA: 24:47 - loss: 0.1762 - binary_accuracy: 0.9918 - mean_squared_error: 0.0306
- 137/7945 [..............................] - ETA: 24:47 - loss: 0.1757 - binary_accuracy: 0.9918 - mean_squared_error: 0.0304
- 138/7945 [..............................] - ETA: 24:47 - loss: 0.1751 - binary_accuracy: 0.9919 - mean_squared_error: 0.0303
- 139/7945 [..............................] - ETA: 24:47 - loss: 0.1746 - binary_accuracy: 0.9919 - mean_squared_error: 0.0302Mon 10/16/2023  8:48:22.22 
-Starting scheduled train 
-Mon 10/16/2023  8:50:29.77 
-Finished scheduled train 
-------------------------  
-Mon 10/16/2023  8:50:53.61 
-Starting scheduled train 
-Mon 10/16/2023  8:54:53.31 
-Starting scheduled train 
-Mon 10/16/2023  8:55:01.05 
-Finished scheduled train 
-------------------------  
-Mon 10/16/2023 12:10:27.75 
-Starting scheduled train 
-Mon 10/16/2023 12:16:54.92 
-Starting scheduled train 
-Mon 10/16/2023 12:17:04.44 
-Starting scheduled train 
-Mon 10/16/2023 12:17:06.86 
-Starting scheduled train 
-Mon 10/16/2023 12:17:08.00 
-Starting scheduled train 
-Mon 10/16/2023 12:17:09.20 
-Starting scheduled train 
-Mon 10/16/2023 12:17:10.46 
-Starting scheduled train 
-Mon 10/16/2023 12:17:29.81 
-Starting scheduled train 
-Mon 10/16/2023 12:18:11.21 
-Starting scheduled train 
-Mon 10/16/2023 12:18:19.08 
-Finished scheduled train 
-------------------------  
-Mon 10/16/2023 12:18:59.97 
-Starting scheduled train 
-Mon 10/16/2023 12:19:08.14 
-Finished scheduled train 
-------------------------  
-Mon 10/16/2023 12:19:28.01 
-Starting scheduled train 
-Mon 10/16/2023 12:19:35.87 
-Finished scheduled train 
-------------------------  
-Mon 10/16/2023 12:25:02.06 
-Starting scheduled train 
-C:\Internal\deep_events\deep-events\local\scheduled_train.py
-{'folder': '//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Scientific projects/ADA_WS_JCL/230222_MitoSplitNet_TrainingSet_U2OS_iSIM/event_data', 'collection': 'juan_events', 'db_prompt': {'microscope': 'isim', 'cell_line': 'cos7'}, 'settings': 'default', 'db_prompt_1': {'microscope': 'isim', 'cell_line': 'u2os'}, 'settings_1': 'default', 'db_prompt_2': {'microscope': 'isim'}, 'settings_2': 'default'}
-\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231016_1225_isim_cos7
-Number of db files: 195
-\\lebsrv2.epfl.ch\LEB_SHARED\SHARED\_Scientific projects\ADA_WS_JCL\230222_MitoSplitNet_TrainingSet_U2OS_iSIM\training_data\20231016_1225_isim_u2os
-Number of db files: 364
-Mon 10/16/2023 12:26:19.51 
-Starting scheduled train 
-Mon 10/16/2023 12:26:27.65 
-Finished scheduled train 
-------------------------  
-
-Mon 10/16/2023 12:27:14.84 
-Starting scheduled train 
-Mon 10/16/2023 12:27:22.77 
-Finished scheduled train 
-------------------------  
-Mon 10/16/2023 12:29:13.42 
-Starting scheduled train 
-Mon 10/16/2023 12:29:21.56 
-Finished scheduled train 
-------------------------  
-Mon 10/16/2023 12:29:40.87 
-Starting scheduled train 
-Mon 10/16/2023 12:30:27.27 
-Starting scheduled train 
-Mon 10/16/2023 12:32:22.27 
-Starting scheduled train 
-Mon 10/16/2023 12:32:30.08 
-Finished scheduled train 
-------------------------  
-Mon 10/16/2023 12:36:47.84 
-Starting scheduled train 
-Mon 10/16/2023 12:36:56.23 
-Finished scheduled train 
-------------------------  
-Mon 10/16/2023 12:37:34.24 
-Starting scheduled train 
-Mon 10/16/2023 12:37:42.20 
-Finished scheduled train 
-------------------------  
-Mon 10/16/2023 12:46:11.90 
-Starting scheduled train 
-Mon 10/16/2023 12:46:19.82 
-Finished scheduled train 
-------------------------  
-
-
-
-
-
-
-running main in pyrunning main in pyrunning main in py
-
-
-running main in py
-running main in py
-running main in py
-running main in py
-running training in pyrunning training in pyrunning training in pyDONE 
-DONE 
-DONE 

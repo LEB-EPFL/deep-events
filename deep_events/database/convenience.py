@@ -2,7 +2,7 @@ from pymongo import MongoClient
 from benedict import benedict
 from pathlib import Path
 import datetime
-
+import re
 
 SETTINGS = benedict(Path(__file__).parents[0] / "settings.yaml")
 
@@ -27,8 +27,9 @@ def handle_repositioning(folder: Path, old_path:str, new_path:str):
         print(event)
 
 
-def get_latest_folder(parent_folder:Path):
-    subfolders = [f for f in parent_folder.glob('*') if f.is_dir()]
+def get_latest_folder(parent_folder:Path, pattern:str|tuple = '*'):
+    
+    subfolders = [f for f in parent_folder.glob(pattern) if f.is_dir()]
     datetime_format = '%Y%m%d_%H%M'
     subfolders = [f for f in subfolders if f.name.count('_') > 1 and
                   datetime.datetime.strptime("_".join(f.name.split("_")[:2]), datetime_format)]
