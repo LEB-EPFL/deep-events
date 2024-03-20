@@ -103,7 +103,7 @@ celerybeat.pid
 
 # Environments
 .env
-.venv
+.venv*
 env/
 venv/
 ENV/
@@ -138,3 +138,4 @@ Modelsref_f8_c9_b16/
 local/
 
 tests/data/220927_mitotrackergreen_cos7_ZEISS_fl/GFP_1/db.yaml
+Interactive*
