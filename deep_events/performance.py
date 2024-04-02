@@ -22,9 +22,9 @@ def main(model_dir: Path = None, write_yaml: bool = True, plot = False, general_
         print(model_dir)
     else:
         training_folder = model_dir.parent
-    
+
     if general_eval:
-        pattern = "*" + "_".join(model_dir.parent.name.split("_")[2:]) 
+        pattern = "*" + "_".join(model_dir.parent.name.split("_")[2:])
         print(pattern)
         print(model_dir.parents[1])
         training_folder = Path(get_latest_folder(model_dir.parents[1], pattern)[0])
@@ -96,7 +96,7 @@ def main(model_dir: Path = None, write_yaml: bool = True, plot = False, general_
         settings.to_yaml(filepath=str(model_dir).replace("model.h5", "settings.yaml"))
 
 def performance_for_folder(folder:Path):
-    os.environ['CUDA_VISIBLE_DEVICES'] = "3"
+    os.environ['CUDA_VISIBLE_DEVICES'] = "0"
     models = folder.rglob("*_model.h5")
     for model in models:
         print('\033[1m' + str(model) + '\033[0m')
@@ -126,7 +126,7 @@ def visual_eval(training_folder, model_name = None):
         frame = frame + 1
 
 if __name__ == "__main__":
-    os.environ['CUDA_VISIBLE_DEVICES'] = "3"
+    os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 #     main(Path("W:/deep_events/data/original_data/training_data/20230626_1508_brightfield_cos7/20230626_1509_model.h5"))
     # main(Path("W:/deep_events/data/original_data/training_data/20230626_1509_fluorescence_zeiss_cos7/20230626_1509_model.h5"))
     # main(Path("Z:/_Lab members/Juan/Experiments/230222_MitoSplitNet_TrainingSet_U2OS_iSIM/training_data/20230611_0201_isim_cos7/20230611_0202_model.h5"))

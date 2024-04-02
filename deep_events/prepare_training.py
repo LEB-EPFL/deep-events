@@ -4,7 +4,7 @@ import datetime
 from typing import List
 import psutil
 import time
-from scipy.ndimage import gaussian_filter 
+from scipy.ndimage import gaussian_filter
 
 from sklearn.model_selection import train_test_split
 import tifffile
@@ -34,7 +34,7 @@ def main():
 
 def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 0.2,
                        n_timepoints = 1, fps = 1, smooth=False):
-    
+
     training_folder = make_training_folder(folder, prompt)
     if "n_timepoints" in prompt.keys():
         n_timepoints = prompt["n_timepoints"]
@@ -64,7 +64,8 @@ def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 
     benedict(prompt).to_yaml(filepath=training_folder / "db_prompt.yaml")
 
     # Load and split
-    all_images, all_gt = load_folder(folder, db_files, training_folder, n_timepoints, fps)
+    all_images, all_gt = load_folder(folder, db_files, training_folder, n_timepoints, fps,
+                                     test_size)
     images_train, images_eval, gt_train, gt_eval = train_test_split(all_images, all_gt,
                                                                     test_size=test_size, random_state=42)
 
@@ -117,13 +118,12 @@ def save_data(folder:Path, images_eval:np.array, gt_eval:np.array, prefix:str = 
 
 
 def load_folder(parent_folder:Path, db_files: List = None, training_folder: str = None,
-                n_timepoints: int = 1, fps: float = 1.):
-
-
+                n_timepoints: int = 1, fps: float = 1., test_size = 0.2):
     if db_files is None:
         db_files = list(parent_folder.rglob(r'event_db.yaml'))
-    all_images = []
-    all_gt = []
+    all_images = {"train": [], "eval": []}
+    all_gt = {"train": [], "eval": []}
+
     print(f"Number of db files: {len(db_files)}")
     for db_file in db_files:
         folder = db_file.parents[0]
@@ -178,8 +178,8 @@ def normalize_stacks(stacks:dict):
                 frame[frame == frame.max()] = np.finfo(frame.dtype).max
 
             norm_frame = (frame-np.min(frame))
-            
-            if np.max(norm_frame) > 1 and key == "mask": # not 0 to 1 
+
+            if np.max(norm_frame) > 1 and key == "mask": # not 0 to 1
                 norm_frame = norm_frame/255
             if np.max(norm_frame) > 0.2:
                 norm_frame = norm_frame/np.max(norm_frame)

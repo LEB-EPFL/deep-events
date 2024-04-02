@@ -8,6 +8,7 @@ SETTINGS = benedict(Path(__file__).parents[0] / "settings.yaml")
 
 def get_collection(name):
     cluster = SETTINGS["CLUSTER"]
+    print(cluster)
     client = MongoClient(cluster)
     return client.deep_events[name]
 
@@ -28,7 +29,7 @@ def handle_repositioning(folder: Path, old_path:str, new_path:str):
 
 
 def get_latest_folder(parent_folder:Path, pattern:str|tuple = '*'):
-    
+
     subfolders = [f for f in parent_folder.glob(pattern) if f.is_dir()]
     datetime_format = '%Y%m%d_%H%M'
     subfolders = [f for f in subfolders if f.name.count('_') > 1 and
