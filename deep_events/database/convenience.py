@@ -2,7 +2,8 @@ from pymongo import MongoClient
 from benedict import benedict
 from pathlib import Path
 import datetime
-import re
+import shutil
+import os
 
 SETTINGS = benedict(Path(__file__).parents[0] / "settings.yaml")
 
@@ -17,14 +18,25 @@ def get_cluster():
 
 
 def handle_repositioning(folder: Path, old_path:str, new_path:str):
-    "Replace positions in events. These should be relative in the future ideally"
-    "Should only be necessary for manual events anyways."
+    """Replace positions in events. These should be relative in the future ideally
+    Should only be necessary for manual events anyways. """
     collection = get_collection(benedict(folder/'collection.yaml')['collection'])
     manual_events = list(collection.find({"extraction_type": "manual"}))
     paths = [x["original_path"] for x in manual_events]
     print(manual_events[0])
     for event in paths:
         print(event)
+
+
+def copy_events(source: Path|str, dest: Path|str):
+    dbs = source.rglob("event_db.yaml")
+    for db in dbs:
+        print(db)
+        db_dict = benedict(db)
+        shutil.copytree(db.parents[0], dest/db.parts[-2])
+        db_dict["event_path"] = os.path.realpath(str(dest/db.parts[-2]))
+        db_dict.to_yaml(filepath=dest/db.parts[-2] / "event_db.yaml")
+        print(db_dict["event_path"])
 
 
 def get_latest_folder(parent_folder:Path, pattern:str|tuple = '*'):

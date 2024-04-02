@@ -1,6 +1,7 @@
 from pathlib import Path
 import numpy as np
 import datetime
+import random
 from typing import List
 import psutil
 import time
@@ -45,6 +46,11 @@ def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 
     if "smooth" in prompt.keys():
         smooth = prompt["smooth"]
         del prompt["smooth"]
+    if "subset" in prompt.keys():
+        subset = prompt["subset"]
+        del prompt["subset"]
+    else:
+        subset = False
 
     coll = get_collection(collection)
     filtered_list = list(coll.find(prompt))
@@ -61,22 +67,24 @@ def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 
     prompt["fps"] = fps
     prompt["smooth"] = smooth
     prompt["collection"] = collection
+    prompt["n_event"] = int(len(db_files)*subset)
+    prompt["subset"] = subset
+    print("Number of events:", prompt["n_event"])
     benedict(prompt).to_yaml(filepath=training_folder / "db_prompt.yaml")
 
     # Load and split
-    all_images, all_gt = load_folder(folder, db_files, training_folder, n_timepoints, fps)
-    images_train, images_eval, gt_train, gt_eval = train_test_split(all_images, all_gt,
-                                                                    test_size=test_size, random_state=42)
+    all_images, all_gt = load_folder(folder, db_files, training_folder, n_timepoints, fps, test_size,
+                                     subset)
 
     if smooth:
-        gt_eval = gaussian_filter(gt_eval, (smooth, smooth), axes=(1, 2))
-        gt_train = gaussian_filter(gt_train, (smooth, smooth), axes=(1, 2))
-    stacks = {"image":images_eval,"mask": gt_eval}
+        all_gt["eval"] = gaussian_filter(all_gt["eval"], (smooth, smooth), axes=(1, 2))
+        all_gt["train"] = gaussian_filter(all_gt["train"], (smooth, smooth), axes=(1, 2))
+    stacks = {"image":all_images["eval"],"mask": all_gt["eval"]}
     stacks = normalize_stacks(stacks)
     save_data(training_folder, stacks['image'], stacks['mask'], "eval")
 
     # Normalize
-    stacks = {"image":images_train,"mask": gt_train}
+    stacks = {"image":all_images["train"],"mask": all_gt["train"]}
     stacks = normalize_stacks(stacks)
     save_data(training_folder, stacks['image'], stacks["mask"], "train")
     return training_folder
@@ -117,39 +125,52 @@ def save_data(folder:Path, images_eval:np.array, gt_eval:np.array, prefix:str = 
 
 
 def load_folder(parent_folder:Path, db_files: List = None, training_folder: str = None,
-                n_timepoints: int = 1, fps: float = 1.):
-
+                n_timepoints: int = 1, fps: float = 1., test_size: float = 0.2,
+                subset: float|bool = False):
 
     if db_files is None:
         db_files = list(parent_folder.rglob(r'event_db.yaml'))
-    all_images = []
-    all_gt = []
-    print(f"Number of db files: {len(db_files)}")
-    for db_file in db_files:
-        folder = db_file.parents[0]
-        images, ground_truth = load_tifs(folder)
+    
+    #Split eval/train on the event level
+    dbs = {}
+    random.shuffle(db_files)
+    dbs['eval'] = db_files[:int(test_size*len(db_files))]
+    dbs['train'] = db_files[int(test_size*len(db_files)):]
 
-        if n_timepoints > 1:
-            original_fps = benedict(db_file)["fps"]
-            time_increment = round(original_fps/fps)
-            if (fps/original_fps > 1.1 #image rate is too low
-                or (original_fps/fps%1 > 0.25 and original_fps/fps%1 < 0.75) #frame rate mismatch
-                or images.shape[0] < n_timepoints*time_increment): # not enough data
-                continue
-            images, ground_truth = make_time_series(images, ground_truth, n_timepoints, time_increment)
+    if subset:
+        random.shuffle(dbs["train"])
+        dbs["train"] = dbs["train"][:int(subset*len(dbs["train"]))]
 
-        all_images.append(images)
-        all_gt.append(ground_truth)
-        # These things can get very big. Save inbetween, when memory almost full.
-        if psutil.virtual_memory().percent > 90:
-            print("Saving multiple tiff files")
-            all_images = np.concatenate(all_images)
-            all_gt = np.concatenate(all_gt)
-            save_data(training_folder, all_images, all_gt, "train")
-            all_images = []
-            all_gt = []
-    all_images = np.concatenate(all_images)
-    all_gt = np.concatenate(all_gt)
+    all_images = {"train": [], "eval": []}
+    all_gt = {"train": [], "eval": []}
+    print(f"Number of train dbs: {len(dbs['train'])}")
+    print(f"Number of eval dbs: {len(dbs['eval'])}")
+    for train_eval in ["train", "eval"]:
+        for db_file in dbs[train_eval]:
+            folder = db_file.parents[0]
+            images, ground_truth = load_tifs(folder)
+
+            if n_timepoints > 1:
+                original_fps = benedict(db_file)["fps"]
+                time_increment = round(original_fps/fps)
+                if (fps/original_fps > 1.1 #image rate is too low
+                    or (original_fps/fps%1 > 0.25 and original_fps/fps%1 < 0.75) #frame rate mismatch
+                    or images.shape[0] < n_timepoints*time_increment): # not enough data
+                    continue
+                images, ground_truth = make_time_series(images, ground_truth, n_timepoints, time_increment)
+
+            all_images[train_eval].append(images)
+            all_gt[train_eval].append(ground_truth)
+            # These things can get very big. Save inbetween, when memory almost full.
+            if psutil.virtual_memory().percent > 90:
+                print("Saving multiple tiff files")
+                all_images[train_eval] = np.concatenate(all_images[train_eval])
+                all_gt[train_eval] = np.concatenate(all_gt[train_eval])
+                save_data(training_folder, all_images[train_eval], all_gt[train_eval], "train")
+                all_images[train_eval] = []
+                all_gt[train_eval] = []
+        all_images[train_eval] = np.concatenate(all_images[train_eval])
+        all_gt[train_eval] = np.concatenate(all_gt[train_eval])
     return all_images, all_gt
 
 
