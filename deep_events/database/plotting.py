@@ -98,3 +98,22 @@ st.markdown('<style>#vg-tooltip-element{z-index: 1000051}</style>',
              unsafe_allow_html=True)
 
 # %%
+
+
+def dark_boxplot():
+    #TODO: put this into something recallable
+    import matplotlib.pyplot as plt
+    data_noneg = [1,2,3]
+    data_neg = [2,3,4]
+    boxprops = dict(color='#999999', linewidth=3)
+    flierprops = dict(marker='o', markerfacecolor='#999999')
+    medianprops = dict(linestyle='-', color='r', linewidth=3)
+    meanlineprops = dict(linestyle='-', linewidth=2.5, color='purple')
+    whiskerprops = dict(color="#999999")
+    capprops = dict(color="#999999")
+    plt.boxplot([data_noneg, data_neg],capprops=capprops, boxprops=boxprops, flierprops=flierprops, medianprops=medianprops, meanprops=meanlineprops, whiskerprops=whiskerprops)
+    plt.ylabel("F1",fontdict={'size': 24})
+    plt.ylim(0.4, 1)
+    plt.yticks(fontdict={'size': 18})
+    plt.xticks(ticks=[1,2], labels=["pre", "post"], fontdict={'size': 18})
+    plt.xlabel("Negative events in training data", fontdict={'size': 24, 'weight': 'normal'})
