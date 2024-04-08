@@ -132,6 +132,26 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
     performance.main(latest_folder / (name + "_model.h5"))
 
 
+class LogImages(tf.keras.callbacks.Callback):
+    def __init__(self, log_dir, images, labels, freq=1):
+        super(LogImages, self).__init__()
+        self.log_dir = log_dir
+        self.images = images  # The images you want to log
+        self.labels = labels  # Corresponding labels (optional)
+        self.freq = freq  # Frequency (in epochs) at which to log images
+
+    def on_epoch_end(self, epoch, logs=None):
+        # Log images every 'freq' epochs
+        if epoch % self.freq == 0:
+            with tf.summary.create_file_writer(self.log_dir).as_default():
+                # Here we use tf.summary.image() to log the images
+                tf.summary.image("Training data", self.images, step=epoch, max_outputs=10)
+
+                # Optionally, log the labels as images too (if they are images)
+                tf.summary.image("Labels", self.labels, step=epoch, max_outputs=10)
+
+
+
 if __name__ == "__main__":
     pass
     # import os

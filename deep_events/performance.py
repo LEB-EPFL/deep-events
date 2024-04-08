@@ -136,9 +136,9 @@ if __name__ == "__main__":
 #     main(Path("W:/deep_events/data/original_data/training_data/20230626_1508_brightfield_cos7/20230626_1509_model.h5"))
     # main(Path("W:/deep_events/data/original_data/training_data/20230626_1509_fluorescence_zeiss_cos7/20230626_1509_model.h5"))
     # main(Path("Z:/_Lab members/Juan/Experiments/230222_MitoSplitNet_TrainingSet_U2OS_iSIM/training_data/20230611_0201_isim_cos7/20230611_0202_model.h5"))
-    folder = Path("W:/deep_events/data/original_data/training_data/20231209_1051_brightfield_cos7_n3_f0.5")
+    folder = Path("W:/deep_events/data/original_data/training_data/20240407_2011_brightfield_cos7_n5_f1_t0.05")
     # folder = Path(r"Y:\SHARED\_Scientific projects\ADA_WS_JCL\Phase_PDA\training_data\20231126_1914_zeiss_s1_iFalse_mitochondria") # "Z:/SHARED/_Scientific projects/ADA_WS_JCL/Phase_PDA/training_data/20231121_1606_zeiss_s1_iFalse_mitochondria")
-    # model = "20231209_1155_model.h5"
-    # visual_eval(folder, model)
+    model = "20240407_2012_model" + ".h5"
+    visual_eval(folder, model)
     # visual_eval(Path("W:/deep_events/data/original_data/training_data/20230718_0123_brightfield_cos7"),
     #             "20230718_0128_model.h5")
