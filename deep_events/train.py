@@ -79,13 +79,9 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
                                      brightness_range=settings['brightness_range'],
                                      poisson=settings["poisson"],
                                      validation=True)
-    # eval_images = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_images_00.tif"))
-    # eval_mask = adjust_tf_dimensions(tifffile.imread(latest_folder / "eval_gt_00.tif"))
 
-    # if len(eval_images.shape) > len(eval_mask.shape):
-    #     eval_mask = np.expand_dims(eval_mask, 1)
+    images_callback = LogImages(logdir, batch_generator, batch_generator, freq=1)
 
-    # validation_data = (eval_images, eval_mask)
     time.sleep(1)
     name = datetime.datetime.now().strftime("%Y%m%d_%H%M")
     while Path(latest_folder / (name + "_settings.yaml")).is_file():
@@ -117,7 +113,7 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
                                     steps_per_epoch = steps_per_epoch,
                                     shuffle=True,
                                     verbose = 1,
-                                    callbacks = [tensorboard_callback],
+                                    callbacks = [tensorboard_callback, images_callback],
                                     validation_steps=1)
             n_tries = max_tries
         except Exception as e:
@@ -133,22 +129,31 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
 
 
 class LogImages(tf.keras.callbacks.Callback):
-    def __init__(self, log_dir, images, labels, freq=1):
+    def __init__(self, log_dir, image_generator, label_generator, freq=1):
         super(LogImages, self).__init__()
         self.log_dir = log_dir
-        self.images = images  # The images you want to log
-        self.labels = labels  # Corresponding labels (optional)
+        self.image_generator = image_generator  # The images you want to log
+        self.label_generator = label_generator  # Corresponding labels (optional)
         self.freq = freq  # Frequency (in epochs) at which to log images
+        self.image_idxs = np.linspace(0, self.image_generator.num_samples, 10, dtype=int)
 
     def on_epoch_end(self, epoch, logs=None):
         # Log images every 'freq' epochs
         if epoch % self.freq == 0:
             with tf.summary.create_file_writer(self.log_dir).as_default():
-                # Here we use tf.summary.image() to log the images
-                tf.summary.image("Training data", self.images, step=epoch, max_outputs=10)
+                images = []
+                labels = []
+                for idx in self.image_idxs:
+                    image, label = self.image_generator.__getitem__(idx)
+                    images.append(image)
+                    labels.append(label)
+                predictions = self.model.predict(images[:])
+
+                tf.summary.image("Images", images, step=epoch, max_outputs=10)
 
                 # Optionally, log the labels as images too (if they are images)
-                tf.summary.image("Labels", self.labels, step=epoch, max_outputs=10)
+                tf.summary.image("Labels", labels, step=epoch, max_outputs=10)
+                tf.summary.image("Preds", predictions, step=epoch, max_outputs=10)
 
 
 
