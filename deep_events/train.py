@@ -80,7 +80,7 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
                                      poisson=settings["poisson"],
                                      validation=True)
 
-    images_callback = LogImages(logdir, batch_generator, batch_generator, freq=1)
+    images_callback = LogImages(logdir, batch_generator, validation_generator, freq=1)
 
     time.sleep(1)
     name = datetime.datetime.now().strftime("%Y%m%d_%H%M")
@@ -129,32 +129,34 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
 
 
 class LogImages(tf.keras.callbacks.Callback):
-    def __init__(self, log_dir, image_generator, label_generator, freq=1):
+    def __init__(self, log_dir, image_generator, val_generator, freq=1):
         super(LogImages, self).__init__()
         self.log_dir = log_dir
         self.image_generator = image_generator  # The images you want to log
-        self.label_generator = label_generator  # Corresponding labels (optional)
+        self.val_generator = val_generator  # Corresponding labels (optional)
         self.freq = freq  # Frequency (in epochs) at which to log images
         self.image_idxs = np.linspace(0, self.image_generator.num_samples, 10, dtype=int)
+        self.val_idxs = range(self.val_generator.num_samples)
 
     def on_epoch_end(self, epoch, logs=None):
         # Log images every 'freq' epochs
         if epoch % self.freq == 0:
             with tf.summary.create_file_writer(self.log_dir).as_default():
-                images = []
-                labels = []
-                for idx in self.image_idxs:
-                    image, label = self.image_generator.__getitem__(idx)
-                    images.append(image)
-                    labels.append(label)
-                predictions = self.model.predict(images[:])
+                for prefix, generator in zip(['train', 'eval'],
+                                             [self.image_generator, self.val_generator]):
+                    self.log_images(generator, prefix, epoch)
 
-                tf.summary.image("Images", images, step=epoch, max_outputs=10)
-
-                # Optionally, log the labels as images too (if they are images)
-                tf.summary.image("Labels", labels, step=epoch, max_outputs=10)
-                tf.summary.image("Preds", predictions, step=epoch, max_outputs=10)
-
+    def log_images(self, generator, prefix, epoch):
+        images = []
+        labels = []
+        for idx in self.image_idxs:
+            image, label = generator._getitem__(idx)
+            images.append(image)
+            labels.append(label)
+        predictions = self.model.predict(images[:])
+        tf.summary.image(prefix + "_images", images, step=epoch, max_outputs=9) # Optionally, log the labels as images too (if they are images)
+        tf.summary.image(prefix + "_labels", labels, step=epoch, max_outputs=9)
+        tf.summary.image(prefix + "_preds", predictions, step=epoch, max_outputs=9)
 
 
 if __name__ == "__main__":
