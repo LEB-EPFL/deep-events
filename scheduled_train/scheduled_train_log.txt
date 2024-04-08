@@ -138,3 +138,77 @@ ERROR
     self._fh = open(self._file, self._mode)  # type: ignore
 C:\Internal\deep_events\scheduled_settings\mito_ideas.yaml
 Maybe data has moved?
+ERROR 
+  File "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py", line 41, in main
+    folders, settings = gather_settings(settings_dict)
+  File "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py", line 85, in gather_settings
+    folder = prepare_for_prompt(Path(settings_dict["folder"]), settings_dict[key],
+  File "C:\Internal\deep_events\deep-events\deep_events\prepare_training.py", line 76, in prepare_for_prompt
+    all_images, all_gt = load_folder(folder, db_files, training_folder, n_timepoints, fps,
+  File "C:\Internal\deep_events\deep-events\deep_events\prepare_training.py", line 156, in load_folder
+    original_fps = benedict(db_file)["fps"]
+  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\__init__.py", line 68, in __getitem__
+    return self._cast(super().__getitem__(key))
+  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\keypath\keypath_dict.py", line 31, in __getitem__
+    return super().__getitem__(self._parse_key(key))
+  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\keylist\keylist_dict.py", line 40, in __getitem__
+    return super().__getitem__(key)
+  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\base\base_dict.py", line 58, in __getitem__
+    return self._dict[key]
+C:\Internal\deep_events\scheduled_settings\phase_pearls.yaml
+Maybe data has moved?
+ERROR 
+  File "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py", line 41, in main
+    folders, settings = gather_settings(settings_dict)
+  File "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py", line 85, in gather_settings
+    folder = prepare_for_prompt(Path(settings_dict["folder"]), settings_dict[key],
+  File "C:\Internal\deep_events\deep-events\deep_events\prepare_training.py", line 76, in prepare_for_prompt
+    all_images, all_gt = load_folder(folder, db_files, training_folder, n_timepoints, fps,
+  File "C:\Internal\deep_events\deep-events\deep_events\prepare_training.py", line 185, in load_folder
+    all_images[train_eval] = np.concatenate(all_images[train_eval])
+  File "<__array_function__ internals>", line 180, in concatenate
+C:\Internal\deep_events\scheduled_settings\mito_ideas.yaml
+Maybe data has moved?
+ERROR 
+  File "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py", line 41, in main
+    folders, settings = gather_settings(settings_dict)
+  File "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py", line 85, in gather_settings
+    folder = prepare_for_prompt(Path(settings_dict["folder"]), settings_dict[key],
+  File "C:\Internal\deep_events\deep-events\deep_events\prepare_training.py", line 81, in prepare_for_prompt
+    all_images, all_gt = load_folder(folder, db_files, training_folder, n_timepoints, fps,
+  File "C:\Internal\deep_events\deep-events\deep_events\prepare_training.py", line 190, in load_folder
+    all_images[train_eval] = np.concatenate(all_images[train_eval])
+  File "<__array_function__ internals>", line 180, in concatenate
+C:\Internal\deep_events\scheduled_settings\mito_ideas.yaml
+Maybe data has moved?
+ERROR 
+  File "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py", line 41, in main
+    folders, settings = gather_settings(settings_dict)
+  File "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py", line 85, in gather_settings
+    folder = prepare_for_prompt(Path(settings_dict["folder"]), settings_dict[key],
+  File "C:\Internal\deep_events\deep-events\deep_events\prepare_training.py", line 84, in prepare_for_prompt
+    all_images, all_gt = load_folder(folder, db_files, training_folder, n_timepoints, fps,
+  File "C:\Internal\deep_events\deep-events\deep_events\prepare_training.py", line 193, in load_folder
+    all_images[train_eval] = np.concatenate(all_images[train_eval])
+  File "<__array_function__ internals>", line 180, in concatenate
+C:\Internal\deep_events\scheduled_settings\mito_ideas.yaml
+Maybe data has moved?
+ERROR 
+  File "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py", line 38, in main
+    settings_dict = benedict(settings_yaml)
+  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\__init__.py", line 54, in __init__
+    super().__init__(*args, **kwargs)
+  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\keyattr\keyattr_dict.py", line 11, in __init__
+    super().__init__(*args, **kwargs)
+  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\keypath\keypath_dict.py", line 11, in __init__
+    super().__init__(*args, **kwargs)
+  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\keylist\keylist_dict.py", line 8, in __init__
+    super().__init__(*args, **kwargs)
+  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\io\io_dict.py", line 20, in __init__
+    d = IODict._decode_init(arg, **kwargs)
+  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\io\io_dict.py", line 31, in _decode_init
+    return IODict._decode(s, format, **kwargs)
+  File "C:\Internal\deep_events\.env\lib\site-packages\benedict\dicts\io\io_dict.py", line 42, in _decode
+    raise ValueError(
+C:\Internal\deep_events\scheduled_settings\mito_ideas.yaml
+Maybe data has moved?

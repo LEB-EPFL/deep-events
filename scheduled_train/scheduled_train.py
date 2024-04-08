@@ -30,6 +30,7 @@ def main(settings_file=None):
         settings_yamls = [settings_file]
     
     yamls = list(settings_yamls)
+    # yamls.reverse()
     print("\n".join([str(x) for x in yamls]))
 
     for settings_yaml in yamls:

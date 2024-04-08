@@ -24,7 +24,12 @@ def main(model_dir: Path = None, write_yaml: bool = True, plot = False, general_
         training_folder = model_dir.parent
 
     if general_eval:
-        pattern = "*" + "_".join(model_dir.parent.name.split("_")[2:])
+        parts = model_dir.parent.name.split("_")[2:]
+        # Remove subset, so that we check on full validation data
+        subset = [re.match("s0\..*", x) for x in parts]
+        parts = [x for x, sub in zip(parts, subset) if not sub]
+        pattern = "*" + "_".join(parts)
+
         print(pattern)
         print(model_dir.parents[1])
         training_folder = Path(get_latest_folder(model_dir.parents[1], pattern)[0])
@@ -93,6 +98,7 @@ def main(model_dir: Path = None, write_yaml: bool = True, plot = False, general_
         settings["precision"] = precision
         settings["tpr"] = tpr
         settings["f1"] = f1
+        settings["eval_data"] = training_folder
         settings.to_yaml(filepath=str(model_dir).replace("model.h5", "settings.yaml"))
 
 def performance_for_folder(folder:Path):
@@ -130,9 +136,9 @@ if __name__ == "__main__":
 #     main(Path("W:/deep_events/data/original_data/training_data/20230626_1508_brightfield_cos7/20230626_1509_model.h5"))
     # main(Path("W:/deep_events/data/original_data/training_data/20230626_1509_fluorescence_zeiss_cos7/20230626_1509_model.h5"))
     # main(Path("Z:/_Lab members/Juan/Experiments/230222_MitoSplitNet_TrainingSet_U2OS_iSIM/training_data/20230611_0201_isim_cos7/20230611_0202_model.h5"))
-    folder = Path("W:/deep_events/data/original_data/training_data/20231209_1051_brightfield_cos7_n3_f0.5")
+    folder = Path("W:/deep_events/data/original_data/training_data/20240407_2011_brightfield_cos7_n5_f1_t0.05")
     # folder = Path(r"Y:\SHARED\_Scientific projects\ADA_WS_JCL\Phase_PDA\training_data\20231126_1914_zeiss_s1_iFalse_mitochondria") # "Z:/SHARED/_Scientific projects/ADA_WS_JCL/Phase_PDA/training_data/20231121_1606_zeiss_s1_iFalse_mitochondria")
-    model = "20231209_1155_model.h5"
+    model = "20240407_2012_model" + ".h5"
     visual_eval(folder, model)
     # visual_eval(Path("W:/deep_events/data/original_data/training_data/20230718_0123_brightfield_cos7"),
     #             "20230718_0128_model.h5")
