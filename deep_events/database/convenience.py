@@ -2,12 +2,14 @@ from pymongo import MongoClient
 from benedict import benedict
 from pathlib import Path
 import datetime
-import re
+import reimport shutil
+import os
 
 SETTINGS = benedict(Path(__file__).parents[0] / "settings.yaml")
 
 def get_collection(name):
     cluster = SETTINGS["CLUSTER"]
+    print(cluster)
     client = MongoClient(cluster)
     return client.deep_events[name]
 
@@ -17,8 +19,8 @@ def get_cluster():
 
 
 def handle_repositioning(folder: Path, old_path:str, new_path:str):
-    "Replace positions in events. These should be relative in the future ideally"
-    "Should only be necessary for manual events anyways."
+    """Replace positions in events. These should be relative in the future ideally
+    Should only be necessary for manual events anyways. """
     collection = get_collection(benedict(folder/'collection.yaml')['collection'])
     manual_events = list(collection.find({"extraction_type": "manual"}))
     paths = [x["original_path"] for x in manual_events]
@@ -27,8 +29,20 @@ def handle_repositioning(folder: Path, old_path:str, new_path:str):
         print(event)
 
 
-def get_latest_folder(parent_folder:Path):
-    subfolders = [f for f in parent_folder.glob('*') if f.is_dir()]
+def copy_events(source: Path|str, dest: Path|str):
+    dbs = source.rglob("event_db.yaml")
+    for db in dbs:
+        print(db)
+        db_dict = benedict(db)
+        shutil.copytree(db.parents[0], dest/db.parts[-2])
+        db_dict["event_path"] = os.path.realpath(str(dest/db.parts[-2]))
+        db_dict.to_yaml(filepath=dest/db.parts[-2] / "event_db.yaml")
+        print(db_dict["event_path"])
+
+
+def get_latest_folder(parent_folder:Path, pattern:str|tuple = '*'):
+
+    subfolders = [f for f in parent_folder.glob(pattern) if f.is_dir()]
     datetime_format = '%Y%m%d_%H%M'
     subfolders = [f for f in subfolders if f.name.count('_') > 1 and
                   datetime.datetime.strptime("_".join(f.name.split("_")[:2]), datetime_format)]

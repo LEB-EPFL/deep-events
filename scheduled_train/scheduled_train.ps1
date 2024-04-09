@@ -1,4 +1,4 @@
-$Logfile = "C:\Internal\deep_events\deep-events\local\scheduled_train.log"
+$Logfile = "C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.log"
 function WriteLog
 {
 Param ([string]$LogString)
@@ -10,7 +10,7 @@ Add-content $LogFile -value $LogMessage
 WriteLog "Training Start"
 
 C:\Internal\deep_events\.env\scripts\activate.ps1
-python scheduled_train.py
+python C:\Internal\deep_events\deep-events\scheduled_train\scheduled_train.py
 
 WriteLog "Training End"
 Add-content $LogFile -value "-----------------------------------------"

@@ -1,0 +1,37 @@
+# Main settings, if others needed, make new yaml file
+folder: //lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Scientific projects/ADA_WS_JCL/230511_PDA_TrainingSet_iSIM/event_data
+collection: pda_events
+
+# Each db_prompt will make a new folder and get data from the collection defined above
+# db_prompt: 
+#   microscope: isim
+# settings: default
+
+db_prompt_2:
+  microscope: isim
+  smooth: 2
+settings_2: default
+
+db_prompt_4:
+  microscope: isim
+  smooth: 0
+settings_4:
+  n_augmentations: 50
+  brightness_range: [0.4, 1]
+  poisson: 0.3
+
+db_prompt_5:
+  microscope: isim
+  smooth: 1
+settings_5:
+  n_augmentations: 50
+  brightness_range: [0.4, 1]
+  poisson: 0.3
+
+db_prompt_6:
+  microscope: isim
+  smooth: 1
+settings_6:
+  n_augmentations: 50
+  brightness_range: [0.4, 1]
+  poisson: 0.6

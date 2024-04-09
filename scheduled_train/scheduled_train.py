@@ -1,6 +1,7 @@
 from pathlib import Path
 from benedict import benedict
 import traceback
+import datetime
 
 # from deep_events.gaussians_to_training import extract_events
 from deep_events.prepare_training import prepare_for_prompt
@@ -21,14 +22,18 @@ DEFAULT_SETTINGS = {"nb_filters": 16,
 
 SETTINGS_FOLDER = Path('C:/Internal/deep_events/scheduled_settings')
 
-def main():
-    log_file = open(Path(__file__).parents[0] / "scheduled_train.log", "a")
-    log_file.write("running training in py \n")
-    log_file.close()
+def main(settings_file=None):
 
-    settings_yamls = SETTINGS_FOLDER.glob(r"*.yaml")
+    if settings_file is None:
+        settings_yamls = SETTINGS_FOLDER.glob(r"*.yaml")
+    else:
+        settings_yamls = [settings_file]
     
-    for settings_yaml in settings_yamls:
+    yamls = list(settings_yamls)
+    # yamls.reverse()
+    print("\n".join([str(x) for x in yamls]))
+
+    for settings_yaml in yamls:
         try:
             settings_dict = benedict(settings_yaml)
             print(settings_dict)
@@ -45,7 +50,11 @@ def main():
         log_file.close()
 
         # Start distributed train
-        gpus = ['GPU:0/', 'GPU:2/', 'GPU:4/', 'GPU:5/']
+        gpus = ['GPU:3/', 'GPU:5/', 'GPU:2/', 'GPU:4/', 'GPU:1/']
+        if len(gpus) < len(folders):
+            log_file = open(Path(__file__).parents[0] / "scheduled_train.log", "a")
+            log_file.write("WARNING, not enough GPUS defined to train all models" + "\n")
+            log_file.close()
         print("\n".join([str(x) for x in folders]))
         try:
             distributed_train(folders, gpus, settings)
@@ -53,7 +62,7 @@ def main():
             handle_error(e, "\n".join([str(x) for x in folders]))
         
         log_file = open(Path(__file__).parents[0] / "scheduled_train.log", "a")
-        log_file.write("DONE \n")
+        log_file.write("DONE " + str(datetime.datetime.now()) + "\n")
         log_file.close()
 
 

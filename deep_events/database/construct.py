@@ -4,9 +4,10 @@ from deep_events.database import get_collection, get_cluster
 from pathlib import Path
 from pymongo import MongoClient
 from benedict import benedict
+import tifffile
 
-def main(): #pragma: no cover
-    reconstruct_from_folder(MAIN_PATH, "mito_events")
+def main(folder = MAIN_PATH): #pragma: no cover
+    reconstruct_from_folder(folder, "mito_events")
 
 
 def reconstruct_from_folder(folder: Path, collection: str):
@@ -29,22 +30,29 @@ def reconstruct_from_folder(folder: Path, collection: str):
         for event in event_dirs:
             db_prompt = event.parents[0] / "db_prompt.yaml"
             model = str(event).replace("settings", "model")
+            images_train = event.parents[0] / "train_images_00.tif"
+
             time = str(event.parts[-1]).replace("_settings.yaml","")
             event = benedict(str(event))
-            for key, value in benedict(str(db_prompt)).items():
+            db_prompt_dict = benedict(str(db_prompt))
+            for key, value in db_prompt_dict.items():
                 event[key] = value
+
+            #Storing amount of training data
+            with tifffile.TiffFile(images_train) as tif:
+                event['frames'] = tif.series[0].shape[0]
+
             event["model"] = model
             event["time"] = time
-            event_list.append(event)
-            print(event)
+            event_list.append(dict(event))
 
-    benedict({"cluster": get_cluster(), "collection": collection}).to_yaml(filepath=folder/"collection.yaml")
+    # benedict({"cluster": get_cluster(), "collection": collection}).to_yaml(filepath=folder/"collection.yaml")
     # Reset the database and add all of the events
     coll.delete_many({})
     print(len(event_list))
     for event in event_list:
         coll.insert_one(event)
-    print(event)
+
 
 
 
@@ -57,3 +65,7 @@ def retrieve_filtered_list(coll, prompt = {}):
 
     print("\n".join(my_list))
     return my_list
+
+if __name__ == "__main__": #pragma: no cover
+    main("//lebnas1.epfl.ch/microsc125/deep_events/data/original_data/event_data")
+    # retrieve_filtered_list("mito_events")
