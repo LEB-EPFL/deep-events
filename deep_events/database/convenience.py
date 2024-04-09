@@ -2,7 +2,8 @@ from pymongo import MongoClient
 from benedict import benedict
 from pathlib import Path
 import datetime
-import reimport shutil
+import re
+import shutil
 import os
 
 SETTINGS = benedict(Path(__file__).parents[0] / "settings.yaml")
