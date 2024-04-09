@@ -49,8 +49,15 @@ def soft_focal_loss(y_true, y_pred, alpha=0.25, gamma=2.0):
     loss = focal_weight * cross_entropy
     return tf.reduce_mean(loss, axis=[1,2])
 
-
-
+@tf.keras.utils.register_keras_serializable()
+def weighted_binary_crossentropy(y_true, y_pred, pos_weight=2):
+    # Calculate the binary cross-entropy loss
+    bce = tf.keras.backend.binary_crossentropy(y_true, y_pred)
+    # Apply the weights
+    weight_vector = y_true * pos_weight + (1. - y_true)
+    weighted_bce = weight_vector * bce
+    return tf.keras.backend.mean(weighted_bce)
+ 
 
 def create_model(settings, data_shape, printSummary=False, ):
     nb_filters, firstConvSize = settings["nb_filters"], settings["first_conv_size"]
@@ -92,34 +99,34 @@ def create_model(settings, data_shape, printSummary=False, ):
     down1 = Activation('relu')(down1)
     down1_pool = MaxPooling2D((2, 2), strides=(2, 2))(down1)
 
-    print('Triple lazer U-net')
-    down2 = Conv2D(nb_filters*2, (3, 3), padding='same')(down1_pool)
-    down2 = BatchNormalization()(down2)
-    down2 = Activation('relu')(down2)
-    down2 = Conv2D(nb_filters*2, (3, 3), padding='same')(down2)
-    down2 = BatchNormalization()(down2)
-    down2 = Activation('relu')(down2)
-    down2_pool = MaxPooling2D((2, 2), strides=(2, 2))(down2)
+    # print('Triple lazer U-net')
+    # down2 = Conv2D(nb_filters*2, (3, 3), padding='same')(down1_pool)
+    # down2 = BatchNormalization()(down2)
+    # down2 = Activation('relu')(down2)
+    # down2 = Conv2D(nb_filters*2, (3, 3), padding='same')(down2)
+    # down2 = BatchNormalization()(down2)
+    # down2 = Activation('relu')(down2)
+    # down2_pool = MaxPooling2D((2, 2), strides=(2, 2))(down2)
 
     # Center
     print('* Start Center Section *')
-    center = Conv2D(nb_filters*4, (3, 3), padding='same')(down2_pool)
+    center = Conv2D(nb_filters*4, (3, 3), padding='same')(down1_pool)
     center = BatchNormalization()(center)
     center = Activation('relu')(center)
     center = Conv2D(nb_filters*4, (3, 3), padding='same')(center)
     center = BatchNormalization()(center)
     center = Activation('relu')(center)
 
-    up2 = UpSampling2D((2, 2))(center)
-    up2 = concatenate([down2, up2], axis=3)
-    up2 = Conv2D(nb_filters*2, (3, 3), padding='same')(up2)
-    up2 = BatchNormalization()(up2)
-    up2 = Activation('relu')(up2)
-    up2 = Conv2D(nb_filters*2, (3, 3), padding='same')(up2)
-    up2 = BatchNormalization()(up2)
-    up2 = Activation('relu')(up2)
+    # up2 = UpSampling2D((2, 2))(center)
+    # up2 = concatenate([down2, up2], axis=3)
+    # up2 = Conv2D(nb_filters*2, (3, 3), padding='same')(up2)
+    # up2 = BatchNormalization()(up2)
+    # up2 = Activation('relu')(up2)
+    # up2 = Conv2D(nb_filters*2, (3, 3), padding='same')(up2)
+    # up2 = BatchNormalization()(up2)
+    # up2 = Activation('relu')(up2)
 
-    up1 = UpSampling2D((2, 2))(up2)
+    up1 = UpSampling2D((2, 2))(center)
     up1 = concatenate([down1, up1], axis=3)
     up1 = Conv2D(nb_filters*2, (3, 3), padding='same')(up1)
     up1 = BatchNormalization()(up1)
@@ -160,6 +167,8 @@ def get_loss_function(settings: dict = None):
         return soft_dice_loss
     elif loss == "soft_focal":
         return soft_focal_loss
+    elif loss == "weighted_bce":
+        return weighted_binary_crossentropy
     elif loss == "mse":
         return "mse"
     elif loss == "binary_crossentropy":

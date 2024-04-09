@@ -50,7 +50,7 @@ def distributed_train(folders, gpus, settings=SETTINGS):
     os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = "true"
     # folders = [str(x) for x in folders]
     with Pool(min(5, len(folders)), initializer=init_pool, initargs=(l,)) as p:
-        p.starmap(train, zip(folders, gpus, settings))
+        p.starmap(train, zip(folders, gpus, settings, True))
 
 def init_pool(l: Lock):
     global lock
@@ -58,10 +58,11 @@ def init_pool(l: Lock):
 
 lock = Lock()
 
-def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
-    time.sleep(np.random.random()*10)
-    lock.acquire()
-    print("LOCKED")
+def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS, distributed: bool = False):
+    if distributed:
+        time.sleep(np.random.random()*10)
+        lock.acquire()
+        print("LOCKED")
     if folder is None:
         latest_folder = get_latest_folder(FOLDER)
     else:
@@ -91,8 +92,9 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
     settings_folder = str(latest_folder / (name + "_settings.yaml"))
     print(F"SETTINGS LOCATION: {settings_folder}")
     benedict(settings).to_yaml(filepath = latest_folder / (name + "_settings.yaml"))
-    lock.release()
-    print("UNLOCKED")
+    if distributed:
+        lock.release()
+        print("UNLOCKED")
 
 
     n_tries = 0
@@ -114,7 +116,7 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
                                     shuffle=True,
                                     verbose = 1,
                                     callbacks = [tensorboard_callback, images_callback],
-                                    validation_steps=1)
+                                    validation_steps=20)
             n_tries = max_tries
         except Exception as e:
             print("------------------------------ COULD NOT TRAIN -----------------------------------------")
@@ -131,32 +133,37 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS):
 class LogImages(tf.keras.callbacks.Callback):
     def __init__(self, log_dir, image_generator, val_generator, freq=1):
         super(LogImages, self).__init__()
-        self.log_dir = log_dir
+        self.log_dir = str(log_dir)
         self.image_generator = image_generator  # The images you want to log
         self.val_generator = val_generator  # Corresponding labels (optional)
         self.freq = freq  # Frequency (in epochs) at which to log images
-        self.image_idxs = np.linspace(0, self.image_generator.num_samples, 10, dtype=int)
-        self.val_idxs = range(self.val_generator.num_samples)
+        self.idxs = [np.linspace(0, self.image_generator.num_samples, 10, dtype=int),
+                    np.linspace(0, self.val_generator.num_samples, 10, dtype=int),]
 
     def on_epoch_end(self, epoch, logs=None):
         # Log images every 'freq' epochs
         if epoch % self.freq == 0:
             with tf.summary.create_file_writer(self.log_dir).as_default():
-                for prefix, generator in zip(['train', 'eval'],
-                                             [self.image_generator, self.val_generator]):
-                    self.log_images(generator, prefix, epoch)
+                for prefix, generator, idxs in zip(['train', 'eval'],
+                                             [self.image_generator, self.val_generator],
+                                             self.idxs):
+                    self.log_images(generator, idxs, prefix, epoch)
 
-    def log_images(self, generator, prefix, epoch):
+    def log_images(self, generator, idxs, prefix, epoch):
         images = []
         labels = []
-        for idx in self.image_idxs:
-            image, label = generator._getitem__(idx)
+        predictions = []
+        for idx in idxs:
+            image, label = generator.__getitem__(idx)
+            pred = self.model.predict(image, verbose=0)
+            image, label, pred = image[0], label[0], pred[0]
             images.append(image)
             labels.append(label)
-        predictions = self.model.predict(images[:])
-        tf.summary.image(prefix + "_images", images, step=epoch, max_outputs=9) # Optionally, log the labels as images too (if they are images)
-        tf.summary.image(prefix + "_labels", labels, step=epoch, max_outputs=9)
-        tf.summary.image(prefix + "_preds", predictions, step=epoch, max_outputs=9)
+            predictions.append(pred)
+        # images, labels, predictions = np.array(images), np.array(labels), np.array(predictions)
+        tf.summary.image(prefix + "_images", images, step=epoch, max_outputs=10) # Optionally, log the labels as images too (if they are images)
+        tf.summary.image(prefix + "_labels", labels, step=epoch, max_outputs=10)
+        tf.summary.image(prefix + "_preds", predictions, step=epoch, max_outputs=10)
 
 
 if __name__ == "__main__":
