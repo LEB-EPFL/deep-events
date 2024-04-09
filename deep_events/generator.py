@@ -102,7 +102,7 @@ class FileSequence(Sequence):
 
         batch_x = np.array(batch_x)
         batch_y = np.array(batch_y)
-        return batch_x, batch_y
+        return batch_x[:, 64:128, 64:128, :], batch_y[:, 64:128, 64:128, :]
 
     def apply_augmentation(self, x, y):
         return apply_augmentation(self,x,y)
@@ -172,7 +172,7 @@ class ArraySequence(Sequence):
 
         batch_x = np.array(batch_x)
         batch_y = np.array(batch_y)
-        return batch_x, batch_y
+        return batch_x[:, 64:192, 64:192, :], batch_y[:, 64:192, 64:192, :]
 
     def apply_augmentation(self, x, y):
         return apply_augmentation(self,x,y)
