@@ -90,7 +90,7 @@ def create_ground_thruth(folder, filename):
     for csv_file in tqdm(csv_files):
         print(csv_file.parts[-3:-1])
         # get newest tif file
-        tif_file = max(csv_file.parent.glob('*.ome.tif'), key=lambda x: x.stat().st_mtime)
+        tif_file = max(csv_file.parent.glob('*.ome.tif*'), key=lambda x: x.stat().st_mtime)
         lines = get_lines(csv_file)
         shape = get_shape_from_tif(tif_file)
         print(shape)

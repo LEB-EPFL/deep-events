@@ -17,7 +17,7 @@ def handle_folder_dict(func):
 
 
 def get_dict(folder: str):
-    """Get the dict fo a folder from the db.yaml file"""
+    """Get the dict of a folder from the db.yaml file"""
     try:
         folder_dict = benedict(os.path.join(folder, "db.yaml"))
     except ValueError:

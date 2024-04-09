@@ -17,22 +17,18 @@ def extract_events(db_file, events_folder: str, images_identifier: str = "", cha
                    label: str = "", event_content:str=""):
     folder_dict = get_dict(Path(os.path.dirname(db_file)))
 
-    print(images_identifier, channel_contrast, label )
-    print(folder_dict)
     if images_identifier != "":
-        tif_identifier = r'*' + images_identifier + r'*.ome.tif'
+        tif_identifier = r'*' + images_identifier + r'*.ome.tif*'
     if isinstance(channel_contrast, list):
         for contrast in channel_contrast:
-            print("Running recursively on the channel constrast list")
             extract_events(db_file, events_folder, images_identifier, contrast, label, event_content)
         return
     elif channel_contrast != "":
-        tif_identifier =  r'*' + folder_dict['contrast'][channel_contrast] + r'*.ome.tif'
+        tif_identifier =  r'*' + folder_dict['contrast'][channel_contrast] + r'*.ome.tif*'
     else:
-        tif_identifier = r'*.ome.tif'
+        tif_identifier = r'*.ome.tif*'
 
     if isinstance(label, list):
-        print("Running recursively on the labels list")
         for this_label in label:
             extract_events(db_file, events_folder, images_identifier, channel_contrast, this_label, event_content)
         return
@@ -60,7 +56,6 @@ def extract_events(db_file, events_folder: str, images_identifier: str = "", cha
         print(db_file)
         print("Did not find a corresponding ground truth file for this db_file")
         return
-    print(gaussians_file)
 
     event_dict = copy.deepcopy(folder_dict)
     event_dict['type'] = "event"
@@ -108,7 +103,7 @@ def handle_db(event, box, event_dict, events_folder):
     try:
         event_folder = f"ev_{event_dict['cell_line'][0]}_{event_dict['microscope'][0]}_{event_dict['contrast'][:4]}_{event_id}"
     except (TypeError, KeyError) as e:
-        event_folder = f"ev_{event_dict['cell_line'][0]}_{event_dict['microscope']}_{event_id}"
+        event_folder = f"ev_{event_dict.get('cell_line', ['?cells'])[0]}_{event_dict.get('microscope', '?mic')}_{event_id}"
     path = os.path.join(events_folder, "event_data", event_folder)
     print(path)
     Path(path).mkdir(parents=True, exist_ok=True)
@@ -127,7 +122,7 @@ def delete_automically_extracted_events(folder):
         event_dict = benedict(db_file)
         if "extraction_type" in event_dict.keys() and event_dict['extraction_type'] == 'manual':
             if event_dict['extraction_type'] == 'manual':
-                print(f"Not deleting {db_file}")
+                # print(f"Not deleting {db_file}")
                 continue
         shutil.rmtree(os.path.join(os.path.dirname(db_file)))
 
