@@ -1,24 +1,91 @@
 from pathlib import Path
 import os
 import re
+import csv
+from typing import Callable
 
 import tifffile
 import tensorflow as tf
 import numpy as np
 from benedict import benedict
-
+import deep_events.training_functions
 from deep_events.database.convenience import get_latest_folder, get_latest
 from deep_events.train import adjust_tf_dimensions
 from mitosplit_net import evaluation
-
+from skimage.filters import threshold_otsu
 
 FOLDER = Path("W:/deep_events/data/original_data/training_data")
 
+def whole_ev_eval(eval_mask, pred_output_test, eval_images, plot, eval_frames):
+    event_values = []
+    for event_frames in eval_frames:
+        event_values.append(pred_output_test[event_frames[0]:event_frames[-1] + 1].max())
 
-def main(model_dir: Path = None, write_yaml: bool = True, plot = False, general_eval=False):
+    threshold = threshold_otsu(np.array(event_values))
+
+
+    TP, FP, FN, TN = 0, 0, 0, 0
+    tp_values, fp_values, fn_values, tn_values = [], [], [], []
+    # threshold = .5
+    for event_frames in eval_frames:
+        max_pred = pred_output_test[event_frames[0]:event_frames[-1] + 1].max()
+        max_gt = eval_mask[event_frames[0]:event_frames[-1] + 1].max() 
+        if max_gt > threshold:
+            if max_pred > threshold:
+                TP += 1
+                tp_values.append(max_pred)
+            if max_pred < threshold:
+                FN += 1
+                fn_values.append(max_pred)
+        else:
+            if max_pred > threshold:
+                FP += 1
+                fp_values.append(max_pred)
+            if max_pred < threshold:
+                TN += 1
+                tn_values.append(max_pred)
+
+    return [TP, FP, FN, TN, tp_values, fp_values, fn_values, tn_values, threshold]
+
+
+def event_loc_eval(eval_mask, pred_output_test, eval_images, plot, *_):
+    labels = evaluation.label(pred_output_test, 0.7)
+    labels = np.expand_dims(labels, axis=-1)
+    true_labels = evaluation.label(eval_mask, 0.7)
+
+    if plot:
+        try:
+            import matplotlib.pyplot as plt
+            import random
+            to_plot = random.sample(range(labels.shape[0]), labels.shape[0])
+            frame = 0
+            while True:
+                f, axs = plt.subplots(1, 3)
+                f.set_size_inches(25,10)
+                axs[0].imshow(labels[to_plot[frame], :, :, 0], vmax=1, cmap='Reds')
+                axs[0].set_title("prediction")
+                axs[1].imshow(true_labels[to_plot[frame], :, :, 0])
+                axs[1].set_title("ground truth")
+                axs[2].imshow(eval_images[to_plot[frame], :, :, 0], cmap='gray')
+                frame += 1
+                plt.show()
+        except KeyboardInterrupt:
+            pass
+
+    return evaluation.fissionStatsStack(true_labels, labels)
+
+
+def main(model_dir: Path|str = None, write_yaml: bool = True, plot = False, general_eval: bool = False,
+         eval_func: Callable = whole_ev_eval, save_hist: bool = True):
+    no_details=False
+    model_dir = Path(model_dir)
     if model_dir is None:
         training_folder = Path(get_latest_folder(FOLDER)[0])
         model_dir = Path(get_latest("model", training_folder))
+        print(model_dir)
+    elif str(model_dir)[-3:] != '.h5':
+        training_folder = model_dir
+        model_dir = list(training_folder.glob('*model.h5'))[0]
         print(model_dir)
     else:
         training_folder = model_dir.parent
@@ -40,33 +107,24 @@ def main(model_dir: Path = None, write_yaml: bool = True, plot = False, general_
     eval_images = adjust_tf_dimensions(tifffile.imread(training_folder / "eval_images_00.tif"))
     frames = eval_images.shape[0]
     eval_images = eval_images[:frames]
+
+    try:
+        with open(training_folder / 'eval_events.csv', 'r') as read_obj: 
+            csv_reader = csv.reader(read_obj) 
+            eval_event_frames = list(csv_reader)
+            for i in range(len(eval_event_frames)):
+                eval_event_frames[i] = [int(x) for x in eval_event_frames[i]]
+    except FileNotFoundError:
+        eval_func = event_loc_eval
+        eval_event_frames = []
+        no_details = True
+
     eval_mask = adjust_tf_dimensions(tifffile.imread(training_folder / "eval_gt_00.tif"))[:frames]
     pred_output_test = evaluation.predict(eval_images, model)
-    labels = evaluation.label(pred_output_test, 0.5)
-    labels = np.expand_dims(labels, axis=-1)
-    true_labels = evaluation.label(eval_mask, 0.5)
 
-    if plot:
-        try:
-            import matplotlib.pyplot as plt
-            import random
-            to_plot = random.sample(range(labels.shape[0]), labels.shape[0])
-            frame = 0
-            while True:
-                f, axs = plt.subplots(1, 3)
-                f.set_size_inches(25,10)
-                axs[0].imshow(labels[to_plot[frame], :, :, 0], vmax=1, cmap='Reds')
-                axs[0].set_title("prediction")
-                axs[1].imshow(true_labels[to_plot[frame], :, :, 0])
-                axs[1].set_title("ground truth")
-                axs[2].imshow(eval_images[to_plot[frame], :, :, 0], cmap='gray')
-                frame += 1
-                plt.show()
-        except KeyboardInterrupt:
-            pass
-
-    stats = evaluation.fissionStatsStack(true_labels, labels)
     # [TP, FP, FN, TP_px, FP_px, FN_px]
+    # [TP, FP, FN, TN, tp_values, fp_values, fn_values, tn_values, threshold] for whole_event
+    stats = eval_func(eval_mask, pred_output_test, eval_images, plot, eval_event_frames)
     precision = evaluation.get_precision(stats[0], stats[1])
     tpr = evaluation.get_tpr(stats[0], stats[2])
     try:
@@ -95,18 +153,41 @@ def main(model_dir: Path = None, write_yaml: bool = True, plot = False, general_
 
     if write_yaml:
         settings = benedict(str(model_dir).replace("model.h5", "settings.yaml"))
-        settings["precision"] = precision
-        settings["tpr"] = tpr
-        settings["f1"] = f1
+        try:
+            del settings["precision"]
+            del settings["tpr"]
+            del settings["f1"]
+        except:
+            pass
+        try:
+            settings["p_threshold"] = stats[8]
+        except:
+            pass
+        settings["p_precision"] = precision
+        settings["p_tpr"] = tpr
+        settings["p_f1"] = f1
         settings["eval_data"] = training_folder
+        settings["p_eval"] = "v1" if no_details else "v2"
         settings.to_yaml(filepath=str(model_dir).replace("model.h5", "settings.yaml"))
+    if save_hist and not no_details:
+        import matplotlib.pyplot as plt
+        bins = np.arange(0., 1.001, .05)
+        plt.figure()
+        plt.hist(stats[4], alpha=.5, label="tp_values", bins=bins, color="green", edgecolor="green", linewidth=2)
+        plt.hist(stats[5], alpha=.5, label="fp_values", bins=bins, color="green", edgecolor="red", linewidth=2)
+        plt.hist(stats[6], alpha=.5, label="fn_values", bins=bins, color="red", edgecolor="red", linewidth=2)
+        plt.hist(stats[7], alpha=.5, label="tn_values", bins=bins, color="red", edgecolor="green", linewidth=2)
+        plt.axvline(x=stats[8])
+        plt.legend(loc='upper right')
+        plt.savefig(str(model_dir).replace("model.h5", "hist.png"))
+        plt.close()
 
-def performance_for_folder(folder:Path):
+def performance_for_folder(folder:Path, general_eval=True):
     os.environ['CUDA_VISIBLE_DEVICES'] = "0"
     models = folder.rglob("*_model.h5")
     for model in models:
         print('\033[1m' + str(model) + '\033[0m')
-        main(model, general_eval=True)
+        main(model, general_eval=general_eval)
 
 def visual_eval(training_folder, model_name = None):
     import matplotlib.pyplot as plt
