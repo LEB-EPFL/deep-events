@@ -163,7 +163,11 @@ def load_folder(parent_folder:Path, db_files: List = None, training_folder: str 
     print(f"Number of train dbs: {len(dbs['train'])}")
     print(f"Number of eval dbs: {len(dbs['eval'])}")
     for train_eval in ["train", "eval"]:
-        for i, db_file in enumerate(dbs[train_eval]):
+        for db_file in dbs[train_eval]:
+            try:
+                start = all_gt['eval_events'][-1][-1] + 1
+            except IndexError:
+                start = 0
             folder = db_file.parents[0]
             images, ground_truth = load_tifs(folder)
 
@@ -183,7 +187,6 @@ def load_folder(parent_folder:Path, db_files: List = None, training_folder: str 
             all_images[train_eval].append(images)
             all_gt[train_eval].append(ground_truth)
             if train_eval == 'eval':
-                start = 0 if i == 0 else all_gt['eval_events'][-1][-1] + 1
                 all_gt['eval_events'].append(list(range(start, start + ground_truth.shape[0])))
             # These things can get very big. Save inbetween, when memory almost full.
             if psutil.virtual_memory().percent > 90:
