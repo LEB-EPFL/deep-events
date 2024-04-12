@@ -46,11 +46,12 @@ def distributed_train(folders, gpus, settings=SETTINGS):
 
     if not isinstance(settings, list):
         settings = [settings]*len(folders)
+    distributed = [True]*len(folders)
     # os.environ['TF_GPU_ALLOCATOR'] = ""
     os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = "true"
     # folders = [str(x) for x in folders]
     with Pool(min(5, len(folders)), initializer=init_pool, initargs=(l,)) as p:
-        p.starmap(train, zip(folders, gpus, settings, True))
+        p.starmap(train, zip(folders, gpus, settings, distributed))
 
 def init_pool(l: Lock):
     global lock
@@ -157,9 +158,11 @@ class LogImages(tf.keras.callbacks.Callback):
             image, label = generator.__getitem__(idx)
             pred = self.model.predict(image, verbose=0)
             image, label, pred = image[0], label[0], pred[0]
+            predictions.append(pred)
+            image = image[..., 0]
+            image = np.expand_dims(image, -1)
             images.append(image)
             labels.append(label)
-            predictions.append(pred)
         # images, labels, predictions = np.array(images), np.array(labels), np.array(predictions)
         tf.summary.image(prefix + "_images", images, step=epoch, max_outputs=10) # Optionally, log the labels as images too (if they are images)
         tf.summary.image(prefix + "_labels", labels, step=epoch, max_outputs=10)
