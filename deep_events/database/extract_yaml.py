@@ -6,6 +6,7 @@ import os
 from deep_events.database.folder_benedict import get_dict, save_dict, set_dict_entry, handle_folder_dict
 
 from typing import Union
+from deep_events.database.convenience import glob_zarr
 
 
 #%% setup
@@ -17,6 +18,7 @@ keys = benedict(KEYS_PATH)
 
 def recursive_folder(file: Path):
     folder_dict = get_dict(os.path.dirname(file))
+    print(folder_dict)
     folder_dict['type'] = 'original'
     subpath = file
     while subpath != os.path.dirname(subpath):
@@ -54,14 +56,16 @@ def check_brightfield(folder: Path):
 #%%
 
 def delete_db_files(folder: Path):
-    file_list = list(Path(folder).rglob(r'db.yaml'))
+    file_list = glob_zarr(folder, r'db.yaml')
     for file in file_list:
         os.remove(file)
 
 @handle_folder_dict
 def set_defaults(folder_dict: Union[dict, str, Path]):
     "Get default settings from file and set them to the local yaml"
-
+    if isinstance(folder_dict, str):
+        folder_dict = benedict(folder_dict)
+    print("folder_dict", folder_dict)
     default_keys = benedict(KEYS_PATH)['defaults']
 
     for key, value in default_keys.items():
@@ -122,7 +126,7 @@ def extract_foldername(folder_dict: Union[dict, str, Path], folder):
 
 #%%
 def extract_folders(path: Path):
-    folders = list(Path(path).glob("**/*.ome.tif"))
+    folders = list(Path(path).glob("**/*.ome.tif*"))
     print(folders)
     folders = [folder.parents[0] for folder in folders]
     for folder in folders:

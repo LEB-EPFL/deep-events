@@ -137,5 +137,7 @@ Modelsref_f8_c9_b16/
 *.tiff
 local/
 
+*.txt
+
 tests/data/220927_mitotrackergreen_cos7_ZEISS_fl/GFP_1/db.yaml
 Interactive*

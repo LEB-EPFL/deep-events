@@ -2,6 +2,7 @@ from pymongo import MongoClient
 from benedict import benedict
 from pathlib import Path
 import datetime
+import re
 import shutil
 import os
 
@@ -59,6 +60,51 @@ def get_latest(pattern, folder:Path):
     return folder / files[0]
 
 
+def glob_zarr(folder: Path, pattern: str = "*.ome.zarr", ignore = r".*/p\d$"):
+    "glob that ignores big subfolder structures in zarr files"
+    def recurse(folder: Path, results: list, pattern: str, ignore: str):
+        if (not folder.is_dir() and "zarr" in pattern) or re.match(ignore, folder.as_posix()):
+            return results
+        items = list(folder.glob(pattern))
+        subfolders = list(folder.glob("*"))
+        for item in items:
+            subfolders.remove(item)
+        for subfolder in subfolders:
+            if subfolder.is_dir():
+                results = recurse(subfolder, results, pattern, ignore)
+            else:
+                continue
+        results.extend(items)
+        return results
+
+    results = []
+    return recurse(folder, results, pattern, ignore)
+
+def clean_dates(folder: Path):
+    files = folder.rglob("event_db.yaml")
+    for file in files:
+        event_dict = benedict(file)
+        # if event_dict["date"][:2] != "20":
+        #     print(event_dict["date"])
+        #     event_dict["date"] = "20" + event_dict["date"]
+        #     print(event_dict["date"])
+        event_dict["date"] = int(event_dict["date"])
+        event_dict.to_yaml(filepath=file)
+        
+            
+
+
 
 if __name__ == "__main__":
-    handle_repositioning(Path("//lebnas1.epfl.ch/microsc125/deep_events/data/original_data/event_data"), "", "")
+    # handle_repositioning(Path("//lebnas1.epfl.ch/microsc125/deep_events/data/original_data/event_data"), "", "")
+    import time
+    t0 = time.perf_counter()
+    folder = Path("Z:/deep_events/data/phaseEDA")
+    pattern = "*ome.tif*"
+    results = glob_zarr(folder, pattern)
+    t1 = time.perf_counter()
+    print("\n".join([str(x) for x in results]))
+    print("done in ", round((t1 - t0)*1000))
+    # results = folder.rglob("**/*.ome.zarr")
+    # print("\n".join([str(x) for x in results]))
+    # print("rglob", round((time.perf_counter() - t1)*1000))

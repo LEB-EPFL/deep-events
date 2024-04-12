@@ -96,7 +96,16 @@ def crop_images(event, imgs, channel=0, size=256):
         box = box_from_pos(event.c_p['x'], event.c_p['y'], size)
         box = box_edge_check(box, imgs.pages[0].shape[-2:])
         frame = frame*n_channels+channel
-        dataar[index] = imgs.series[0].pages[frame].asarray()[box[1]:box[3], box[0]:box[2]]
+        try:
+            dataar[index] = imgs.series[0].pages[frame].asarray()[box[1]:box[3], box[0]:box[2]]
+        except IndexError:
+            print("frame to extract", frame)
+            print("frames in series", len(imgs.series[0].pages))
+            print("not continuing")
+            print("array before crop", dataar.shape)
+            dataar = dataar[:index]
+            print("array after crop", dataar.shape)
+            break
     return dataar, box
 
 
