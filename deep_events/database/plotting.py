@@ -67,17 +67,17 @@ if query:
     data0 = data0.query(query)
 c0 = alt.Chart(data0).mark_circle(size=80).encode(
     x='frames',
-    y='f1',
+    y='p_f1',
     color=color_by,
-    tooltip=['frames', 'f1', 'n_timepoints', 'fps', 'time', 'contrast', 'n_event']
+    tooltip=['frames', 'p_f1', 'n_timepoints', 'fps', 'time', 'contrast', 'n_event']
 )
 cols[1].altair_chart(c0, use_container_width=True)
 
 
 subquery = cols[1].text_input('Subquery', value="fps == 1")
 axis_cols = cols[1].columns(2)
-x_axis = axis_cols[0].selectbox('X axis', ['frames', 'f1', 'tpr', 'precision', 'n_event'], index=0)
-y_axis = axis_cols[1].selectbox('Y axis', ['f1', 'tpr', 'precision'], index=0)
+x_axis = axis_cols[0].selectbox('X axis', ['frames', 'p_f1', 'p_tpr', 'p_precision', 'n_event'], index=0)
+y_axis = axis_cols[1].selectbox('Y axis', ['p_f1', 'p_tpr', 'p_precision'], index=0)
 data1 = data0.copy()
 if subquery:
     data1 = data1.query(subquery)
@@ -86,7 +86,7 @@ c1 = alt.Chart(data1).mark_circle(size=80).encode(
     x=x_axis,
     y=y_axis,
     color=color_by,
-    tooltip=['frames', 'f1', 'n_timepoints', 'fps', 'time']
+    tooltip=['frames', 'p_f1', 'n_timepoints', 'fps', 'time']
 )
 cols[1].altair_chart(c1, use_container_width=True)
 

@@ -5,6 +5,8 @@ from pathlib import Path
 from pymongo import MongoClient
 from benedict import benedict
 import tifffile
+import os
+import shutil
 
 def main(folder = MAIN_PATH): #pragma: no cover
     reconstruct_from_folder(folder, "mito_events")
@@ -27,14 +29,15 @@ def reconstruct_from_folder(folder: Path, collection: str):
     elif "training_data" in str(folder):
         event_dirs = list(Path(folder).rglob("*/*settings.yaml"))
         event_list = []
-        for event in event_dirs:
-            db_prompt = event.parents[0] / "db_prompt.yaml"
-            model = str(event).replace("settings", "model")
-            images_train = event.parents[0] / "train_images_00.tif"
+        for my_event in event_dirs:
+            db_prompt = my_event.parents[0] / "db_prompt.yaml"
+            model = str(my_event).replace("settings.yaml", "model.h5")
+            images_train = my_event.parents[0] / "train_images_00.tif"
 
-            time = str(event.parts[-1]).replace("_settings.yaml","")
-            event = benedict(str(event))
+            time = str(my_event.parts[-1]).replace("_settings.yaml","")
+            event = benedict(str(my_event))
             db_prompt_dict = benedict(str(db_prompt))
+
             for key, value in db_prompt_dict.items():
                 event[key] = value
 
@@ -44,6 +47,7 @@ def reconstruct_from_folder(folder: Path, collection: str):
 
             event["model"] = model
             event["time"] = time
+
             event_list.append(dict(event))
 
     # benedict({"cluster": get_cluster(), "collection": collection}).to_yaml(filepath=folder/"collection.yaml")
@@ -54,6 +58,17 @@ def reconstruct_from_folder(folder: Path, collection: str):
         coll.insert_one(event)
 
 
+def clean_up_folder(folder):
+    if "training_data" not in str(folder):
+        print("Not yet implemented for events, only models and training data")
+    event_dirs = list(Path(folder).rglob("*/*settings.yaml"))
+    for my_event in event_dirs:
+        model = str(my_event).replace("settings.yaml", "model.h5")
+        if not os.path.exists(model):
+            print(f"deleting {my_event.parents[0]}")
+            os.remove(my_event)
+            if len(list(Path(model).parents[0].glob("*model.h5"))) == 0:
+                shutil.rmtree(Path(model).parents[0])
 
 
 def retrieve_filtered_list(coll, prompt = {}):
@@ -67,5 +82,7 @@ def retrieve_filtered_list(coll, prompt = {}):
     return my_list
 
 if __name__ == "__main__": #pragma: no cover
-    main("//lebnas1.epfl.ch/microsc125/deep_events/data/original_data/event_data")
+    reconstruct_from_folder("//lebnas1.epfl.ch/microsc125/deep_events/data/original_data/training_data",
+                             'mito_ideas_models')
+    # main("//lebnas1.epfl.ch/microsc125/deep_events/data/original_data/training_data")
     # retrieve_filtered_list("mito_events")
