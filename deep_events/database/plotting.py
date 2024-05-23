@@ -8,7 +8,7 @@ from pathlib import Path
 
 collection = 'mito_ideas_models'
 if platform == "linux" or platform == "linux2":
-    folder = Path("/mnt/deep_events/data/original_data/training_data")
+    folder = Path("/mnt/w/deep_events/data/original_data/training_data")
 else:
     folder = Path("//lebnas1.epfl.ch/microsc125/deep_events/data/original_data/training_data")
 
@@ -19,8 +19,12 @@ else:
 collection = get_collection(collection)
 
 data = pd.DataFrame(list(collection.find()))
+print(data)
 data.drop("brightness_range", axis=1, inplace=True)
 data.drop('_id', axis=1, inplace=True)
+
+
+
 
 event_collection = get_collection("mito_events")
 event_data = pd.DataFrame(list(event_collection.find()))
@@ -51,7 +55,7 @@ cols[0].write(data)
 
 ## Main filtering step
 query = cols[1].text_input('Main filtering (_applies to all below_)',
-                           value="data_corruption != True and contrast == 'brightfield'")
+                           value="contrast == 'brightfield'")
 data['n_timepoints'] = data['n_timepoints'].astype(str)
 for index, row in data.iterrows():
     data.loc[index, 'date'] = pd.to_datetime(row['time'][:8])
@@ -76,17 +80,29 @@ cols[1].altair_chart(c0, use_container_width=True)
 
 subquery = cols[1].text_input('Subquery', value="fps == 1")
 axis_cols = cols[1].columns(2)
-x_axis = axis_cols[0].selectbox('X axis', ['frames', 'p_f1', 'p_tpr', 'p_precision', 'n_event'], index=0)
-y_axis = axis_cols[1].selectbox('Y axis', ['p_f1', 'p_tpr', 'p_precision'], index=0)
+x_axis = axis_cols[0].selectbox('X axis', ['frames', 'p_f1', 'p_tpr', 'p_precision', 'n_event'],
+                                index=0)
+y_axis = axis_cols[1].selectbox('Y axis', ['f1', 'tpr', 'precision', 'recall', 'mcc', 'kappa'],
+                                index=0)
 data1 = data0.copy()
 if subquery:
     data1 = data1.query(subquery)
 
+def get_nested_value(row, y_axis=y_axis):
+    try:
+        value = row['performance'][y_axis] 
+        return value
+    except KeyError:
+        return 0
+
+data1['y_axis'] = data1.apply(get_nested_value, axis=1)
+
+
 c1 = alt.Chart(data1).mark_circle(size=80).encode(
     x=x_axis,
-    y=y_axis,
+    y='y_axis',
     color=color_by,
-    tooltip=['frames', 'p_f1', 'n_timepoints', 'fps', 'time']
+    tooltip=['frames', 'performance', 'n_timepoints', 'fps', 'time']
 )
 cols[1].altair_chart(c1, use_container_width=True)
 
