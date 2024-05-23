@@ -128,7 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-scheduled_train/*
+scheduled_train/
 
 Videos/
 training_data/

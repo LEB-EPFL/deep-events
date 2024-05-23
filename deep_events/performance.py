@@ -21,7 +21,7 @@ def whole_ev_eval(eval_mask, pred_output_test, eval_images, plot, eval_frames):
     for event_frames in eval_frames:
         event_values.append(pred_output_test[event_frames[0]:event_frames[-1] + 1].max())
 
-    threshold = threshold_otsu(np.array(event_values))
+    threshold = max(threshold_otsu(np.array(event_values)), 0.5)
 
 
     TP, FP, FN, TN = 0, 0, 0, 0
@@ -102,7 +102,7 @@ def main(model_dir: Path|str = None, write_yaml: bool = True, plot = False, gene
         training_folder = Path(get_latest_folder(model_dir.parents[1], pattern)[0])
         print(training_folder)
 
-    model = tf.keras.models.load_model(model_dir)
+    model = tf.keras.models.load_model(model_dir, compile=False)
 
     eval_images = adjust_tf_dimensions(tifffile.imread(training_folder / "eval_images_00.tif"))
     frames = eval_images.shape[0]
@@ -125,49 +125,49 @@ def main(model_dir: Path|str = None, write_yaml: bool = True, plot = False, gene
     # [TP, FP, FN, TP_px, FP_px, FN_px]
     # [TP, FP, FN, TN, tp_values, fp_values, fn_values, tn_values, threshold] for whole_event
     stats = eval_func(eval_mask, pred_output_test, eval_images, plot, eval_event_frames)
+    print(stats)
     precision = evaluation.get_precision(stats[0], stats[1])
-    tpr = evaluation.get_tpr(stats[0], stats[2])
+    recall = evaluation.get_tpr(stats[0], stats[2])
+    precision = round(precision*100)/100
+    recall = round(recall*100)/100
     try:
-        f1 = round(evaluation.get_f1_score(precision, tpr)*100)/100
+        f1 = round(evaluation.get_f1_score(precision, recall)*100)/100
     except (ValueError, TypeError) as e:
         print(precision)
-        print(tpr)
+        print(recall)
         import traceback
         traceback.print_exc()
         f1 = 0
-    try:
-        precision = round(precision*100)/100
-    except ValueError:
-        precision = 0
-    try:
-        tpr = round(tpr*100)/100
-    except ValueError:
-        tpr = 0
     summary = f"""
     {model_dir}
     precision {precision}
-    tpr {tpr}
+    recall {recall}
     f1 {f1}
     """
+    if not no_details:
+        mcc = evaluation.get_mcc(*stats[:4])
+        kappa = evaluation.get_kappa(*stats[:4])
+        mcc = round(mcc*100)/100
+        kappa = round(kappa*100)/100
+        summary = summary + f"mcc {mcc}\n    kappa {kappa}"
+    
     print(summary)
 
     if write_yaml:
         settings = benedict(str(model_dir).replace("model.h5", "settings.yaml"))
+        settings["performance"] = {}
         try:
-            del settings["precision"]
-            del settings["tpr"]
-            del settings["f1"]
+            settings["performance"]["threshold"] = stats[8]
         except:
             pass
-        try:
-            settings["p_threshold"] = stats[8]
-        except:
-            pass
-        settings["p_precision"] = precision
-        settings["p_tpr"] = tpr
-        settings["p_f1"] = f1
+        settings["performance"]["precision"] = precision
+        settings["performance"]["recall"] = recall
+        settings["performance"]["f1"] = f1
+        if not no_details:
+            settings["performance"]["mcc"] = mcc
+            settings["performance"]["kappa"] = kappa
         settings["eval_data"] = training_folder
-        settings["p_eval"] = "v1" if no_details else "v2"
+        settings["performance"]["eval"] = "v1" if no_details else "v2"
         settings.to_yaml(filepath=str(model_dir).replace("model.h5", "settings.yaml"))
     if save_hist and not no_details:
         import matplotlib.pyplot as plt

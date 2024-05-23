@@ -8,6 +8,8 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.metrics import BinaryAccuracy, MeanSquaredError
 import keras.backend as K
 import tensorflow as tf
+from functools import partial
+
 
 tf.keras.utils.get_custom_objects().clear()
 
@@ -52,29 +54,48 @@ def soft_focal_loss(y_true, y_pred, alpha=0.25, gamma=2.0):
     return tf.reduce_mean(loss, axis=[1,2])
 
 @tf.keras.utils.register_keras_serializable()
-def weighted_binary_crossentropy(y_true, y_pred, pos_weight=2):
-    # Calculate the binary cross-entropy loss
-    bce = tf.keras.backend.binary_crossentropy(y_true, y_pred)
-    # Apply the weights
-    weight_vector = y_true * pos_weight + (1. - y_true)
-    weighted_bce = weight_vector * bce
-    return tf.keras.backend.mean(weighted_bce)
- 
-@tf.keras.utils.register_keras_serializable(package="deep_events", name="wmse")
-def wmse(y_true, y_pred):
-    pos_weight = 4
-    weight_vector = y_true * pos_weight + (1. - y_true)
-    return tf.reduce_mean(weight_vector * tf.square(y_true - y_pred))
-tf.keras.utils.get_custom_objects().update({'wmse': wmse})
+class WBCELoss(tf.keras.losses.Loss):
+    def __init__(self, pos_weight=1, name='wbce_loss'):
+        super().__init__(name=name)
+        self.pos_weight = pos_weight
+    def call(self, y_true, y_pred):
+        bce = tf.keras.backend.binary_crossentropy(y_true, y_pred)
+        # Apply the weights
+        weight_vector = y_true * self.pos_weight + (1. - y_true)
+        weighted_bce = weight_vector * bce
+        return tf.keras.backend.mean(weighted_bce)
 
-def create_model(settings, data_shape, printSummary=False, do_dropout=False):
+    def get_config(self):
+        return {'pos_weight': self.pos_weight}    
+tf.keras.utils.get_custom_objects().update({'WBCELoss': WBCELoss})
+ 
+
+@tf.keras.utils.register_keras_serializable(package='deep_events', name='wmse_loss')
+class WMSELoss(tf.keras.losses.Loss):
+    def __init__(self, pos_weight=1, name='wmse_loss'):
+        super().__init__(name=name)
+        self.pos_weight = pos_weight
+
+    def call(self, y_true, y_pred):
+        weight_vector = y_true * self.pos_weight + (1. - y_true)
+        return tf.reduce_mean(weight_vector * tf.square(y_true - y_pred))
+
+    def get_config(self):
+        return {'pos_weight': self.pos_weight}
+tf.keras.utils.get_custom_objects().update({'WMSELoss': WMSELoss})
+
+def create_model(settings, data_shape, printSummary=False):
     nb_filters, firstConvSize = settings["nb_filters"], settings["first_conv_size"]
     #Hyperparameters
     optimizer_type = Adam(learning_rate=0.5e-3)
-    custom_objects = {settings["loss"]: get_loss_function(settings)}
-    loss = list(custom_objects.values())[0] #dice_loss # 'binary_crossentropy'  # 'mse'
 
-    metrics = [weighted_mse_metric(), MeanSquaredError()]
+    if settings["loss"] == "wmse":
+        loss = WMSELoss(pos_weight=settings.get("weight", 10))
+    else:
+        custom_objects = {settings["loss"]: get_loss_function(settings)}
+        loss = list(custom_objects.values())[0] #dice_loss # 'binary_crossentropy'  # 'mse'
+
+    metrics = [WMSELoss(pos_weight=3, name='wmse'), WBCELoss(pos_weight=3, name='wbce'), MeanSquaredError()]
 
     #Network architecture
     if len(data_shape) > 3:
@@ -87,34 +108,30 @@ def create_model(settings, data_shape, printSummary=False, do_dropout=False):
         final_activation = "sigmoid" #"linear"
     else:
         final_activation = "sigmoid"
+    dropout_rate = settings.get("dropout_rate", 0)
 
+    
     # Encoder
-    print('* Start Encoder Section *')
-    do_dropout = True
-    dropout_rate = 0.5
+    print(f'* Start Encoder Section dropout: {dropout_rate}*')
 
     down0 = Conv2D(nb_filters, (firstConvSize, firstConvSize), padding='same')(inputs)
     down0 = BatchNormalization()(down0)
     down0 = Activation('relu')(down0)
-    if do_dropout:
-        down0 = Dropout(dropout_rate)(down0)
+    down0 = Dropout(dropout_rate)(down0)
     down0 = Conv2D(nb_filters, (firstConvSize, firstConvSize), padding='same')(down0)
     down0 = BatchNormalization()(down0)
     down0 = Activation('relu')(down0)
-    if do_dropout:
-        down0 = Dropout(dropout_rate)(down0)
+    down0 = Dropout(dropout_rate)(down0)
     down0_pool = MaxPooling2D((2, 2), strides=(2, 2), padding='same')(down0)
 
     down1 = Conv2D(nb_filters*2, (3, 3), padding='same')(down0_pool)
     down1 = BatchNormalization()(down1)
     down1 = Activation('relu')(down1)
-    if do_dropout:
-        down1 = Dropout(dropout_rate)(down1)
+    down1 = Dropout(dropout_rate)(down1)
     down1 = Conv2D(nb_filters*2, (3, 3), padding='same')(down1)
     down1 = BatchNormalization()(down1)
     down1 = Activation('relu')(down1)
-    if do_dropout:
-        down1 = Dropout(dropout_rate)(down1)
+    down1 = Dropout(dropout_rate)(down1)
     down1_pool = MaxPooling2D((2, 2), strides=(2, 2))(down1)
 
     # print('Triple lazer U-net')
@@ -131,13 +148,11 @@ def create_model(settings, data_shape, printSummary=False, do_dropout=False):
     center = Conv2D(nb_filters*4, (3, 3), padding='same')(down1_pool)
     center = BatchNormalization()(center)
     center = Activation('relu')(center)
-    if do_dropout:
-        center = Dropout(dropout_rate)(center)
+    center = Dropout(dropout_rate)(center)
     center = Conv2D(nb_filters*4, (3, 3), padding='same')(center)
     center = BatchNormalization()(center)
     center = Activation('relu')(center)
-    if do_dropout:
-        center = Dropout(dropout_rate)(center)
+    center = Dropout(dropout_rate)(center)
 
     # up2 = UpSampling2D((2, 2))(center)
     # up2 = concatenate([down2, up2], axis=3)
@@ -153,26 +168,22 @@ def create_model(settings, data_shape, printSummary=False, do_dropout=False):
     up1 = Conv2D(nb_filters*2, (3, 3), padding='same')(up1)
     up1 = BatchNormalization()(up1)
     up1 = Activation('relu')(up1)
-    if do_dropout:
-        up1 = Dropout(dropout_rate)(up1)
+    up1 = Dropout(dropout_rate)(up1)
     up1 = Conv2D(nb_filters*2, (3, 3), padding='same')(up1)
     up1 = BatchNormalization()(up1)
     up1 = Activation('relu')(up1)
-    if do_dropout:
-        up1= Dropout(dropout_rate)(up1)
+    up1= Dropout(dropout_rate)(up1)
 
     up0 = UpSampling2D((2, 2))(up1)
     up0 = concatenate([down0, up0], axis=3)
     up0 = Conv2D(nb_filters, (3, 3), padding='same')(up0)
     up0 = BatchNormalization()(up0)
     up0 = Activation('relu')(up0)
-    if do_dropout:
-        up0 = Dropout(dropout_rate)(up0)
+    up0 = Dropout(dropout_rate)(up0)
     up0 = Conv2D(nb_filters, (3, 3), padding='same')(up0)
     up0 = BatchNormalization()(up0)
     up0 = Activation('relu')(up0)
-    if do_dropout:
-        up0 = Dropout(dropout_rate)(up0)
+    up0 = Dropout(dropout_rate)(up0)
 
     outputs = Conv2D(1, (1, 1), activation=final_activation)(up0)  # was relu also before
     outputs.set_shape([None, None, None, 1])
@@ -197,30 +208,17 @@ def get_loss_function(settings: dict = None):
         return soft_dice_loss
     elif loss == "soft_focal":
         return soft_focal_loss
-    elif loss == "weighted_bce":
-        return weighted_binary_crossentropy
+    elif loss == "wbce":
+        return WBCELoss(settings["weight"])
     elif loss == "mse":
         return "mse"
     elif loss == "wmse":
-        return wmse
+        return WMSELoss(settings["weight"])
     elif loss == "binary_crossentropy":
         return "binary_crossentropy"
     else:
         NotImplementedError(f"{loss} has not been implemented as loss function in this framework.")
 
-@tf.keras.utils.register_keras_serializable(package="deep_events", name="wmse_metric")
-def weighted_mse_metric():
-    """
-    Creates a weighted MSE metric where the labels (y_true) are used as weights.
-    
-    Returns:
-    - A metric function that takes (y_true, y_pred) and computes WMSE using y_true as weights.
-    """
-    def wmse(y_true, y_pred):
-        pos_weight = 3
-        weight_vector = y_true * pos_weight + (1. - y_true)
-        return tf.reduce_mean(weight_vector * tf.square(y_true - y_pred))
-    return wmse
 
 
 def train_model(model, input_data, output_data, batch_size, validtrain_split_ratio):
@@ -236,5 +234,4 @@ def train_model(model, input_data, output_data, batch_size, validtrain_split_rat
                         verbose=2)
 
     return history.history
-
 

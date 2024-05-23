@@ -47,12 +47,12 @@ def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 
     if "smooth" in prompt.keys():
         smooth = prompt["smooth"]
         del prompt["smooth"]
-    if "subset" in prompt.keys():
-        subset = prompt["subset"]
-        del prompt["subset"]
     if "train_val_split" in prompt.keys():
         test_size = prompt["train_val_split"]
         del prompt["train_val_split"]
+    if "subset" in prompt.keys():
+        subset = prompt["subset"]
+        del prompt["subset"]
     else:
         subset = False
 
@@ -206,7 +206,7 @@ def make_time_series(images, ground_truth, n_timepoints, time_increment = 1):
     gt_matrix = []
     for idx in range(images.shape[0]-(n_timepoints*time_increment)+1):
         image_matrix.append(images[idx:idx+(n_timepoints*time_increment):time_increment])
-        gt_matrix.append(ground_truth[idx])
+        gt_matrix.append(ground_truth[idx+(n_timepoints*time_increment)-1])
     return np.stack(image_matrix), np.stack(gt_matrix)
 
 

@@ -13,7 +13,7 @@ else:
     folder = Path("//lebnas1.epfl.ch/microsc125/deep_events/data/original_data/training_data")
 
 #%% Reconstruct the model database from the training_data folder
-# reconstruct_from_folder(folder, collection)
+reconstruct_from_folder(folder, collection)
 
 #%%
 collection = get_collection(collection)

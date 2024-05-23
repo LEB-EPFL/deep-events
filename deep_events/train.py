@@ -24,7 +24,7 @@ FOLDER = Path("//lebnas1.epfl.ch/microsc125/deep_events/data/training_data/")
 SETTINGS = {"nb_filters": 16,
             "first_conv_size": 12,
             "nb_input_channels": 1,
-            "batch_size": 16,
+            "batch_size": 32,
             "epochs": 20,
             "n_augmentations": 10,
             'brightness_range': [0.6, 1],
@@ -47,11 +47,13 @@ def distributed_train(folders, gpus, settings=SETTINGS):
     if not isinstance(settings, list):
         settings = [settings]*len(folders)
     distributed = [True]*len(folders)
-    # os.environ['TF_GPU_ALLOCATOR'] = ""
+    os.environ['TF_GPU_ALLOCATOR'] = 0
     os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = "true"
     # folders = [str(x) for x in folders]
     with Pool(min(5, len(folders)), initializer=init_pool, initargs=(l,)) as p:
         p.starmap(train, zip(folders, gpus, settings, distributed))
+    for folder in set(folders):
+        performance.performance_for_folder(folder, general_eval=False)
 
 def init_pool(l: Lock):
     global lock
@@ -65,34 +67,50 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS, distri
         lock.acquire()
         print("LOCKED")
     if folder is None:
-        latest_folder = get_latest_folder(FOLDER)
-    else:
-        latest_folder = folder
+        folder = get_latest_folder(FOLDER)
 
-    logdir = latest_folder.parents[0] / ("logs/scalars/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+
+    print(folder)
+    print(settings)
+    logs_dir = folder.parents[0] / "logs/scalars/"
+    name = short_name = Path(folder).parts[-1][:13]
+    logdir = logs_dir / name
+    i = 0
+    while logdir.exists():
+        name = short_name + f"_{i}"
+        logdir = logs_dir / name
+        print(name)
+        i += 1
+    print(f"Writing settings, logdir {logdir}")
+    writer = tf.summary.create_file_writer(str(logdir))
+    with writer.as_default():
+        for key, value in settings.items():
+            tf.summary.text(name=key, data=str(value), step=0)
+        writer.flush()
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
 
-    batch_generator = ArraySequence(latest_folder, settings["batch_size"],
+    batch_generator = ArraySequence(folder, settings["batch_size"],
                                      n_augmentations=settings["n_augmentations"],
                                      brightness_range=settings['brightness_range'],
                                      poisson=settings["poisson"])
-    validation_generator = ArraySequence(latest_folder, settings["batch_size"],
+    validation_generator = ArraySequence(folder, settings["batch_size"],
                                      n_augmentations=settings["n_augmentations"],
                                      brightness_range=settings['brightness_range'],
                                      poisson=settings["poisson"],
                                      validation=True)
 
     images_callback = LogImages(logdir, batch_generator, validation_generator, freq=1)
+    
 
-    time.sleep(1)
-    name = datetime.datetime.now().strftime("%Y%m%d_%H%M")
-    while Path(latest_folder / (name + "_settings.yaml")).is_file():
-        name = datetime.datetime.now().strftime("%Y%m%d_%H%M")
+    # time.sleep(1)
+    # name = datetime.datetime.now().strftime("%Y%m%d_%H%M")
+    # while Path(folder / (name + "_settings.yaml")).is_file():
+    #     name = datetime.datetime.now().strftime("%Y%m%d_%H%M")
 
     settings["logdir"] = logdir.name
-    settings_folder = str(latest_folder / (name + "_settings.yaml"))
+    settings_folder = str(folder / (name + "_settings.yaml"))
     print(F"SETTINGS LOCATION: {settings_folder}")
-    benedict(settings).to_yaml(filepath = latest_folder / (name + "_settings.yaml"))
+    benedict(settings).to_yaml(filepath = folder / (name + "_settings.yaml"))
     if distributed:
         lock.release()
         print("UNLOCKED")
@@ -127,8 +145,8 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS, distri
             print(f"Try next GPU: {gpu}")
         n_tries += 1
 
-    tf.keras.models.save_model(model, latest_folder / (name + "_model.h5"), save_traces=True)
-    performance.main(latest_folder / (name + "_model.h5"))
+    tf.keras.models.save_model(model, folder / (name + "_model.h5"), save_traces=True)
+    
 
 
 class LogImages(tf.keras.callbacks.Callback):
