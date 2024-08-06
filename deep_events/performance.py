@@ -15,14 +15,19 @@ from mitosplit_net import evaluation
 from skimage.filters import threshold_otsu
 
 FOLDER = Path("W:/deep_events/data/original_data/training_data")
+#w_tp=1, w_tn=1, w_fp=1, w_fn=1
+# MCC_WEIGHTS = [5, 1, 15, 1]
+# MCC_WEIGHTS = [5, 1, 5, 1]
+# MCC_WEIGHTS = [5, 3, 10, 1]
+MCC_WEIGHTS = [5, 5, 10, 1]
 
-def whole_ev_eval(eval_mask, pred_output_test, eval_images, plot, eval_frames):
+def whole_ev_eval(eval_mask, pred_output_test, eval_images, plot, eval_frames, threshold=None):
     event_values = []
     for event_frames in eval_frames:
         event_values.append(pred_output_test[event_frames[0]:event_frames[-1] + 1].max())
 
-    threshold = max(threshold_otsu(np.array(event_values)), 0.5)
-
+    if threshold is None:
+        threshold = max(threshold_otsu(np.array(event_values)), 0.5)
 
     TP, FP, FN, TN = 0, 0, 0, 0
     tp_values, fp_values, fn_values, tn_values = [], [], [], []
@@ -46,7 +51,6 @@ def whole_ev_eval(eval_mask, pred_output_test, eval_images, plot, eval_frames):
                 tn_values.append(max_pred)
 
     return [TP, FP, FN, TN, tp_values, fp_values, fn_values, tn_values, threshold]
-
 
 def event_loc_eval(eval_mask, pred_output_test, eval_images, plot, *_):
     labels = evaluation.label(pred_output_test, 0.7)
@@ -124,7 +128,8 @@ def main(model_dir: Path|str = None, write_yaml: bool = True, plot = False, gene
 
     # [TP, FP, FN, TP_px, FP_px, FN_px]
     # [TP, FP, FN, TN, tp_values, fp_values, fn_values, tn_values, threshold] for whole_event
-    stats = eval_func(eval_mask, pred_output_test, eval_images, plot, eval_event_frames)
+    threshold = optimize_threshold(eval_mask, pred_output_test, eval_images, model_dir, eval_event_frames)
+    stats = eval_func(eval_mask, pred_output_test, eval_images, plot, eval_event_frames, threshold)
     print(stats)
     precision = evaluation.get_precision(stats[0], stats[1])
     recall = evaluation.get_tpr(stats[0], stats[2])
@@ -149,7 +154,8 @@ def main(model_dir: Path|str = None, write_yaml: bool = True, plot = False, gene
         kappa = evaluation.get_kappa(*stats[:4])
         mcc = round(mcc*100)/100
         kappa = round(kappa*100)/100
-        summary = summary + f"mcc {mcc}\n    kappa {kappa}"
+        w_mcc = evaluation.get_weighted_mcc(*stats[:4], *MCC_WEIGHTS)
+        summary = summary + f"mcc {mcc}\n    w_mcc {w_mcc}\n    kappa {kappa}"
     
     print(summary)
 
@@ -165,6 +171,9 @@ def main(model_dir: Path|str = None, write_yaml: bool = True, plot = False, gene
         settings["performance"]["f1"] = f1
         if not no_details:
             settings["performance"]["mcc"] = mcc
+            settings["performance"]["w_mcc"] = w_mcc
+            settings["performance"]["w_mcc_weights"] = {"tp":MCC_WEIGHTS[0], "tn":MCC_WEIGHTS[1],
+                                                        "fp":MCC_WEIGHTS[2], "fn":MCC_WEIGHTS[3]}
             settings["performance"]["kappa"] = kappa
         settings["eval_data"] = training_folder
         settings["performance"]["eval"] = "v1" if no_details else "v2"
@@ -174,20 +183,83 @@ def main(model_dir: Path|str = None, write_yaml: bool = True, plot = False, gene
         bins = np.arange(0., 1.001, .05)
         plt.figure()
         plt.hist(stats[4], alpha=.5, label="tp_values", bins=bins, color="green", edgecolor="green", linewidth=2)
-        plt.hist(stats[5], alpha=.5, label="fp_values", bins=bins, color="green", edgecolor="red", linewidth=2)
-        plt.hist(stats[6], alpha=.5, label="fn_values", bins=bins, color="red", edgecolor="red", linewidth=2)
-        plt.hist(stats[7], alpha=.5, label="tn_values", bins=bins, color="red", edgecolor="green", linewidth=2)
+        plt.hist(stats[5], alpha=.5, label="fp_values", bins=bins, color="red", edgecolor="red", linewidth=2)
+        plt.hist(stats[6], alpha=.5, label="fn_values", bins=bins, color="red", edgecolor="green", linewidth=2)
+        plt.hist(stats[7], alpha=.5, label="tn_values", bins=bins, color="green", edgecolor="red", linewidth=2)
         plt.axvline(x=stats[8])
         plt.legend(loc='upper right')
         plt.savefig(str(model_dir).replace("model.h5", "hist.png"))
         plt.close()
 
-def performance_for_folder(folder:Path, general_eval=True):
+def performance_for_folder(folder:Path, general_eval=True, older_than=0):
     os.environ['CUDA_VISIBLE_DEVICES'] = "0"
     models = folder.rglob("*_model.h5")
     for model in models:
+        if int(model.parts[-1][:len(str(older_than))]) < older_than:
+            continue
         print('\033[1m' + str(model) + '\033[0m')
         main(model, general_eval=general_eval)
+
+def optimize_threshold(eval_mask, pred_output_test, eval_images, plot, eval_event_frames):
+    results = {"thresholds": [], "precision": [], "recall": [], "f1": [], "mcc": [], "kappa": [],
+           "specificity": [], "npv": [], "w_mcc": []}
+    for threshold in np.linspace(0, 1, 101):
+        stats = whole_ev_eval(eval_mask, pred_output_test, eval_images, False, eval_event_frames, threshold)
+        
+        try:
+            precision = evaluation.get_precision(stats[0], stats[1])
+        except:
+            precision = 0
+        try:
+            recall = evaluation.get_tpr(stats[0], stats[2])
+        except:
+            recall = 0
+        try:
+            f1 = round(evaluation.get_f1_score(precision, recall)*100)/100
+        except:
+            f1 = 0
+        specificity = round(stats[3] / (stats[3] + stats[1]) * 100)/100 if (stats[3] + stats[2]) != 0 else 0
+        npv = round(stats[3] / (stats[3] + stats[2]) * 100)/100 if (stats[3] + stats[2]) != 0 else 0
+        precision = round(precision*100)/100
+        recall = round(recall*100)/100 
+        mcc = evaluation.get_mcc(*stats[:4])
+        #w_tp=1, w_tn=1, w_fp=1, w_fn=1
+
+        w_mcc = evaluation.get_weighted_mcc(*stats[:4], *MCC_WEIGHTS)
+        kappa = evaluation.get_kappa(*stats[:4])
+        mcc = round(mcc*100)/100
+        kappa = round(kappa*100)/100
+        results["thresholds"].append(threshold)
+        results["precision"].append(precision)
+        results["specificity"].append(specificity)
+        results["npv"].append(npv)
+        results["recall"].append(recall)
+        results["f1"].append(f1)
+        results["mcc"].append(mcc)
+        results["w_mcc"].append(w_mcc)
+        results["kappa"].append(kappa)
+    wmcc_threshold = results["thresholds"][results["w_mcc"].index(max(results["w_mcc"]))]
+    try:
+        recall_threshold = max([x for i, x in enumerate(results["thresholds"]) if results["recall"][i] > 0.5])
+    except ValueError:
+        recall_threshold = 0
+    print(wmcc_threshold, recall_threshold)
+    threshold = min(wmcc_threshold, recall_threshold)
+    # threshold = wmcc_threshold
+    threshold = max(threshold, 0.5)
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.figure()
+        scores = ["f1", "mcc", "w_mcc", "recall"]
+        for score in scores:
+            plt.plot(results["thresholds"], results[score])
+        plt.axvline(wmcc_threshold)
+        plt.axvline(threshold)
+        plt.legend(scores)
+        plt.savefig(str(plot).replace("model.h5", "perf.png"))
+        plt.close()
+    return threshold
+
 
 def visual_eval(training_folder, model_name = None):
     import matplotlib.pyplot as plt
@@ -217,9 +289,9 @@ if __name__ == "__main__":
 #     main(Path("W:/deep_events/data/original_data/training_data/20230626_1508_brightfield_cos7/20230626_1509_model.h5"))
     # main(Path("W:/deep_events/data/original_data/training_data/20230626_1509_fluorescence_zeiss_cos7/20230626_1509_model.h5"))
     # main(Path("Z:/_Lab members/Juan/Experiments/230222_MitoSplitNet_TrainingSet_U2OS_iSIM/training_data/20230611_0201_isim_cos7/20230611_0202_model.h5"))
-    folder = Path("W:/deep_events/data/original_data/training_data/20240407_2011_brightfield_cos7_n5_f1_t0.05")
+    folder = Path("W:/deep_events/data/original_data/training_data/20240704_0955_brightfield_cos7_n7_f1_s0.01")
     # folder = Path(r"Y:\SHARED\_Scientific projects\ADA_WS_JCL\Phase_PDA\training_data\20231126_1914_zeiss_s1_iFalse_mitochondria") # "Z:/SHARED/_Scientific projects/ADA_WS_JCL/Phase_PDA/training_data/20231121_1606_zeiss_s1_iFalse_mitochondria")
-    model = "20240407_2012_model" + ".h5"
+    model = "20240704_0955_model" + ".h5"
     visual_eval(folder, model)
     # visual_eval(Path("W:/deep_events/data/original_data/training_data/20230718_0123_brightfield_cos7"),
     #             "20230718_0128_model.h5")

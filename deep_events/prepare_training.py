@@ -16,7 +16,6 @@ from deep_events.database import get_collection
 
 folder = Path("Z:/_Lab members/Emily/event_data")
 
-
 def main():
     training_folder = make_training_folder(folder)
 
@@ -196,6 +195,8 @@ def load_folder(parent_folder:Path, db_files: List = None, training_folder: str 
                 save_data(training_folder, all_images[train_eval], all_gt[train_eval], "train")
                 all_images[train_eval] = []
                 all_gt[train_eval] = []
+        # for item in all_images[train_eval]:
+        #     print(item.shape)
         all_images[train_eval] = np.concatenate(all_images[train_eval])
         all_gt[train_eval] = np.concatenate(all_gt[train_eval])
     return all_images, all_gt

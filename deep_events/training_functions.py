@@ -3,12 +3,13 @@ import numpy as np
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Activation
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Conv3D, MaxPooling3D, Dropout
-from tensorflow.keras.layers import concatenate, UpSampling2D, BatchNormalization, Reshape
+from tensorflow.keras.layers import concatenate, UpSampling2D, BatchNormalization, Reshape, UpSampling3D 
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.metrics import BinaryAccuracy, MeanSquaredError
+from tensorflow.keras.regularizers import l2
 import keras.backend as K
 import tensorflow as tf
-from functools import partial
+
 
 
 tf.keras.utils.get_custom_objects().clear()
@@ -97,96 +98,64 @@ def create_model(settings, data_shape, printSummary=False):
 
     metrics = [WMSELoss(pos_weight=3, name='wmse'), WBCELoss(pos_weight=3, name='wbce'), MeanSquaredError()]
 
-    #Network architecture
-    if len(data_shape) > 3:
-        settings["nb_input_channels"] = data_shape[-1]
-    input_shape = (None, None, settings["nb_input_channels"])
-    print(f"INPUT SHAPE {input_shape}")
-    inputs = Input(shape=input_shape)
-
     if settings["loss"] == "soft_dice":
         final_activation = "sigmoid" #"linear"
     else:
         final_activation = "sigmoid"
+
+
     dropout_rate = settings.get("dropout_rate", 0)
+    l2_reg = l2(1e-4)
 
-    
+    # Assuming data_shape is (batch_size, height, width, timepoints)
+    input_shape = (*data_shape, 1)  # Add channel dimension
+    inputs = Input(shape=input_shape)
+
     # Encoder
-    print(f'* Start Encoder Section dropout: {dropout_rate}*')
+    c1 = Conv3D(nb_filters, (3, 3, 3), activation='relu', padding='same', kernel_regularizer=l2_reg)(inputs)
+    c1 = Dropout(dropout_rate)(c1)
+    c1 = Conv3D(nb_filters, (3, 3, 3), activation='relu', padding='same', kernel_regularizer=l2_reg)(c1)
+    p1 = MaxPooling3D((2, 2, 2))(c1)
 
-    down0 = Conv2D(nb_filters, (firstConvSize, firstConvSize), padding='same')(inputs)
-    down0 = BatchNormalization()(down0)
-    down0 = Activation('relu')(down0)
-    down0 = Dropout(dropout_rate)(down0)
-    down0 = Conv2D(nb_filters, (firstConvSize, firstConvSize), padding='same')(down0)
-    down0 = BatchNormalization()(down0)
-    down0 = Activation('relu')(down0)
-    down0 = Dropout(dropout_rate)(down0)
-    down0_pool = MaxPooling2D((2, 2), strides=(2, 2), padding='same')(down0)
+    c2 = Conv3D(nb_filters*2, (3, 3, 3), activation='relu', padding='same', kernel_regularizer=l2_reg)(p1)
+    c2 = Dropout(dropout_rate)(c2)
+    c2 = Conv3D(nb_filters*2, (3, 3, 3), activation='relu', padding='same', kernel_regularizer=l2_reg)(c2)
+    p2 = MaxPooling3D((2, 2, 2))(c2)
 
-    down1 = Conv2D(nb_filters*2, (3, 3), padding='same')(down0_pool)
-    down1 = BatchNormalization()(down1)
-    down1 = Activation('relu')(down1)
-    down1 = Dropout(dropout_rate)(down1)
-    down1 = Conv2D(nb_filters*2, (3, 3), padding='same')(down1)
-    down1 = BatchNormalization()(down1)
-    down1 = Activation('relu')(down1)
-    down1 = Dropout(dropout_rate)(down1)
-    down1_pool = MaxPooling2D((2, 2), strides=(2, 2))(down1)
+    c3 = Conv3D(nb_filters*4, (3, 3, 3), activation='relu', padding='same', kernel_regularizer=l2_reg)(p2)
+    c3 = Dropout(dropout_rate)(c3)
+    c3 = Conv3D(nb_filters*4, (3, 3, 3), activation='relu', padding='same', kernel_regularizer=l2_reg)(c3)
+    p3 = MaxPooling3D((2, 2, 2))(c3)
 
-    # print('Triple lazer U-net')
-    # down2 = Conv2D(nb_filters*2, (3, 3), padding='same')(down1_pool)
-    # down2 = BatchNormalization()(down2)
-    # down2 = Activation('relu')(down2)
-    # down2 = Conv2D(nb_filters*2, (3, 3), padding='same')(down2)
-    # down2 = BatchNormalization()(down2)
-    # down2 = Activation('relu')(down2)
-    # down2_pool = MaxPooling2D((2, 2), strides=(2, 2))(down2)
+    # Bottleneck
+    c4 = Conv3D(nb_filters*8, (3, 3, 3), activation='relu', padding='same', kernel_regularizer=l2_reg)(p3)
+    c4 = Dropout(dropout_rate)(c4)
+    c4 = Conv3D(nb_filters*8, (3, 3, 3), activation='relu', padding='same', kernel_regularizer=l2_reg)(c4)
 
-    # Center
-    print('* Start Center Section *')
-    center = Conv2D(nb_filters*4, (3, 3), padding='same')(down1_pool)
-    center = BatchNormalization()(center)
-    center = Activation('relu')(center)
-    center = Dropout(dropout_rate)(center)
-    center = Conv2D(nb_filters*4, (3, 3), padding='same')(center)
-    center = BatchNormalization()(center)
-    center = Activation('relu')(center)
-    center = Dropout(dropout_rate)(center)
+    # Decoder
+    u5 = UpSampling3D((2, 2, 2))(c4)
+    u5 = concatenate([u5, c3])
+    c5 = Conv3D(nb_filters*4, (3, 3, 3), activation='relu', padding='same', kernel_regularizer=l2_reg)(u5)
+    c5 = Dropout(dropout_rate)(c5)
+    c5 = Conv3D(nb_filters*4, (3, 3, 3), activation='relu', padding='same', kernel_regularizer=l2_reg)(c5)
 
-    # up2 = UpSampling2D((2, 2))(center)
-    # up2 = concatenate([down2, up2], axis=3)
-    # up2 = Conv2D(nb_filters*2, (3, 3), padding='same')(up2)
-    # up2 = BatchNormalization()(up2)
-    # up2 = Activation('relu')(up2)
-    # up2 = Conv2D(nb_filters*2, (3, 3), padding='same')(up2)
-    # up2 = BatchNormalization()(up2)
-    # up2 = Activation('relu')(up2)
+    u6 = UpSampling3D((2, 2, 2))(c5)
+    u6 = concatenate([u6, c2])
+    c6 = Conv3D(nb_filters*2, (3, 3, 3), activation='relu', padding='same', kernel_regularizer=l2_reg)(u6)
+    c6 = Dropout(dropout_rate)(c6)
+    c6 = Conv3D(nb_filters*2, (3, 3, 3), activation='relu', padding='same', kernel_regularizer=l2_reg)(c6)
 
-    up1 = UpSampling2D((2, 2))(center)
-    up1 = concatenate([down1, up1], axis=3)
-    up1 = Conv2D(nb_filters*2, (3, 3), padding='same')(up1)
-    up1 = BatchNormalization()(up1)
-    up1 = Activation('relu')(up1)
-    up1 = Dropout(dropout_rate)(up1)
-    up1 = Conv2D(nb_filters*2, (3, 3), padding='same')(up1)
-    up1 = BatchNormalization()(up1)
-    up1 = Activation('relu')(up1)
-    up1= Dropout(dropout_rate)(up1)
+    u7 = UpSampling3D((2, 2, 2))(c6)
+    u7 = concatenate([u7, c1])
+    c7 = Conv3D(nb_filters, (3, 3, 3), activation='relu', padding='same', kernel_regularizer=l2_reg)(u7)
+    c7 = Dropout(dropout_rate)(c7)
+    c7 = Conv3D(nb_filters, (3, 3, 3), activation='relu', padding='same', kernel_regularizer=l2_reg)(c7)
 
-    up0 = UpSampling2D((2, 2))(up1)
-    up0 = concatenate([down0, up0], axis=3)
-    up0 = Conv2D(nb_filters, (3, 3), padding='same')(up0)
-    up0 = BatchNormalization()(up0)
-    up0 = Activation('relu')(up0)
-    up0 = Dropout(dropout_rate)(up0)
-    up0 = Conv2D(nb_filters, (3, 3), padding='same')(up0)
-    up0 = BatchNormalization()(up0)
-    up0 = Activation('relu')(up0)
-    up0 = Dropout(dropout_rate)(up0)
+    # Output layer
+    outputs = Conv3D(1, (1, 1, 1), activation='sigmoid')(c7)
+    outputs = Reshape((data_shape[1], data_shape[2], data_shape[3]))(outputs)  # Reshape to match original 3D output shape
 
-    outputs = Conv2D(1, (1, 1), activation=final_activation)(up0)  # was relu also before
-    outputs.set_shape([None, None, None, 1])
+
 
     model = Model(inputs=inputs, outputs=outputs)
     model.compile(optimizer=optimizer_type, loss=loss, metrics=metrics)
@@ -194,6 +163,29 @@ def create_model(settings, data_shape, printSummary=False):
         print(model.summary())
     return model
 
+def conv_block(x, filters, kernel_size, l2_reg, dropout_rate, dim):
+    if dim == 3:
+        x = Conv3D(filters, kernel_size, padding='same', kernel_regularizer=l2_reg)(x)
+    else:
+        x = Conv2D(filters, kernel_size, padding='same', kernel_regularizer=l2_reg)(x)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+    x = Dropout(dropout_rate)(x)
+    return x
+
+def pool_block(x, pool_size, dim):
+    if dim == 3:
+        x = MaxPooling3D(pool_size, strides=pool_size, padding='same')(x)
+    else:
+        x = MaxPooling2D(pool_size, strides=pool_size, padding='same')(x)
+    return x
+
+def upsample_block(x, size, dim):
+    if dim == 3:
+        x = UpSampling3D(size)(x)
+    else:
+        x = UpSampling2D(size)(x)
+    return x
 
 def get_loss_function(settings: dict = None):
     if settings is None:
@@ -218,6 +210,7 @@ def get_loss_function(settings: dict = None):
         return "binary_crossentropy"
     else:
         NotImplementedError(f"{loss} has not been implemented as loss function in this framework.")
+
 
 
 

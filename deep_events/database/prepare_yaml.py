@@ -11,7 +11,7 @@ from deep_events.database.convenience import glob_zarr
 # folder = "Z:/_Lab members/Emily/"
 # folder = Path("//lebnas1.epfl.ch/microsc125/deep_events/data/original_data/20230619_cos7_bf_zeiss")
 # folder = Path("//lebnas1.epfl.ch/microsc125/deep_events/experiments/exploration/20240228_phaseEDA")
-folder = Path("//lebnas1.epfl.ch/microsc125/deep_events/data/phaseEDA/20240314_phaseEDA")
+folder = Path("//sb-nas1.rcp.epfl.ch/LEB/Scientific_projects/deep_events_WS/data/phaseEDA/20240619_phase_EDA")
 
     #%%
 def prepare_all_folder(folder: str):

@@ -111,7 +111,7 @@ class FileSequence(Sequence):
 
 class ArraySequence(Sequence):
     def __init__(self, data_dir:Path, batch_size, augment=True, n_augmentations=10,
-                 brightness_range=[0.9, 1], poisson=0, validation=False):
+                 brightness_range=[0.9, 1], poisson=0, subset_fraction=1, validation=False):
         self.data_dir = data_dir
         self.n_augmentations = n_augmentations
         self.batch_size = batch_size
@@ -119,7 +119,9 @@ class ArraySequence(Sequence):
         self.brightness_range = brightness_range
         self.poisson = poisson
         self.generator = GENERATOR
+        self.subset_fraction = subset_fraction if not validation else 1.0 
 
+        self.validation = validation
         if validation:
             self.images_file = data_dir / "eval_images_00.tif"
             self.gt_file = data_dir / "eval_gt_00.tif"
@@ -138,30 +140,36 @@ class ArraySequence(Sequence):
 
         print("Number of frames in generator: ", self.num_samples)
 
+        self.on_epoch_end()
+
+    def on_epoch_end(self):
+        # Update indices after each epoch
+        total_samples = self.num_samples
+        subset_size = max(1, int(total_samples * self.subset_fraction))
+        self.indices = np.random.choice(total_samples, subset_size, replace=False) if not self.validation else np.arange(total_samples)
+
     def __len__(self):
-        return int(np.ceil(self.num_samples * self.n_augmentations / float(self.batch_size)))
+        return int(np.ceil(len(self.indices) * self.n_augmentations / float(self.batch_size)))
 
     def __getitem__(self, idx):
         batch_x = []
         batch_y = []
-        start_index = (idx * self.batch_size) % self.num_samples
-        # print("\n start", start_index)
-        # end_index = min((idx + 1) * self.batch_size, self.num_samples)
-        i = -1
+        start_index = (idx * self.batch_size) % len(self.indices)
+        i = start_index
+
         while True:
-            i += 1
-            #reset if we went over the total number of frames
-            i = 0 if i >= self.num_samples else i
-            if start_index <= 0:
-                x = self.images_array[i]
-                y = self.gt_array[i]
-                if x.ndim == 2:
-                    x = np.expand_dims(x, axis=-1)
-                    y = np.expand_dims(y, axis=-1)
-            else:
-                start_index -= 1
-                continue
-            if self.augment:
+            if i >= len(self.indices):
+                i = 0
+
+            index = self.indices[i]
+            x = self.images_array[index]
+            y = self.gt_array[index]
+
+            if x.ndim == 2:
+                x = np.expand_dims(x, axis=-1)
+                y = np.expand_dims(y, axis=-1)
+
+            if self.augment and not self.validation:
                 x, y = self.apply_augmentation(x, y)
 
             batch_x.append(x)
@@ -169,6 +177,8 @@ class ArraySequence(Sequence):
 
             if len(batch_x) >= self.batch_size:
                 break
+
+            i += 1
 
         batch_x = np.array(batch_x)
         batch_y = np.array(batch_y)

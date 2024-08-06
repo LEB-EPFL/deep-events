@@ -20,7 +20,7 @@ from deep_events.generator import ArraySequence
 from deep_events.database.convenience import get_latest_folder
 from deep_events import performance
 
-FOLDER = Path("//lebnas1.epfl.ch/microsc125/deep_events/data/training_data/")
+FOLDER = Path("//sb-nas1.rcp.epfl.ch/LEB/Scientific_projects/deep_events_WS/data/original_data/training_data/")
 SETTINGS = {"nb_filters": 16,
             "first_conv_size": 12,
             "nb_input_channels": 1,
@@ -29,14 +29,15 @@ SETTINGS = {"nb_filters": 16,
             "n_augmentations": 10,
             'brightness_range': [0.6, 1],
             "loss": 'binary_crossentropy',
-            "poisson": 0}
+            "poisson": 0,
+            "subset_fraction": 1}
 
 
 
 def main(): # pragma: no cover
     tf.keras.backend.clear_session()
-    gpus = ['GPU:1/', 'GPU:2/', 'GPU:4/']
-    folders = ["20230412_1622", "20230413_1436", "20230413_1750"]
+    gpus = ['GPU:1/']
+    folders = ["20240806_1401_brightfield_cos7_n3_f1"]
     folders = [FOLDER/folder for folder in folders]
     with Pool(3) as p:
         p.starmap(train, zip(folders, gpus))
@@ -47,7 +48,7 @@ def distributed_train(folders, gpus, settings=SETTINGS):
     if not isinstance(settings, list):
         settings = [settings]*len(folders)
     distributed = [True]*len(folders)
-    os.environ['TF_GPU_ALLOCATOR'] = 0
+    # os.environ['TF_GPU_ALLOCATOR'] = 0
     os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = "true"
     # folders = [str(x) for x in folders]
     with Pool(min(5, len(folders)), initializer=init_pool, initargs=(l,)) as p:
@@ -88,11 +89,13 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS, distri
             tf.summary.text(name=key, data=str(value), step=0)
         writer.flush()
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
+    reduce_lr_callback = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, min_lr=1e-6)
 
     batch_generator = ArraySequence(folder, settings["batch_size"],
                                      n_augmentations=settings["n_augmentations"],
                                      brightness_range=settings['brightness_range'],
-                                     poisson=settings["poisson"])
+                                     poisson=settings["poisson"],
+                                     subset_fraction=settings["subset_fraction"])
     validation_generator = ArraySequence(folder, settings["batch_size"],
                                      n_augmentations=settings["n_augmentations"],
                                      brightness_range=settings['brightness_range'],
@@ -115,7 +118,6 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS, distri
         lock.release()
         print("UNLOCKED")
 
-
     n_tries = 0
     max_tries = 10
     while n_tries < max_tries:
@@ -134,7 +136,7 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS, distri
                                     steps_per_epoch = steps_per_epoch,
                                     shuffle=True,
                                     verbose = 1,
-                                    callbacks = [tensorboard_callback, images_callback],
+                                    callbacks = [tensorboard_callback, images_callback, reduce_lr_callback],
                                     validation_steps=20)
             n_tries = max_tries
         except Exception as e:
@@ -188,6 +190,9 @@ class LogImages(tf.keras.callbacks.Callback):
 
 
 if __name__ == "__main__":
-    pass
+    gpu = 'GPU:1/'
+    folder = FOLDER / "20240806_1401_brightfield_cos7_n3_f1"
+
+    train(folder, gpu)
     # import os
     # os.environ["CUDA_VISIBLE_DEVICES"] = "3" # set the GPU ID
