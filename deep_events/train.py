@@ -25,12 +25,12 @@ SETTINGS = {"nb_filters": 16,
             "first_conv_size": 12,
             "nb_input_channels": 1,
             "batch_size": 32,
-            "epochs": 20,
-            "n_augmentations": 10,
+            "epochs": 10,
+            "n_augmentations": 30,
             'brightness_range': [0.6, 1],
             "loss": 'binary_crossentropy',
             "poisson": 0,
-            "subset_fraction": 1}
+            "subset_fraction": 0.02}
 
 
 
@@ -89,7 +89,7 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS, distri
             tf.summary.text(name=key, data=str(value), step=0)
         writer.flush()
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
-    reduce_lr_callback = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, min_lr=1e-6)
+    reduce_lr_callback = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.7, patience=5, min_lr=1e-6)
 
     batch_generator = ArraySequence(folder, settings["batch_size"],
                                      n_augmentations=settings["n_augmentations"],
@@ -191,7 +191,7 @@ class LogImages(tf.keras.callbacks.Callback):
 
 if __name__ == "__main__":
     gpu = 'GPU:1/'
-    folder = FOLDER / "20240806_1401_brightfield_cos7_n3_f1"
+    folder = FOLDER / "20240806_1415_brightfield_cos7_n3_f1"
 
     train(folder, gpu)
     # import os
