@@ -218,7 +218,7 @@ def optimize_threshold(eval_mask, pred_output_test, eval_images, plot, eval_even
             f1 = round(evaluation.get_f1_score(precision, recall)*100)/100
         except:
             f1 = 0
-        specificity = round(stats[3] / (stats[3] + stats[1]) * 100)/100 if (stats[3] + stats[2]) != 0 else 0
+        specificity = round(stats[3] / (stats[3] + stats[1]) * 100)/100 if (stats[3] + stats[1]) != 0 else 0
         npv = round(stats[3] / (stats[3] + stats[2]) * 100)/100 if (stats[3] + stats[2]) != 0 else 0
         precision = round(precision*100)/100
         recall = round(recall*100)/100 

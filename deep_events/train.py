@@ -30,7 +30,8 @@ SETTINGS = {"nb_filters": 16,
             'brightness_range': [0.6, 1],
             "loss": 'binary_crossentropy',
             "poisson": 0,
-            "subset_fraction": 0.02}
+            "subset_fraction": 0.02,
+            "initial_learning_rate": 0.5e-3}
 
 
 
@@ -53,8 +54,10 @@ def distributed_train(folders, gpus, settings=SETTINGS):
     # folders = [str(x) for x in folders]
     with Pool(min(5, len(folders)), initializer=init_pool, initargs=(l,)) as p:
         p.starmap(train, zip(folders, gpus, settings, distributed))
+    time.sleep(30)  # allow for gpu cleanup
     for folder in set(folders):
         performance.performance_for_folder(folder, general_eval=False)
+    time.sleep(30)  # allow for gpu cleanup
 
 def init_pool(l: Lock):
     global lock
@@ -89,7 +92,7 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS, distri
             tf.summary.text(name=key, data=str(value), step=0)
         writer.flush()
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
-    reduce_lr_callback = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.7, patience=5, min_lr=1e-6)
+    reduce_lr_callback = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=4, min_lr=1e-6)
 
     batch_generator = ArraySequence(folder, settings["batch_size"],
                                      n_augmentations=settings["n_augmentations"],

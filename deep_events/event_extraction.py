@@ -7,7 +7,7 @@ import scipy.ndimage as ndi
 from tqdm import tqdm
 
 
-def basic_scan(data, size=256, threshold=0.7):
+def basic_scan(data, size=256, threshold=0.7, additional_post_frames=1):
     open_events = []
     framenumber = len(data)
     ev_n = 0
@@ -32,7 +32,7 @@ def basic_scan(data, size=256, threshold=0.7):
             actualist.pop(0)
 
     for ev in open_events:
-        ev.last_frame = ev.last_frame+1
+        ev.last_frame = ev.last_frame+additional_post_frames
     return open_events
 
 
