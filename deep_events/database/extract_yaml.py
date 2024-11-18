@@ -126,9 +126,13 @@ def extract_foldername(folder_dict: Union[dict, str, Path], folder):
 
 #%%
 def extract_folders(path: Path):
-    folders = list(Path(path).glob("**/*.ome.tif*"))
+    folders = glob_zarr(path, r'*.ome.tif*')
+    zarr_folders = glob_zarr(path, r'*.ome.zarr')
+    print(zarr_folders)
+    zarr_folders = [folder / 'p0' for folder in zarr_folders]
+    folders.extend(zarr_folders)
     print(folders)
-    folders = [folder.parents[0] for folder in folders]
+    folders = [Path(folder).parents[0] for folder in folders]
     for folder in folders:
         print(folder)
         # pbar.set_description(str(folder))
@@ -137,5 +141,5 @@ def extract_folders(path: Path):
         set_defaults(folder)
 
 if __name__ == "__main__": # pragma: no cover
-    extract_folders(MAIN_PATH)
-# %%
+    # extract_folders(MAIN_PATH)# %%
+    extract_folders(Path('X:/Scientific_projects/deep_events_WS/data/phaseEDA/20240719_drp1emerald'))

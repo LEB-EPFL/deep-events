@@ -4,20 +4,26 @@ from pathlib import Path
 import os
 from deep_events.database.folder_benedict import get_dict
 import tifffile
+from ome_zarr.io import parse_url
+from ome_zarr.reader import Reader
 import pandas as pd
 from deep_events.myfunctions import poi
 import numpy as np
+from deep_events.database.convenience import glob_zarr
 
-folder = "//lebnas1.epfl.ch/microsc125/deep_events/data/original_data/20231010_cos7_bf_zeiss/"
+folder = "//sb-nas1.rcp.epfl.ch/LEB/Scientific_projects/deep_events_WS/data/original_data/20231114_series_COS7_zeiss_brightfield"
+# folder = "//sb-nas1.rcp.epfl.ch/LEB/Scientific_projects/deep_events_WS/data/phaseEDA/20240719_drp1emerald"
 SIGMA = 5
+csv_file_pattern = 'ld_mito'
 
-def csv_to_gaussian(folder, SIGMA):
-    db_files = list(Path(folder).rglob(r'db.yaml'))
+def csv_to_gaussian(folder, SIGMA, csv_file_pattern=''):
+    db_files = glob_zarr(Path(folder), r'db.yaml')
 
     # From all the folders with a db.yaml file get the csv file
     csv_files = []
     for db_file in db_files:
-        csv = list(Path(os.path.dirname(db_file)).glob(r'*.csv'))
+        print(db_file)
+        csv = list(Path(os.path.dirname(db_file)).glob(csv_file_pattern + '*.csv'))
         if csv:
             csv_files.append(csv[0])
 
@@ -28,14 +34,32 @@ def csv_to_gaussian(folder, SIGMA):
     for csv in csv_files:
         csv_name = csv
         print(csv_name)
-        img_file = sorted(Path(os.path.dirname(csv)).glob(r'*.ome.tif'), key=os.path.getmtime)[-1]
+        try:
+            img_file = sorted(glob_zarr(Path(os.path.dirname(csv)), r'*.ome.tif'), key=os.path.getmtime)[-1]
+            file_type = 'tif'
+        except IndexError:
+            img_file = Path(os.path.dirname(csv))
+            file_type = 'zarr'
+
         meta = get_dict(os.path.dirname(img_file))
-        if meta['scale_csv'] == "inverse":
-            scale_value = 1/meta['ome']['physical_size_x']
-        elif meta['scale_csv']:
-            scale_value = meta['ome'].get('physical_size_x', 1)
+        def get_scale_value(meta, value):
+            if value == "inverse":
+                scale_value = 1/meta['ome']['physical_size_x']
+            elif value is False:
+                scale_value = 1
+            elif value:
+                scale_value = meta['ome'].get('physical_size_x', 1)
+            else:
+                scale_value = 1
+            return scale_value
+        
+        if isinstance(meta.get('scale_csv', False), dict):
+            for key, value in meta.get('scale_csv').items():
+                if csv_file_pattern in key:
+                    scale_value = get_scale_value(meta, value)
         else:
-            scale_value = 1
+            scale_value = get_scale_value(meta, meta.get('scale_csv', False))
+
 
         csv = pd.read_csv(csv)
         print('scaling by', scale_value)
@@ -51,14 +75,24 @@ def csv_to_gaussian(folder, SIGMA):
         print("If not, check scale_csv value in db.yaml file.")
 
         sigma = (SIGMA, SIGMA)
-        in_name = os.path.join(os.path.dirname(img_file), 'ground_truth.tiff')
+        in_name = os.path.join(os.path.dirname(img_file), f'ground_truth_{csv_file_pattern}.tiff')
 
-        with tifffile.TiffFile(img_file) as tif:
-            framenum = len(tif.pages)
-            size = tif.pages[0].shape
+        if file_type == 'tif':
+            with tifffile.TiffFile(img_file) as tif:
+                framenum = len(tif.pages)
+                size = tif.pages[0].shape
+            group = None    
+        if file_type == 'zarr':
+            reader = Reader(parse_url(img_file))
+            node = list(reader())[0]
+            framenum = node.data[0].shape[0]
+            size = node.data[0].shape[-2:]
+            group = parse_url(img_file, mode='a')
 
-        poi(csv,in_name,sigma,size,framenum, size)
+
+
+        poi(csv,in_name,sigma,size,framenum, size, None, group)
 
 
 if __name__ == "__main__":
-    csv_to_gaussian(folder, SIGMA)
+    csv_to_gaussian(folder, SIGMA, csv_file_pattern)

@@ -76,7 +76,7 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS, distri
 
     print(folder)
     print(settings)
-    logs_dir = folder.parents[0] / "logs/scalars/"
+    logs_dir = folder.parents[0] / (settings.get("log_dir", "logs") + "/scalars/")
     name = short_name = Path(folder).parts[-1][:13]
     logdir = logs_dir / name
     i = 0

@@ -8,6 +8,8 @@ import time
 from scipy.ndimage import gaussian_filter
 import csv
 
+import matplotlib.pyplot as plt
+
 from sklearn.model_selection import train_test_split
 import tifffile
 
@@ -214,8 +216,8 @@ def make_time_series(images, ground_truth, n_timepoints, time_increment = 1):
 def load_tifs(folder:Path):
     image_file = folder / "images.tif"
     gt_file = folder / "ground_truth.tif"
-    images = tifffile.imread(image_file).astype(np.float32)
-    ground_truth = tifffile.imread(gt_file).astype(np.float32)
+    images = tifffile.imread(image_file)
+    ground_truth = tifffile.imread(gt_file)
     return images, ground_truth
 
 
@@ -232,8 +234,8 @@ def normalize_stacks(stacks:dict):
                 norm_frame = norm_frame/255
             if np.max(norm_frame) > 0.2:
                 norm_frame = norm_frame/np.max(norm_frame)
-
             stacks[key][index] = norm_frame
+        stacks[key] = stacks[key].astype(np.float32)
     return stacks
 
 

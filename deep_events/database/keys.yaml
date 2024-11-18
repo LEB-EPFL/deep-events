@@ -30,3 +30,4 @@ defaults:
   typically_use: yes
   augmented: no
   scale_csv: yes
+  type: original

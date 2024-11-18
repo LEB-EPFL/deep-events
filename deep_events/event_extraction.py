@@ -30,7 +30,7 @@ def basic_scan(data, size=256, threshold=0.7, additional_post_frames=1):
                                               actualist[0]['z']],i,ev_n))
                 ev_n += 1
             actualist.pop(0)
-
+    print('ADDITIONAL POST FRAMES', additional_post_frames)
     for ev in open_events:
         ev.last_frame = ev.last_frame+additional_post_frames
     return open_events
@@ -85,7 +85,31 @@ class EDA_Event():
         self.last_frame = first_frame
 
 
-def crop_images(event, imgs, channel=0, size=256):
+def crop_images_array(event, imgs, channel=0, size=256):
+    dataar=np.zeros((event.last_frame-event.first_frame, size, size))
+    if len(imgs.shape) == 4:
+        n_channels = imgs.shape[1]
+    else:
+        n_channels = 1
+
+    for index, frame in enumerate(range(event.first_frame + 1, event.last_frame + 1)):
+        box = box_from_pos(event.c_p['x'], event.c_p['y'], size)
+        box = box_edge_check(box, imgs.shape[-2:])
+        try:
+            if len(imgs.shape) == 3:
+                dataar[index] = imgs[frame, box[1]:box[3], box[0]:box[2]]
+            else:
+                dataar[index] = imgs[frame, channel, box[1]:box[3], box[0]:box[2]]    
+        except IndexError:
+            print("frame to extract", frame)
+            print("not continuing")
+            print("array before crop", dataar.shape)
+            dataar = dataar[:index]
+            print("array after crop", dataar.shape)
+            break
+    return dataar, box
+
+def crop_images_tif(event, imgs, channel=0, size=256):
     dataar=np.zeros((event.last_frame-event.first_frame, size, size))
     if len(imgs.series[0].shape) == 4:
         n_channels = imgs.series[0].shape[1]
@@ -107,7 +131,6 @@ def crop_images(event, imgs, channel=0, size=256):
             print("array after crop", dataar.shape)
             break
     return dataar, box
-
 
 def box_from_pos(x, y, size):
     box = [0, 0, 0, 0]

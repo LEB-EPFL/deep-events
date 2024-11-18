@@ -60,12 +60,14 @@ def get_latest(pattern, folder:Path):
     return folder / files[0]
 
 
-def glob_zarr(folder: Path, pattern: str = "*.ome.zarr", ignore = r".*/p\d$"):
+def glob_zarr(folder: Path, pattern: str = "*.ome.zarr", ignore = r".*/p\d$", return_type=None):
     "glob that ignores big subfolder structures in zarr files"
     def recurse(folder: Path, results: list, pattern: str, ignore: str):
         if (not folder.is_dir() and "zarr" in pattern) or re.match(ignore, folder.as_posix()):
             return results
         items = list(folder.glob(pattern))
+        if return_type:
+            items = [return_type(item) for item in items]
         subfolders = list(folder.glob("*"))
         for item in items:
             subfolders.remove(item)

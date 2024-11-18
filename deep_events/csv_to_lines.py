@@ -12,10 +12,10 @@ import matplotlib.pyplot as plt
 import cv2
 from tqdm import tqdm
 from benedict import benedict
+from deep_events.database.convenience import glob_zarr
 
 #%% Get tif file
-FOLDER = Path('Z:/_Scientific projects/ADA_WS_JCL/230511_PDA_TrainingSet_iSIM/Images_mtStayGold-TfamRFP_iSIM')
-
+FOLDER = Path('//sb-nas1.rcp.epfl.ch/LEB/Scientific_projects/deep_events_WS/data/original_data/')
 
 #%% Get data from csv and construct Linestrings
 def get_lines_from_csv(csv_file: Path) -> List[List[float]]:
@@ -84,38 +84,40 @@ def draw_lines(lines: List[Tuple[LineString, int]], shape: tuple, width: int) ->
     return line_images
 
 
-def create_ground_thruth(folder, filename):
-    WIDTH = 7
-    csv_files = Path(folder).rglob(filename)
-    for csv_file in tqdm(csv_files):
-        print(csv_file.parts[-3:-1])
-        # get newest tif file
-        tif_file = max(csv_file.parent.glob('*.ome.tif*'), key=lambda x: x.stat().st_mtime)
-        lines = get_lines(csv_file)
-        shape = get_shape_from_tif(tif_file)
-        print(shape)
-        line_images = draw_lines(lines, shape, WIDTH)
-        folder_dict = benedict(csv_file.parent / "db.yaml")
-        folder_dict['line_width'] = WIDTH
-        folder_dict.to_yaml(filepath=csv_file.parent / "db.yaml")
-        tifffile.imwrite(csv_file.parent / "ground_truth.tif", line_images, dtype=np.uint8)
+# def create_ground_thruth(folder, filename):
+#     WIDTH = 7
+#     csv_files = Path(folder).rglob(filename)
+#     for csv_file in tqdm(csv_files):
+#         print(csv_file.parts[-3:-1])
+#         # get newest tif file
+#         tif_file = max(csv_file.parent.glob('*.ome.tif*'), key=lambda x: x.stat().st_mtime)
+#         lines = get_lines(csv_file)
+#         shape = get_shape_from_tif(tif_file)
+#         print(shape)
+#         line_images = draw_lines(lines, shape, WIDTH)
+#         folder_dict = benedict(csv_file.parent / "db.yaml")
+#         folder_dict['line_width'] = WIDTH
+#         folder_dict.to_yaml(filepath=csv_file.parent / "db.yaml")
+#         tifffile.imwrite(csv_file.parent / "ground_truth.tif", line_images, dtype=np.uint8)
 
 
 # %%
-if __name__ == '__main__':
-    WIDTH = 7
-    csv_files = FOLDER.rglob('pearls.csv')
+def csv_to_lines(FOLDER, WIDTH, csv_pattern):
+    csv_files = glob_zarr(Path(FOLDER), csv_pattern + "*.csv")
     for csv_file in tqdm(csv_files):
-        print(csv_file.parts[-3:-1])
         # get newest tif file
         tif_file = max(csv_file.parent.glob('*.ome.tif'), key=lambda x: x.stat().st_mtime)
         lines = get_lines(csv_file)
         shape = get_shape_from_tif(tif_file)
-        print(shape)
         line_images = draw_lines(lines, shape, WIDTH)
         folder_dict = benedict(csv_file.parent / "db.yaml")
         folder_dict['line_width'] = WIDTH
-        folder_dict.to_yaml(filepath=csv_file.parent / "db.yaml")
-        tifffile.imwrite(csv_file.parent / "ground_truth.tif", line_images, dtype=np.uint8)
+        folder_dict.to_yaml(filepath=csv_file.parent / f"db_{csv_pattern}.yaml")
+        tifffile.imwrite(csv_file.parent / f"ground_truth_{csv_pattern}.tif", line_images, dtype=np.uint8)
 
 # %%
+        
+if __name__ == "__main__":
+    WIDTH = 7
+    csv_pattern = 'pearls'
+    csv_to_lines(FOLDER, WIDTH, csv_pattern)

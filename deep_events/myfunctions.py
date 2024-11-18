@@ -12,6 +12,7 @@ from deep_events.database.extract_yaml import save_dict
 import shutil
 from skimage import filters, segmentation, feature, measure, morphology
 import scipy.ndimage as ndi
+import zarr
 
 def event_separation(data, event_dict):
     #this function takes in the data from the excel file and splits them into a nested list: each list within the nested list corresponds to the excel lines of a single division
@@ -281,8 +282,12 @@ def augStack_one(input_data, transform, **kwargs):
         aug_input_data[i] = augImg_one(input_data[i],  transform, **kwargs)
     return aug_input_data
 
-def poi(datacsv,input_name, sigma_trial, size_trial,total_frames, shape=(2048, 2048), path=None):
-    points_of_interest= np.zeros((total_frames, shape[0], shape[1]), np.float32)
+def poi(datacsv, input_name, sigma_trial, size_trial,total_frames, shape=(2048, 2048), path=None, group=None):
+    if group:
+        zarr_group = zarr.open_group(group.store, mode='a')
+        points_of_interest = zarr_group.create_dataset(Path(input_name).name.split('.')[0], shape=(total_frames, shape[0], shape[1]), chunks= [1] + list(shape[-2:]), overwrite=True)
+    else:
+        points_of_interest= np.zeros((total_frames, shape[0], shape[1]), np.float32)
 
     for row_number in tqdm(range(0, len(datacsv))):
         framenumber_in_row= int(datacsv.loc[row_number, 'axis-0'])
@@ -301,8 +306,11 @@ def poi(datacsv,input_name, sigma_trial, size_trial,total_frames, shape=(2048, 2
         print("Gaussian Location", input_name)
 
     #TODO We could save this as float and save all of the work when we load it later
-    tifffile.imwrite(input_name, (points_of_interest*254).astype(np.uint8))
-    print("MAX in ground truth", points_of_interest.max())
+    if group:
+        pass
+    else:
+        tifffile.imwrite(input_name, (points_of_interest*254).astype(np.uint8))
+
     return 
 
 import cv2 as cv
