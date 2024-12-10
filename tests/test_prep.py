@@ -13,3 +13,4 @@ def test_prep_prompt():
     out_folder = prepare_for_prompt(folder, {"contrast": "fluorescence"}, COLLECTION)
     assert isinstance(out_folder, Path)
     shutil.rmtree(folder.parents[0]/"training_data")
+

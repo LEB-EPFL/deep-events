@@ -32,7 +32,7 @@ def extract_events(db_file, settings: dict):
         folder_dict['auto_negatives'] = auto_negatives
 
     if images_identifier != "":
-        tif_identifier = r'*' + images_identifier + image_type
+        tif_identifier = r'*' + images_identifier 
     if isinstance(channel_contrast, list):
         for contrast in channel_contrast:
             extract_events(db_file, folder, events_folder, images_identifier, contrast, label, event_content, add_post_frames)
@@ -40,7 +40,7 @@ def extract_events(db_file, settings: dict):
     elif channel_contrast != "":
         tif_identifier =  r'*' + folder_dict['contrast'][channel_contrast] + image_type
     else:
-        tif_identifier = image_type
+        tif_identifier = tif_identifier + image_type
 
     if isinstance(label, list):
         for this_label in label:
@@ -263,7 +263,7 @@ def main(FOLDERS, event_folders, img_types, settings): #pragma: no cover
 if __name__ == "__main__":
     FOLDER = Path('//sb-nas1.rcp.epfl.ch/LEB/Scientific_projects/deep_events_WS/data/original_data/20231114_series_COS7_zeiss_brightfield')
 
-    event_folder = "event_data_ld" 
+    event_folder = "event_data_fluo" 
     img_type = '*.ome.tif*'
     settings = {
     'img_identifier' : "",
@@ -273,7 +273,7 @@ if __name__ == "__main__":
     'label' : "",
     'add_post_frames' : 0,
     }
-        
+
     settings['folder'] = FOLDER
     settings['event_folder'] = event_folder
     settings['img_type'] = img_type

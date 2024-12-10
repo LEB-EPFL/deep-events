@@ -73,7 +73,6 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS, distri
     if folder is None:
         folder = get_latest_folder(FOLDER)
 
-
     print(folder)
     print(settings)
     logs_dir = folder.parents[0] / (settings.get("log_dir", "logs") + "/scalars/")

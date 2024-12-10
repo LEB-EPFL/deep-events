@@ -16,24 +16,14 @@ import tifffile
 from benedict import benedict
 from deep_events.database import get_collection
 
-folder = Path("Z:/_Lab members/Emily/event_data")
+folder = Path("X:\Scientific_projects\deep_events_WS\data\single_channel_fluo\event_data")
 
 def main():
-    training_folder = make_training_folder(folder)
-
-    # Load and split
-    all_images, all_gt = load_folder(folder)
-    images_train, images_eval, gt_train, gt_eval = train_test_split(all_images, all_gt, test_size=0.2, random_state=42)
-    stacks = {"image":images_eval,"mask": gt_eval}
-    stacks = normalize_stacks(stacks)
-    save_data(training_folder, stacks['image'], stacks['mask'], "eval")
-
-    # Normalize
-    stacks = {"image":images_train,"mask": gt_train}
-    stacks = normalize_stacks(stacks)
-
-    save_data(training_folder, all_images['image'], all_images["mask"], "train")
-
+    prompt = {
+        'train_val_split': 0.1
+    }
+    prep_folder = prepare_for_prompt(folder, prompt, 'mito_fluo')
+    print(prep_folder)
 
 def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 0.2,
                        n_timepoints = 1, fps = 1, smooth=False):
@@ -228,7 +218,7 @@ def normalize_stacks(stacks:dict):
             if np.max(frame) == np.inf: # overexposed
                 frame[frame == frame.max()] = np.finfo(frame.dtype).max
 
-            norm_frame = (frame-np.min(frame))
+            norm_frame = (frame-np.min(frame)).astype(np.float32)
 
             if np.max(norm_frame) > 1 and key == "mask": # not 0 to 1
                 norm_frame = norm_frame/255

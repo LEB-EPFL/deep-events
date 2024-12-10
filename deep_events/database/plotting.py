@@ -3,30 +3,32 @@ from convenience import get_collection
 from construct import reconstruct_from_folder
 from sys import platform
 import pandas as pd
+import yaml
 
 from pathlib import Path
 
 collection = 'mito_ideas_models'
 if platform == "linux" or platform == "linux2":
-    folder = Path("/mnt/w/deep_events/data/original_data/training_data")
+    main_folder = Path("/mnt/LEB/Scientific_projects/deep_events_WS/data/original_data")
 else:
-    folder = Path("//lebnas1.epfl.ch/microsc125/deep_events/data/original_data/training_data")
+    main_folder = Path("//sb-nas1.rcp.epfl.ch/LEB/Scientific_projects/deep_events_WS/data/original_data")
 
 #%% Reconstruct the model database from the training_data folder
-reconstruct_from_folder(folder, collection)
+folder = main_folder / 'training_data'
+with open(folder / "collection.yaml", "r") as f:
+    collection = yaml.safe_load(f)["collection"]
+# reconstruct_from_folder(folder, collection)
 
 #%%
-collection = get_collection(collection)
+if isinstance(collection, str):
+    collection = get_collection(collection)
 
 data = pd.DataFrame(list(collection.find()))
 print(data)
 data.drop("brightness_range", axis=1, inplace=True)
 data.drop('_id', axis=1, inplace=True)
 
-
-
-
-event_collection = get_collection("mito_events")
+event_collection = get_collection("ld_events")
 event_data = pd.DataFrame(list(event_collection.find()))
 # %%
 import streamlit as st
@@ -55,7 +57,7 @@ cols[0].write(data)
 
 ## Main filtering step
 query = cols[1].text_input('Main filtering (_applies to all below_)',
-                           value="contrast == 'brightfield'")
+                           value="collection == 'ld_events'")
 data['n_timepoints'] = data['n_timepoints'].astype(str)
 for index, row in data.iterrows():
     data.loc[index, 'date'] = pd.to_datetime(row['time'][:8])
@@ -71,7 +73,7 @@ if query:
     data0 = data0.query(query)
 c0 = alt.Chart(data0).mark_circle(size=80).encode(
     x='frames',
-    y='p_f1',
+    y='n_event',
     color=color_by,
     tooltip=['frames', 'p_f1', 'n_timepoints', 'fps', 'time', 'contrast', 'n_event']
 )
@@ -80,29 +82,44 @@ cols[1].altair_chart(c0, use_container_width=True)
 
 subquery = cols[1].text_input('Subquery', value="fps == 1")
 axis_cols = cols[1].columns(2)
-x_axis = axis_cols[0].selectbox('X axis', ['frames', 'p_f1', 'p_tpr', 'p_precision', 'n_event'],
+x_axis = axis_cols[0].selectbox('X axis', ['frames', 'f1', 'mcc', 'n_event'],
                                 index=0)
-y_axis = axis_cols[1].selectbox('Y axis', ['f1', 'tpr', 'precision', 'recall', 'mcc', 'kappa'],
+y_axis = axis_cols[1].selectbox('Y axis', ['f1', 'precision', 'recall', 'mcc', 'kappa', 'w_mcc'],
                                 index=0)
 data1 = data0.copy()
 if subquery:
     data1 = data1.query(subquery)
 
-def get_nested_value(row, y_axis=y_axis):
+def get_nested_value_y(row, y_axis=y_axis):
     try:
-        value = row['performance'][y_axis] 
+        value = row['performance'].get(y_axis, 0) 
         return value
-    except KeyError:
-        return 0
+    except (KeyError, TypeError, AttributeError) as e:
+        return 0.0
 
-data1['y_axis'] = data1.apply(get_nested_value, axis=1)
+def get_nested_value_x(row, x_axis=x_axis):
+    try:
+        value = row['performance'].get(x_axis, 0) 
+        return value
+    except (KeyError, TypeError, AttributeError) as e:
+        return 0.0
 
+try:
+    data1['y_axis'] = data1[y_axis]
+except:
+    data1['y_axis'] = data1.apply(get_nested_value_y, axis=1)
+
+try:
+    data1['x_axis'] = data1[x_axis]
+except:
+    data1['x_axis'] = data1.apply(get_nested_value_x, axis=1)
+data1 = data1.convert_dtypes()
 
 c1 = alt.Chart(data1).mark_circle(size=80).encode(
-    x=x_axis,
-    y='y_axis',
+    x='x_axis:Q',
+    y='y_axis:Q',
     color=color_by,
-    tooltip=['frames', 'performance', 'n_timepoints', 'fps', 'time']
+    tooltip=['frames', 'n_timepoints', 'fps', 'date']
 )
 cols[1].altair_chart(c1, use_container_width=True)
 
@@ -110,8 +127,16 @@ cols[1].altair_chart(c1, use_container_width=True)
 # data2 = data1.query("fps == 1 and (date > '2024-01-13' or n_timepoints == "3.0") and (frames > 1300 and frames < 4800)
 
 # For tooltips in fullscreen mode
-st.markdown('<style>#vg-tooltip-element{z-index: 1000051}</style>',
-             unsafe_allow_html=True)
+st.markdown(
+    """
+    <style>
+    #vg-tooltip-element {
+        z-index: 1000051 !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # %%
 

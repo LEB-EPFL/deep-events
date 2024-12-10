@@ -38,9 +38,9 @@ def apply_augmentation(self, x, y, x_size=128, y_size=128):
     if poisson_here > 0.01:
         x = np.random.poisson(x * 100 / self.poisson) / (200 / self.poisson)
         x = np.clip(x, 0, 1)
-    if x.max() == 0:
-        plt.imshow(x_old[:, :,1])
-        plt.show()
+    # if x.max() == 0:
+    #     plt.imshow(x_old[:, :,1])
+    #     plt.show()
     x = x*bright
     return x, y
 
