@@ -44,7 +44,7 @@ def soft_dice_loss(y_true, y_pred, smooth=1):
 
 
 @tf.keras.utils.register_keras_serializable()
-def soft_focal_loss(y_true, y_pred, alpha=0.25, gamma=2.0):
+def soft_focal_loss(y_true, y_pred, alpha=0.99, gamma=0.5):
     y_pred = K.clip(y_pred, K.epsilon(), 1.0 - K.epsilon())
     pt = tf.where(tf.equal(y_true, 1), y_pred, 1 - y_pred)
     alpha_factor = tf.ones_like(y_true) * alpha
@@ -59,12 +59,16 @@ class WBCELoss(tf.keras.losses.Loss):
     def __init__(self, pos_weight=1, name='wbce_loss'):
         super().__init__(name=name)
         self.pos_weight = pos_weight
+        print("WBCE WEIGHT", pos_weight)
+
     def call(self, y_true, y_pred):
-        bce = tf.keras.backend.binary_crossentropy(y_true, y_pred)
+        epsilon = tf.keras.backend.epsilon()
+        y_pred = tf.clip_by_value(y_pred, epsilon, 1 - epsilon)
+        bce = -(y_true * tf.math.log(y_pred) + (1 - y_true) * tf.math.log(1 - y_pred))
         # Apply the weights
         weight_vector = y_true * self.pos_weight + (1. - y_true)
         weighted_bce = weight_vector * bce
-        return tf.keras.backend.mean(weighted_bce)
+        return tf.reduce_mean(weighted_bce)
 
     def get_config(self):
         return {'pos_weight': self.pos_weight}    
@@ -96,7 +100,7 @@ def create_model(settings, data_shape, printSummary=False):
         custom_objects = {settings["loss"]: get_loss_function(settings)}
         loss = list(custom_objects.values())[0] #dice_loss # 'binary_crossentropy'  # 'mse'
 
-    metrics = [WMSELoss(pos_weight=3, name='wmse'), WBCELoss(pos_weight=3, name='wbce'), MeanSquaredError()]
+    metrics = [WMSELoss(pos_weight=3, name='wmse'), WBCELoss(pos_weight=3, name='wbce_loss'), MeanSquaredError()]
 
     #Network architecture
     if len(data_shape) > 3:
@@ -209,12 +213,14 @@ def get_loss_function(settings: dict = None):
     elif loss == "soft_dice":
         return soft_dice_loss
     elif loss == "soft_focal":
+        print('Using soft focal loss')
         return soft_focal_loss
-    elif loss == "wbce":
+    elif loss == "wbce_loss":
+        print('Using wbce loss')
         return WBCELoss(settings["weight"])
     elif loss == "mse":
         return "mse"
-    elif loss == "wmse":
+    elif loss == "wmse_loss":
         return WMSELoss(settings["weight"])
     elif loss == "binary_crossentropy":
         return "binary_crossentropy"

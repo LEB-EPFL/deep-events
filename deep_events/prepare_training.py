@@ -7,22 +7,30 @@ import psutil
 import time
 from scipy.ndimage import gaussian_filter
 import csv
+from tqdm import tqdm
 
 import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
 import tifffile
 
+from deep_events.database.construct import reconstruct_from_folder
 from benedict import benedict
 from deep_events.database import get_collection
 
 folder = Path("X:\Scientific_projects\deep_events_WS\data\single_channel_fluo\event_data")
+MAX_N_TIMEPOINTS = 9
 
 def main():
-    prompt = {
-        'train_val_split': 0.1
-    }
-    prep_folder = prepare_for_prompt(folder, prompt, 'mito_fluo')
+    prompt_file = 'X:/Scientific_projects/deep_events_WS/data/original_data/training_data/20240814_2137_brightfield_cos7_n5_f1/db_prompt.yaml'
+    prompt = benedict(prompt_file)
+    reconstruct_from_folder(Path('X:/Scientific_projects/deep_events_WS/data/original_data/event_data'), prompt["collection"])
+    del prompt['n_event']
+    del prompt['collection']
+    prompt['fps'] = 1
+    prompt['n_timepoints'] = 9
+    print(prompt)
+    prep_folder = prepare_for_prompt(folder, prompt, 'mito_events')
     print(prep_folder)
 
 def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 0.2,
@@ -64,13 +72,15 @@ def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 
     prompt["n_event"] = int(len(db_files)*(subset or 1))
     prompt["subset"] = subset
     print("Number of events:", prompt["n_event"])
-    benedict(prompt).to_yaml(filepath=training_folder / "db_prompt.yaml")
 
     # Load and split
-    all_images, all_gt = load_folder(folder, db_files, training_folder, n_timepoints=n_timepoints, fps=fps,
+    all_images, all_gt, dbs = load_folder(folder, db_files, training_folder, n_timepoints=n_timepoints, fps=fps,
                                      test_size=test_size, subset=subset)
+    prompt["actual_val_split"] = len(dbs['eval'])/(len(dbs['eval'] + dbs['train']))
+    benedict(prompt).to_yaml(filepath=training_folder / "db_prompt.yaml")
+    benedict(dbs).to_yaml(filepath=training_folder / "train_eval_split.yaml")
     #Shuffle training data
-    seed=420
+    seed=42
     print(all_images['train'].shape)
     np.random.seed(seed)
     p = np.random.permutation(all_images['train'].shape[0])
@@ -139,11 +149,23 @@ def load_folder(parent_folder:Path, db_files: List = None, training_folder: str 
     if db_files is None:
         db_files = list(parent_folder.rglob(r'event_db.yaml'))
     
-    #Split eval/train on the event level
-    dbs = {}
-    random.shuffle(db_files)
-    dbs['eval'] = db_files[:int(test_size*len(db_files))]
-    dbs['train'] = db_files[int(test_size*len(db_files)):]
+    dbs = {'train': [], 'eval':[]}
+    for db_file in db_files.copy():
+        event_dict = benedict(db_file)
+        dataset_split = event_dict.get('dataset_split', False)
+        if dataset_split:
+            # print(f'event added to {dataset_split}, due to db_file')
+            dbs[dataset_split].append(db_file)
+        else:
+            rand_val = random.random()
+            if rand_val > test_size:
+                dbs['train'].append(db_file)
+                event_dict['dataset_split'] = 'train'
+            else:
+                dbs['eval'].append(db_file)
+                event_dict['dataset_split'] = 'eval'
+            event_dict.to_yaml(filepath=Path(event_dict['event_path'])/'event_db.yaml') 
+
 
     if subset:
         random.shuffle(dbs["train"])
@@ -153,8 +175,9 @@ def load_folder(parent_folder:Path, db_files: List = None, training_folder: str 
     all_gt = {"train": [], "eval": [], "eval_events": []}
     print(f"Number of train dbs: {len(dbs['train'])}")
     print(f"Number of eval dbs: {len(dbs['eval'])}")
+    pos_neg_dist = {"train": {"pos": 0, "neg": 0}, "eval": {"pos": 0, "neg": 0}}
     for train_eval in ["train", "eval"]:
-        for db_file in dbs[train_eval]:
+        for db_file in tqdm(dbs[train_eval]):
             try:
                 start = all_gt['eval_events'][-1][-1] + 1
             except IndexError:
@@ -162,23 +185,31 @@ def load_folder(parent_folder:Path, db_files: List = None, training_folder: str 
             folder = db_file.parents[0]
             images, ground_truth = load_tifs(folder)
 
-            if n_timepoints > 1:
-                try:
-                    original_fps = benedict(db_file)["fps"]
-                except KeyError:
-                    print("WARNING: no fps in the db files, using 1fps")
-                    original_fps = 1
-                time_increment = round(original_fps/fps)
-                if (fps/original_fps > 1.1 #image rate is too low
-                    or (original_fps/fps%1 > 0.25 and original_fps/fps%1 < 0.75) #frame rate mismatch
-                    or images.shape[0] < n_timepoints*time_increment): # not enough data
-                    continue
-                images, ground_truth = make_time_series(images, ground_truth, n_timepoints, time_increment)
-
-            all_images[train_eval].append(images)
-            all_gt[train_eval].append(ground_truth)
-            if train_eval == 'eval':
-                all_gt['eval_events'].append(list(range(start, start + ground_truth.shape[0])))
+            try:
+                original_fps = benedict(db_file)["fps"]
+            except KeyError:
+                print("WARNING: no fps in the db files, using 1fps")
+                original_fps = 1
+            float_increment = original_fps/fps
+            # print('time adjust', float_increment)
+            if float_increment <= 2 and float_increment >= 0.5:
+                float_increment = 1
+            time_increment = round(float_increment)
+            if (fps/original_fps > 1.5 #image rate is too low
+                or (float_increment%1 > 0.25 and float_increment%1 < 0.75) #frame rate mismatch
+                or images.shape[0] < n_timepoints*time_increment): # not enough data
+                continue
+            # print(db_file)
+            images, ground_truth = make_time_series(images, ground_truth, n_timepoints, time_increment)
+            if images is not False:
+                all_images[train_eval].append(images)
+                all_gt[train_eval].append(ground_truth)
+                if ground_truth.max() == 0:
+                    pos_neg_dist[train_eval]["neg"] += 1  #images.shape[0]
+                else:
+                    pos_neg_dist[train_eval]["pos"] += 1  #images.shape[0]
+                if train_eval == 'eval':
+                    all_gt['eval_events'].append(list(range(start, start + ground_truth.shape[0])))
             # These things can get very big. Save inbetween, when memory almost full.
             if psutil.virtual_memory().percent > 90:
                 print("Saving multiple tiff files")
@@ -191,16 +222,49 @@ def load_folder(parent_folder:Path, db_files: List = None, training_folder: str 
         #     print(item.shape)
         all_images[train_eval] = np.concatenate(all_images[train_eval])
         all_gt[train_eval] = np.concatenate(all_gt[train_eval])
-    return all_images, all_gt
+    print('Distribution of events', pos_neg_dist)
+    return all_images, all_gt, dbs
 
 
 def make_time_series(images, ground_truth, n_timepoints, time_increment = 1):
     image_matrix = []
     gt_matrix = []
-    for idx in range(images.shape[0]-(n_timepoints*time_increment)+1):
+    max_gt = ground_truth.max()
+    # print("POSITIVE" if max_gt > 0 else "NEGATIVE")
+    # print(n_timepoints, time_increment)
+    # print(images.shape, ground_truth.shape)
+    if max_gt == 0:
+        start = MAX_N_TIMEPOINTS - n_timepoints
+    else:
+        start = 0
+    if max_gt > 0:
+        pos_frames = []
+        for idx, frame in enumerate(ground_truth):
+            if frame.max() > 0:
+                pos_frames.append(idx)
+        # print(len(pos_frames))
+        start = pos_frames[max(-5, -len(pos_frames))]
+        start = start - (n_timepoints * time_increment)
+        start = max(start, 0)
+    else:
+        start = images.shape[0] - 5 - (n_timepoints * time_increment)
+        start = max(start, 0)
+        # print(start, images.shape[0], time_increment)
+    got_data = False
+    for idx in range(start, images.shape[0]-(n_timepoints*time_increment)):
+        gt_image = ground_truth[idx+(n_timepoints*time_increment)]
+        #if positive event take only substacks that will have positive gt
+        if max_gt > 0 and gt_image.max() == 0:
+            # print('skip', idx)
+            continue
         image_matrix.append(images[idx:idx+(n_timepoints*time_increment):time_increment])
-        gt_matrix.append(ground_truth[idx+(n_timepoints*time_increment)-1])
-    return np.stack(image_matrix), np.stack(gt_matrix)
+        gt_matrix.append(gt_image)
+        got_data = True
+
+    if got_data:
+        return np.stack(image_matrix), np.stack(gt_matrix)
+    else:
+        return False, False
 
 
 def load_tifs(folder:Path):

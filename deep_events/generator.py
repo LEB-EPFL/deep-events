@@ -12,6 +12,8 @@ GENERATOR = ImageDataGenerator(
             horizontal_flip=True,
             vertical_flip=True,
             rotation_range=30,
+            width_shift_range=10,
+            height_shift_range=10,
         )
 
 def apply_augmentation(self, x, y, x_size=128, y_size=128):
@@ -34,10 +36,13 @@ def apply_augmentation(self, x, y, x_size=128, y_size=128):
         y = self.generator.apply_transform(y, params)
         y = y[crop_pos:crop_pos+x_size, crop_pos:crop_pos+x_size, :]
 
-    poisson_here = np.random.default_rng().uniform(0, self.poisson, size=(1))
-    if poisson_here > 0.01:
-        x = np.random.poisson(x * 100 / self.poisson) / (200 / self.poisson)
-        x = np.clip(x, 0, 1)
+    # poisson_here = np.random.default_rng().uniform(0, self.poisson, size=(1))
+    if self.poisson > 0.01:
+        intensity_scale = 100 / self.poisson  # Higher noise_level means fewer photons
+        gaussian_std = 0.01 * self.poisson   # Higher noise_level means more Gaussian noise
+        poisson_noisy = np.random.poisson(x * intensity_scale) / intensity_scale
+        gaussian_noisy = poisson_noisy + np.random.normal(0, gaussian_std, x.shape)
+        x = np.clip(gaussian_noisy, 0, 1)
     # if x.max() == 0:
     #     plt.imshow(x_old[:, :,1])
     #     plt.show()

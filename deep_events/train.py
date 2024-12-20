@@ -26,12 +26,12 @@ SETTINGS = {"nb_filters": 16,
             "nb_input_channels": 1,
             "batch_size": 32,
             "epochs": 10,
-            "n_augmentations": 30,
+            "n_augmentations": 5,
             'brightness_range': [0.6, 1],
             "loss": 'binary_crossentropy',
             "poisson": 0,
             "subset_fraction": 0.02,
-            "initial_learning_rate": 0.5e-3}
+            "initial_learning_rate": 1e-4}
 
 
 
@@ -91,7 +91,9 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS, distri
             tf.summary.text(name=key, data=str(value), step=0)
         writer.flush()
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
-    reduce_lr_callback = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=4, min_lr=1e-6)
+    reduce_lr_callback = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=4, min_lr=1e-7)
+    early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True, verbose=1)
+
 
     batch_generator = ArraySequence(folder, settings["batch_size"],
                                      n_augmentations=settings["n_augmentations"],
@@ -104,7 +106,7 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS, distri
                                      poisson=settings["poisson"],
                                      validation=True)
 
-    images_callback = LogImages(logdir, batch_generator, validation_generator, freq=1)
+    images_callback = LogImages(logdir, batch_generator, validation_generator, freq=2)
     
 
     # time.sleep(1)
@@ -138,8 +140,9 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS, distri
                                     steps_per_epoch = steps_per_epoch,
                                     shuffle=True,
                                     verbose = 1,
-                                    callbacks = [tensorboard_callback, images_callback, reduce_lr_callback],
-                                    validation_steps=20)
+                                    callbacks = [tensorboard_callback, images_callback, reduce_lr_callback, early_stopping_callback],
+                                    # validation_steps=20
+                                    )
             n_tries = max_tries
         except Exception as e:
             print("------------------------------ COULD NOT TRAIN -----------------------------------------")

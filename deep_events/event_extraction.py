@@ -27,7 +27,7 @@ def basic_scan(data, size=256, threshold=0.7, additional_post_frames=1):
                 open_events.append(EDA_Event('Event ' + str(len(open_events)),
                                              [actualist[0]['x'],
                                               actualist[0]['y'],
-                                              actualist[0]['z']],i,ev_n))
+                                              actualist[0]['z']],i,ID=ev_n))
                 ev_n += 1
             actualist.pop(0)
     print('ADDITIONAL POST FRAMES', additional_post_frames)
@@ -77,12 +77,14 @@ def find_cool_thing_in_frame(frame, threshold: float, nbh_size: int) -> list:
 
 class EDA_Event():
     """ Sctucture that represents an interesting event in a 3D video"""
-    def __init__(self,name, center_position, first_frame, ID: int = 0):
+    def __init__(self,name, center_position, first_frame, last_frame=None,ID: int = 0):
         self._ID = ID
         self.name = name
         self.c_p = {'x': center_position[0], 'y': center_position[1], 'z': center_position[2]}
         self.first_frame = first_frame-1
-        self.last_frame = first_frame
+        if last_frame is None:
+            last_frame = first_frame
+        self.last_frame = last_frame
 
 
 def crop_images_array(event, imgs, channel=0, size=256):
