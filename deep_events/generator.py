@@ -18,10 +18,8 @@ GENERATOR = ImageDataGenerator(
 
 def apply_augmentation(self, x, y, x_size=128, y_size=128):
     seed = np.random.randint(0, 1e7)
-    # seed = np.random.RandomState(seed=None)
     params = self.generator.get_random_transform(x.shape[:-1], seed=seed)
     bright = np.random.default_rng().uniform(self.brightness_range[0], self.brightness_range[1], size=(1))
-    # print(f"SHAPE in augmentation: x: {x.shape}, y: {y.shape}")
     x_old = x.copy()
     crop_pos = (x.shape[-3] - x_size)//2
     if len(x.shape) > 3:
@@ -36,16 +34,12 @@ def apply_augmentation(self, x, y, x_size=128, y_size=128):
         y = self.generator.apply_transform(y, params)
         y = y[crop_pos:crop_pos+x_size, crop_pos:crop_pos+x_size, :]
 
-    # poisson_here = np.random.default_rng().uniform(0, self.poisson, size=(1))
     if self.poisson > 0.01:
         intensity_scale = 100 / self.poisson  # Higher noise_level means fewer photons
         gaussian_std = 0.01 * self.poisson   # Higher noise_level means more Gaussian noise
         poisson_noisy = np.random.poisson(x * intensity_scale) / intensity_scale
         gaussian_noisy = poisson_noisy + np.random.normal(0, gaussian_std, x.shape)
         x = np.clip(gaussian_noisy, 0, 1)
-    # if x.max() == 0:
-    #     plt.imshow(x_old[:, :,1])
-    #     plt.show()
     x = x*bright
     return x, y
 
