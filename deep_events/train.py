@@ -7,6 +7,14 @@ from benedict import benedict
 import tensorflow as tf
 import numpy as np
 import os
+import random
+
+# set seeds
+random.seed(42)
+np.random.seed(42)
+tf.random.set_seed(42)
+os.environ['PYTHONHASHSEED'] = '42'
+os.environ['TF_DETERMINISTIC_OPS'] = '1'
 
 def adjust_tf_dimensions(stack:np.array):
     if len(stack.shape) < 4:

@@ -1,4 +1,6 @@
 import numpy as np
+import random
+import os
 
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Activation
@@ -13,6 +15,12 @@ import keras.backend as K
 import tensorflow as tf
 
 
+# set seeds
+random.seed(42)
+np.random.seed(42)
+tf.random.set_seed(42)
+os.environ['PYTHONHASHSEED'] = '42'
+os.environ['TF_DETERMINISTIC_OPS'] = '1'
 
 tf.keras.utils.get_custom_objects().clear()
 

@@ -6,9 +6,15 @@ from keras.utils import Sequence
 from keras.preprocessing.image import ImageDataGenerator
 
 import matplotlib.pyplot as plt
+import random
+import tensorflow as tf
 
-seed=42
-np.random.seed(seed)
+# set seeds
+random.seed(42)
+np.random.seed(42)
+tf.random.set_seed(42)
+os.environ['PYTHONHASHSEED'] = '42'
+os.environ['TF_DETERMINISTIC_OPS'] = '1'
 
 GENERATOR = ImageDataGenerator(
             horizontal_flip=True,
