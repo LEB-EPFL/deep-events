@@ -168,7 +168,7 @@ def create_model(settings, data_shape, printSummary=False):
     center = Activation('relu')(center)
     center = Dropout(dropout_rate)(center)
 
-    up1 = UpSampling2D((2, 2))(center)
+    up1 = UpSampling2D((2, 2), interpolation='bilinear')(center)
     up1 = concatenate([down1, up1], axis=3)
     up1 = Conv2D(nb_filters*2, (3, 3), padding='same', kernel_regularizer=l2_reg)(up1)
     up1 = BatchNormalization()(up1)
@@ -179,7 +179,7 @@ def create_model(settings, data_shape, printSummary=False):
     up1 = Activation('relu')(up1)
     up1= Dropout(dropout_rate)(up1)
 
-    up0 = UpSampling2D((2, 2))(up1)
+    up0 = UpSampling2D((2, 2), interpolation='bilinear')(up1)
     up0 = concatenate([down0, up0], axis=3)
     up0 = Conv2D(nb_filters, (3, 3), padding='same', kernel_regularizer=l2_reg)(up0)
     up0 = BatchNormalization()(up0)
@@ -310,7 +310,7 @@ def create_recurrent_model(settings, data_shape, printSummary=False):
     center = Dropout(dropout_rate)(center)
 
     # Decoder
-    up1 = UpSampling2D((2, 2))(center)
+    up1 = UpSampling2D((2, 2), interpolation='bilinear')(center)
     up1 = concatenate([down1, up1], axis=3)
     up1 = Conv2D(nb_filters*2, (3, 3), padding='same', kernel_regularizer=l2_reg)(up1)
     up1 = BatchNormalization()(up1)
@@ -321,7 +321,7 @@ def create_recurrent_model(settings, data_shape, printSummary=False):
     up1 = Activation('relu')(up1)
     up1 = Dropout(dropout_rate)(up1)
 
-    up0 = UpSampling2D((2, 2))(up1)
+    up0 = UpSampling2D((2, 2), interpolation='bilinear')(up1)
     up0 = concatenate([down0, up0], axis=3)
     up0 = Conv2D(nb_filters, (3, 3), padding='same', kernel_regularizer=l2_reg)(up0)
     up0 = BatchNormalization()(up0)
@@ -424,7 +424,7 @@ def create_bottleneck_convlstm_model(settings, data_shape, printSummary=False):
     down1_last = Lambda(get_last_timestep)(down1)  
     down0_last = Lambda(get_last_timestep)(down0)
 
-    up1 = UpSampling2D((2, 2))(center)
+    up1 = UpSampling2D((2, 2), interpolation='bilinear')(center)
     up1 = concatenate([down1_last, up1], axis=3)
     up1 = Conv2D(nb_filters*2, (3, 3), padding='same', kernel_regularizer=l2_reg)(up1)
     up1 = BatchNormalization()(up1)
@@ -435,7 +435,7 @@ def create_bottleneck_convlstm_model(settings, data_shape, printSummary=False):
     up1 = Activation('relu')(up1)
     up1 = Dropout(dropout_rate)(up1)
 
-    up0 = UpSampling2D((2, 2))(up1)
+    up0 = UpSampling2D((2, 2), interpolation='bilinear')(up1)
     up0 = concatenate([down0_last, up0], axis=3)
     up0 = Conv2D(nb_filters, (3, 3), padding='same', kernel_regularizer=l2_reg)(up0)
     up0 = BatchNormalization()(up0)
@@ -561,7 +561,7 @@ def create_unet_with_two_convlstm(settings, data_shape, printSummary=False):
     # Then we'll insert another ConvLSTM2D to refine spatiotemporal info at the decoded resolution.
 
     # up1
-    up1 = TimeDistributed(UpSampling2D((2, 2)))(center)  # shape: (B, T, H/2, W/2, nb_filters*4)
+    up1 = TimeDistributed(UpSampling2D((2, 2), interpolation='bilinear'))(center)  # shape: (B, T, H/2, W/2, nb_filters*4)
 
     # Concatenate skip from down1 (which has shape (B, T, H/2, W/2, nb_filters*2))
     # Must match channels dimension, so axis=-1 (the channels axis in (B,T,H,W,C))
@@ -583,7 +583,7 @@ def create_unet_with_two_convlstm(settings, data_shape, printSummary=False):
     up1 = TimeDistributed(Dropout(dropout_rate))(up1)
 
     # up0
-    up0 = TimeDistributed(UpSampling2D((2, 2)))(up1)  # shape: (B, T, H, W, nb_filters*2)
+    up0 = TimeDistributed(UpSampling2D((2, 2)), interpolation='bilinear')(up1)  # shape: (B, T, H, W, nb_filters*2)
 
     # Merge with down0: (B, T, H, W, nb_filters)
     up0 = concatenate([down0, up0], axis=-1)
