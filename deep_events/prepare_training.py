@@ -21,6 +21,9 @@ from deep_events.database import get_collection
 folder = Path("X:\Scientific_projects\deep_events_WS\data\single_channel_fluo\event_data")
 MAX_N_TIMEPOINTS = 9
 
+seed=42
+np.random.seed(seed)
+
 def main():
     prompt_file = 'X:/Scientific_projects/deep_events_WS/data/original_data/training_data/20240814_2137_brightfield_cos7_n5_f1/db_prompt.yaml'
     prompt = benedict(prompt_file)
@@ -80,9 +83,6 @@ def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 
     benedict(prompt).to_yaml(filepath=training_folder / "db_prompt.yaml")
     benedict(dbs).to_yaml(filepath=training_folder / "train_eval_split.yaml")
     #Shuffle training data
-    seed=42
-    print(all_images['train'].shape)
-    np.random.seed(seed)
     p = np.random.permutation(all_images['train'].shape[0])
     all_images['train'] = all_images['train'][p]
     all_gt['train'] = all_gt['train'][p]
@@ -205,9 +205,9 @@ def load_folder(parent_folder:Path, db_files: List = None, training_folder: str 
                 all_images[train_eval].append(images)
                 all_gt[train_eval].append(ground_truth)
                 if ground_truth.max() == 0:
-                    pos_neg_dist[train_eval]["neg"] += 1  #images.shape[0]
+                    pos_neg_dist[train_eval]["neg"] += images.shape[0]
                 else:
-                    pos_neg_dist[train_eval]["pos"] += 1  #images.shape[0]
+                    pos_neg_dist[train_eval]["pos"] += images.shape[0]
                 if train_eval == 'eval':
                     all_gt['eval_events'].append(list(range(start, start + ground_truth.shape[0])))
             # These things can get very big. Save inbetween, when memory almost full.

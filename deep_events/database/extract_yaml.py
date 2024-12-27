@@ -63,7 +63,7 @@ def delete_db_files(folder: Path):
 @handle_folder_dict
 def set_defaults(folder_dict: Union[dict, str, Path]):
     "Get default settings from file and set them to the local yaml"
-    if isinstance(folder_dict, str):
+    if isinstance(folder_dict, str) or isinstance(folder_dict, Path):
         folder_dict = benedict(folder_dict)
     print("folder_dict", folder_dict)
     default_keys = benedict(KEYS_PATH)['defaults']

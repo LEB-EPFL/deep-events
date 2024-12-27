@@ -7,6 +7,8 @@ from keras.preprocessing.image import ImageDataGenerator
 
 import matplotlib.pyplot as plt
 
+seed=42
+np.random.seed(seed)
 
 GENERATOR = ImageDataGenerator(
             horizontal_flip=True,
@@ -17,7 +19,6 @@ GENERATOR = ImageDataGenerator(
         )
 
 def apply_augmentation(self, x, y, x_size=128, y_size=128):
-    seed = np.random.randint(0, 1e7)
     params = self.generator.get_random_transform(x.shape[:-1], seed=seed)
     bright = np.random.default_rng().uniform(self.brightness_range[0], self.brightness_range[1], size=(1))
     x_old = x.copy()
@@ -176,6 +177,10 @@ class ArraySequence(Sequence):
 
             if self.augment and not self.validation:
                 x, y = self.apply_augmentation(x, y)
+            # else:
+            #     x_size = 128
+            #     x = x[56:56+x_size, 56:56+x_size, :]
+            #     y = y[56:56+x_size, 56:56+x_size, :]
 
             batch_x.append(x)
             batch_y.append(y)
