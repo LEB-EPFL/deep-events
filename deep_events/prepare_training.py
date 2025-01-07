@@ -18,7 +18,7 @@ from deep_events.database.construct import reconstruct_from_folder
 from benedict import benedict
 from deep_events.database import get_collection
 
-folder = Path("X:\Scientific_projects\deep_events_WS\data\single_channel_fluo\event_data")
+folder = Path("X:\Scientific_projects\deep_events_WS\data\original_data\event_data")
 MAX_N_TIMEPOINTS = 9
 
 seed=42
@@ -28,20 +28,16 @@ def main():
     prompt_file = 'X:/Scientific_projects/deep_events_WS/data/original_data/training_data/20240814_2137_brightfield_cos7_n5_f1/db_prompt.yaml'
     prompt = benedict(prompt_file)
     reconstruct_from_folder(Path('X:/Scientific_projects/deep_events_WS/data/original_data/event_data'), prompt["collection"])
-    del prompt['n_event']
-    del prompt['collection']
     prompt['fps'] = 1
-    prompt['n_timepoints'] = 9
-    print(prompt)
     prep_folder = prepare_for_prompt(folder, prompt, 'mito_events')
     print(prep_folder)
 
 def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 0.2,
-                       n_timepoints = 1, fps = 1, smooth=False):
-
-    training_folder = make_training_folder(folder, prompt)
+                        fps = 1, smooth=False):
+    if "n_event" in prompt.keys():
+        n_events = prompt['n_event']
+        del prompt["n_event"]
     if "n_timepoints" in prompt.keys():
-        n_timepoints = prompt["n_timepoints"]
         del prompt["n_timepoints"]
     if "fps" in prompt.keys():
         fps = prompt["fps"]
@@ -55,8 +51,9 @@ def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 
     if "subset" in prompt.keys():
         subset = prompt["subset"]
         del prompt["subset"]
-    else:
-        subset = False
+    if "collection" in prompt.keys():
+        del prompt['collection']
+    subset = False
 
     coll = get_collection(collection)
     print(prompt)
@@ -68,7 +65,6 @@ def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 
         db_files.append(Path(item['event_path']) / "event_db.yaml")
 
     prompt["train_val_split"] = test_size
-    prompt["n_timepoints"]  = n_timepoints
     prompt["fps"] = fps
     prompt["smooth"] = smooth
     prompt["collection"] = collection
@@ -76,8 +72,14 @@ def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 
     prompt["subset"] = subset
     print("Number of events:", prompt["n_event"])
 
+    training_folder = check_training_folder(folder, prompt, collection)
+    if training_folder:
+        # We have made this before
+        return training_folder
+    training_folder = make_training_folder(folder, prompt)
+
     # Load and split
-    all_images, all_gt, dbs = load_folder(folder, db_files, training_folder, n_timepoints=n_timepoints, fps=fps,
+    all_images, all_gt, dbs = load_folder(folder, db_files, training_folder, fps=fps,
                                      test_size=test_size, subset=subset)
     prompt["actual_val_split"] = len(dbs['eval'])/(len(dbs['eval'] + dbs['train']))
     benedict(prompt).to_yaml(filepath=training_folder / "db_prompt.yaml")
@@ -105,8 +107,25 @@ def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 
         writer.writerows(all_gt['eval_events'])
     return training_folder
 
+def check_training_folder(folder: Path, prompt_req: dict, collection: str):
+    print('folder', folder)
+    prompt_req['collection'] = collection
+    data_folders = reversed(sorted(list((folder.parents[0] / "training_data").glob('data_*'))))
+    print('data_folders', data_folders)
+    for folder in data_folders:
+        if not (folder/'db_prompt.yaml').exists():
+            continue
+        print(folder)
+        prompt = benedict(folder/'db_prompt.yaml')
+        del prompt['actual_val_split']
+        print('folder', prompt)
+        print('req', prompt_req)
+        if prompt == prompt_req:
+            print("Folder exists already")
+            return folder
+    return False
 
-def make_training_folder(folder:Path, prompt: dict):
+def make_training_folder(folder:Path, prompt: dict, prefix: str = 'data_'):
     i = 0
     while True:
         folder_name = datetime.datetime.now().strftime("%Y%m%d_%H%M")
@@ -117,7 +136,7 @@ def make_training_folder(folder:Path, prompt: dict):
                 folder_name = folder_name + "_" + value
             else:
                 folder_name = folder_name + "_" + key[0] + str(value)
-        new_folder = folder.parents[0] / "training_data" / folder_name
+        new_folder = folder.parents[0] / "training_data" / (prefix + folder_name)
         try:
             new_folder.mkdir(parents=True)
             break
@@ -143,7 +162,7 @@ def save_data(folder:Path, images_eval:np.array, gt_eval:np.array, prefix:str = 
 
 
 def load_folder(parent_folder:Path, db_files: List = None, training_folder: str = None,
-                n_timepoints: int = 1, fps: float = 1., test_size: float = 0.2,
+                fps: float = 1., test_size: float = 0.2,
                 subset: float|bool = False):
 
     if db_files is None:
@@ -197,10 +216,10 @@ def load_folder(parent_folder:Path, db_files: List = None, training_folder: str 
             time_increment = round(float_increment)
             if (fps/original_fps > 1.5 #image rate is too low
                 or (float_increment%1 > 0.25 and float_increment%1 < 0.75) #frame rate mismatch
-                or images.shape[0] < n_timepoints*time_increment): # not enough data
+                or images.shape[0] < MAX_N_TIMEPOINTS*time_increment): # not enough data
                 continue
             # print(db_file)
-            images, ground_truth = make_time_series(images, ground_truth, n_timepoints, time_increment)
+            images, ground_truth = make_time_series(images, ground_truth, time_increment)
             if images is not False:
                 all_images[train_eval].append(images)
                 all_gt[train_eval].append(ground_truth)
@@ -221,50 +240,43 @@ def load_folder(parent_folder:Path, db_files: List = None, training_folder: str 
         # for item in all_images[train_eval]:
         #     print(item.shape)
         all_images[train_eval] = np.concatenate(all_images[train_eval])
+        print(all_images[train_eval].shape)
         all_gt[train_eval] = np.concatenate(all_gt[train_eval])
     print('Distribution of events', pos_neg_dist)
     return all_images, all_gt, dbs
 
 
-def make_time_series(images, ground_truth, n_timepoints, time_increment = 1):
-    image_matrix = []
-    gt_matrix = []
+def make_time_series(images, ground_truth, time_increment = 1):
     max_gt = ground_truth.max()
-    # print("POSITIVE" if max_gt > 0 else "NEGATIVE")
-    # print(n_timepoints, time_increment)
-    # print(images.shape, ground_truth.shape)
-    if max_gt == 0:
-        start = MAX_N_TIMEPOINTS - n_timepoints
+    if max_gt < 0.5:
+        start = 0
     else:
         start = 0
-    if max_gt > 0:
         pos_frames = []
         for idx, frame in enumerate(ground_truth):
-            if frame.max() > 0:
+            if frame.max() > max_gt/2:
                 pos_frames.append(idx)
         # print(len(pos_frames))
-        start = pos_frames[max(-5, -len(pos_frames))]
-        start = start - (n_timepoints * time_increment)
+        start = pos_frames[max(-5, -len(pos_frames))*time_increment]
+        start = start - MAX_N_TIMEPOINTS*time_increment - 2
         start = max(start, 0)
-    else:
-        start = images.shape[0] - 5 - (n_timepoints * time_increment)
-        start = max(start, 0)
-        # print(start, images.shape[0], time_increment)
-    got_data = False
-    for idx in range(start, images.shape[0]-(n_timepoints*time_increment)):
-        gt_image = ground_truth[idx+(n_timepoints*time_increment)]
-        #if positive event take only substacks that will have positive gt
-        if max_gt > 0 and gt_image.max() == 0:
-            # print('skip', idx)
-            continue
-        image_matrix.append(images[idx:idx+(n_timepoints*time_increment):time_increment])
-        gt_matrix.append(gt_image)
-        got_data = True
 
-    if got_data:
-        return np.stack(image_matrix), np.stack(gt_matrix)
-    else:
+    got_data = False
+    # for idx in range(start, images.shape[0]-(n_timepoints*time_increment)):
+    gt_images = ground_truth[start: start+MAX_N_TIMEPOINTS+5:time_increment]
+
+    # print(list(range(start,start+MAX_N_TIMEPOINTS+5,time_increment)))
+    #if positive event take only substacks that will have positive gt
+    if max_gt > max_gt/2 and gt_images[-1].max() == 0:
+        print('positive event but negative GT, skip')
         return False, False
+    gt_images = np.expand_dims(gt_images, 0)
+    images = np.expand_dims(images[start:start+MAX_N_TIMEPOINTS+5:time_increment], 0)
+    # gt_matrix.append(gt_image)
+    if gt_images.shape[1] < MAX_N_TIMEPOINTS + 5 or images.shape[1] < MAX_N_TIMEPOINTS + 5:
+        print('event few frames')
+        return False, False
+    return images, gt_images
 
 
 def load_tifs(folder:Path):

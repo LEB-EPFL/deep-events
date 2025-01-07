@@ -22,8 +22,8 @@ def adjust_tf_dimensions(stack:np.array):
     else:
         return np.moveaxis(stack, 1, -1)
 
-
-from deep_events.training_functions import create_model, create_recurrent_model, create_bottleneck_convlstm_model
+from deep_events.training_functions import create_model
+from deep_events.lstm_models import get_model_generator
 from deep_events.generator import ArraySequence
 from deep_events.database.convenience import get_latest_folder
 from deep_events import performance
@@ -34,34 +34,39 @@ SETTINGS = {"nb_filters": 16,
             "nb_input_channels": 1,
             "batch_size": 32,
             "epochs": 10,
-            "n_augmentations": 5,
+            "n_augmentations": 20,
             'brightness_range': [0.6, 1],
             "loss": 'binary_crossentropy',
             "poisson": 0,
-            "subset_fraction": 0.02,
-            "initial_learning_rate": 4e-4}
+            "subset_fraction": 0.5,
+            "initial_learning_rate": 4e-4,
+            "n_timepoints": 3}
 
 
 
 def main(): # pragma: no cover
     tf.keras.backend.clear_session()
     gpus = ['GPU:1/']
-    folders = ["20240806_1401_brightfield_cos7_n3_f1"]
-    folders = [FOLDER/folder for folder in folders]
-    with Pool(3) as p:
-        p.starmap(train, zip(folders, gpus))
+    # folders = ["20240806_1401_brightfield_cos7_n3_f1"]
+    # folders = [FOLDER/folder for folder in folders]
+    # with Pool(3) as p:
+    #     p.starmap(train, zip(folders, gpus))
+    data_folder = Path(r'\\sb-nas1.rcp.epfl.ch\LEB\Scientific_projects\deep_events_WS\data\original_data\training_data\data_20241227_1500_brightfield_cos7_n1_f1_mito_events')
+    folder = Path(r'\\sb-nas1.rcp.epfl.ch\LEB\Scientific_projects\deep_events_WS\data\original_data\training_data\20241227_1526_brightfield_cos7_t0.2_f1_sFalse_mito_events_n753_sFalse')
+    train(data_folder, folder)
 
-def distributed_train(folders, gpus, settings=SETTINGS):
+
+def distributed_train(data_folders, folders, gpus, settings=SETTINGS):
     l = Lock()
 
     if not isinstance(settings, list):
-        settings = [settings]*len(folders)
-    distributed = [True]*len(folders)
+        settings = [settings]*len(data_folders)
+    distributed = [True]*len(data_folders)
     # os.environ['TF_GPU_ALLOCATOR'] = 0
     os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = "true"
     # folders = [str(x) for x in folders]
-    with Pool(min(5, len(folders)), initializer=init_pool, initargs=(l,)) as p:
-        p.starmap(train, zip(folders, gpus, settings, distributed))
+    with Pool(min(5, len(data_folders)), initializer=init_pool, initargs=(l,)) as p:
+        p.starmap(train, zip(data_folders, folders, gpus, settings, distributed))
     time.sleep(30)  # allow for gpu cleanup
     for folder in set(folders):
         performance.performance_for_folder(folder, general_eval=False)
@@ -73,15 +78,16 @@ def init_pool(l: Lock):
 
 lock = Lock()
 
-def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS, distributed: bool = False):
+def train(data_folder: Path = None, folder = None, gpu = 'GPU:2/', settings: dict = SETTINGS, distributed: bool = False):
     if distributed:
         time.sleep(np.random.random()*10)
         lock.acquire()
         print("LOCKED")
-    if folder is None:
-        folder = get_latest_folder(FOLDER)
+    if data_folder is None:
+        data_folder = get_latest_folder(FOLDER)
 
-    print(folder)
+    print('model folder', folder)
+    print('data folder', data_folder)
     print(settings)
     logs_dir = folder.parents[0] / (settings.get("log_dir", "logs") + "/scalars/")
     name = short_name = Path(folder).parts[-1][:13]
@@ -102,17 +108,18 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS, distri
     reduce_lr_callback = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, min_lr=1e-7)
     early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=25, restore_best_weights=True, verbose=1)
 
-
-    batch_generator = ArraySequence(folder, settings["batch_size"],
+    batch_generator = ArraySequence(data_folder, settings["batch_size"],
                                      n_augmentations=settings["n_augmentations"],
                                      brightness_range=settings['brightness_range'],
                                      poisson=settings["poisson"],
-                                     subset_fraction=settings["subset_fraction"])
-    validation_generator = ArraySequence(folder, settings["batch_size"],
+                                     subset_fraction=settings["subset_fraction"],
+                                     t_size=settings['n_timepoints'])
+    validation_generator = ArraySequence(data_folder, settings["batch_size"],
                                      n_augmentations=settings["n_augmentations"],
                                      brightness_range=settings['brightness_range'],
                                      poisson=settings["poisson"],
-                                     validation=True)
+                                     validation=True,
+                                     t_size=settings['n_timepoints'])
 
     images_callback = LogImages(logdir, batch_generator, validation_generator, freq=2)
     
@@ -124,6 +131,7 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS, distri
 
     settings["logdir"] = logdir.name
     settings_folder = str(folder / (name + "_settings.yaml"))
+    settings['data_folder'] = data_folder
     print(F"SETTINGS LOCATION: {settings_folder}")
     benedict(settings).to_yaml(filepath = folder / (name + "_settings.yaml"))
     if distributed:
@@ -135,10 +143,11 @@ def train(folder: Path = None, gpu = 'GPU:2/', settings: dict = SETTINGS, distri
     while n_tries < max_tries:
         os.environ['CUDA_VISIBLE_DEVICES'] = gpu[-2]
         print('val shape', validation_generator.__getitem__(0)[1].shape)
-        model = create_bottleneck_convlstm_model(settings, batch_generator.__getitem__(0)[0].shape)
+        model_generator = get_model_generator(settings['model'])
+        model = model_generator(settings, batch_generator.__getitem__(0)[0].shape)
 
         steps_per_epoch = np.floor(batch_generator.__len__())
-        print(f"NUMBER OF EPOCHS: {settings['epochs']}" )
+        print(f"NUMBER OF EPOCHS: {settings['epochs']}")
         try:
             gpu_device = tf.device(gpu)
             with gpu_device:
@@ -188,11 +197,22 @@ class LogImages(tf.keras.callbacks.Callback):
                     self.log_images(generator, idxs, prefix, epoch)
 
     def log_images(self, generator, idxs, prefix, epoch):
-        ls= []
+        x_list, y_list = [], []
         for idx in idxs:
             x, y = generator.__getitem__(idx)
-            z = self.model.predict(x, verbose=0)
-            x, y, z = x[0, :, :, 0], y[0], z[0]
+            x_list.append(x[0])  
+            y_list.append(y[0])
+        x_batch = np.stack(x_list, axis=0)
+        y_batch = np.stack(y_list, axis=0)
+
+        # Single batch prediction
+        z_batch = self.model.predict(x_batch, verbose=0)
+        ls = []
+        for i in range(len(idxs)):
+            x = x_batch[i, ..., 0]
+            y = y_batch[i]
+            z = z_batch[i]
+            # x, y, z = x_i[0, :, :, 0], y_i[0], z_i[0]
             xi = self._c2c(x)
             yl = self._om(xi, y, z, (255,0,0), self.overlay_alpha)
             ls.append(yl)
@@ -277,9 +297,10 @@ class LogImages(tf.keras.callbacks.Callback):
 
 
 if __name__ == "__main__":
-    gpu = 'GPU:1/'
-    folder = FOLDER / "20241220_1432_brightfield_cos7_n5_f1"
+    # gpu = 'GPU:1/'
+    # folder = FOLDER / "20241220_1432_brightfield_cos7_n5_f1"
 
-    train(folder, gpu)
+    # train(folder, gpu)
     # import os
     # os.environ["CUDA_VISIBLE_DEVICES"] = "3" # set the GPU ID
+    main()
