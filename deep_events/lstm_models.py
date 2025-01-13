@@ -15,17 +15,7 @@ from deep_events.training_functions import get_loss_function, WMSELoss, WBCELoss
 import keras.backend as K
 import tensorflow as tf
 
-def get_model_generator(model_name: str = 'simple_recurrent'):
-    if model_name == 'simple_recurrent':
-        return create_recurrent_model
-    elif model_name == 'double_lstm':
-        return create_unet_with_two_convlstm
-    elif model_name == 'bottleneck_lstm':
-        return create_bottleneck_convlstm_model
-    elif model_name == 'deep_temporal':
-        return create_deep_temporal_unet
-    else:
-        raise NotImplementedError()
+
 
 def create_recurrent_model(settings, data_shape, printSummary=False):
     """

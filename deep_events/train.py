@@ -1,18 +1,27 @@
 from pathlib import Path
 import datetime
-from multiprocessing import Pool, Lock
+from multiprocessing import Pool, Lock, Process
 import time
+import warnings
+# Suppress the specific end-of-development warning from TensorFlow Addons
+warnings.filterwarnings(
+    "ignore",
+    message=".*TensorFlow Addons (TFA) has ended development*",
+    category=UserWarning
+)
 
 from benedict import benedict
-import tensorflow as tf
+import gc
 import numpy as np
 import os
+import psutil
 import random
+
+from deep_events.augmentation import tf_apply_augmentation
 
 # set seeds
 random.seed(42)
 np.random.seed(42)
-tf.random.set_seed(42)
 os.environ['PYTHONHASHSEED'] = '42'
 os.environ['TF_DETERMINISTIC_OPS'] = '1'
 
@@ -22,9 +31,8 @@ def adjust_tf_dimensions(stack:np.array):
     else:
         return np.moveaxis(stack, 1, -1)
 
-from deep_events.training_functions import create_model
-from deep_events.lstm_models import get_model_generator
-from deep_events.generator import ArraySequence
+from deep_events.training_functions import get_model_generator
+from deep_events.generator import ArraySequence, apply_augmentation
 from deep_events.database.convenience import get_latest_folder
 from deep_events import performance
 
@@ -57,28 +65,51 @@ def main(): # pragma: no cover
 
 
 def distributed_train(data_folders, folders, gpus, settings=SETTINGS):
-    l = Lock()
-
+    core_groups = [
+    list(range(0, 8)),   # First process uses cores 0-7
+    list(range(8, 16)),  # Second process uses cores 8-15
+    list(range(16, 24)), # Third process uses cores 16-23
+    list(range(24, 32)), # Fourth process uses cores 24-31
+    list(range(32, 40))  # Fifth process uses cores 32-39
+    ]
+    global lock
+    lock = Lock()
     if not isinstance(settings, list):
         settings = [settings]*len(data_folders)
     distributed = [True]*len(data_folders)
     # os.environ['TF_GPU_ALLOCATOR'] = 0
-    os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = "true"
+   
     # folders = [str(x) for x in folders]
-    with Pool(min(5, len(data_folders)), initializer=init_pool, initargs=(l,)) as p:
-        p.starmap(train, zip(data_folders, folders, gpus, settings, distributed))
+    processes = []
+    for idx, (data_folder, folder, gpu, core_group, setting) in enumerate(zip(data_folders, folders, gpus, core_groups, settings)):
+        p = Process(target=train, args=(data_folder, folder, gpu, core_group, setting, distributed[idx], lock))
+        p.start()
+        processes.append(p)
+
+    for p in processes:
+        p.join()
     time.sleep(30)  # allow for gpu cleanup
     for folder in set(folders):
         performance.performance_for_folder(folder, general_eval=False)
     time.sleep(30)  # allow for gpu cleanup
 
-def init_pool(l: Lock):
-    global lock
-    lock = l
+def train(data_folder: Path = None, folder = None, gpu = 'GPU:2/', cores = list(range(0, 8)), settings: dict = SETTINGS, distributed: bool = False, lock=None):
+    p = psutil.Process()
+    p.cpu_affinity(cores)  
+    import tensorflow as tf
+    # tf.config.threading.set_intra_op_parallelism_threads(8)
+    # tf.config.threading.set_inter_op_parallelism_threads(8)
+    from deep_events.logs import LogImages
+    tf.random.set_seed(42)
+    gpu = gpu.split(':')[-1].rstrip('/')
+    print('GPU', gpu)
+    print('CPU', cores)
+    os.environ["CUDA_VISIBLE_DEVICES"] = gpu + ",0"
+    os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = "true"
+    os.environ["PATH"] +=  os.pathsep + "C:/Program Files/NVIDIA Corporation/Nsight Systems 2023.1.2/target-windows-x64"
+    os.environ['ENABLE_PROFILER'] = '1'
 
-lock = Lock()
-
-def train(data_folder: Path = None, folder = None, gpu = 'GPU:2/', settings: dict = SETTINGS, distributed: bool = False):
+    # global lock
     if distributed:
         time.sleep(np.random.random()*10)
         lock.acquire()
@@ -86,8 +117,6 @@ def train(data_folder: Path = None, folder = None, gpu = 'GPU:2/', settings: dic
     if data_folder is None:
         data_folder = get_latest_folder(FOLDER)
 
-    print('model folder', folder)
-    print('data folder', data_folder)
     print(settings)
     logs_dir = folder.parents[0] / (settings.get("log_dir", "logs") + "/scalars/")
     name = short_name = Path(folder).parts[-1][:13]
@@ -96,76 +125,123 @@ def train(data_folder: Path = None, folder = None, gpu = 'GPU:2/', settings: dic
     while logdir.exists():
         name = short_name + f"_{i}"
         logdir = logs_dir / name
-        print(name)
         i += 1
+    print(name)
     print(f"Writing settings, logdir {logdir}")
     writer = tf.summary.create_file_writer(str(logdir))
     with writer.as_default():
         for key, value in settings.items():
             tf.summary.text(name=key, data=str(value), step=0)
         writer.flush()
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
+    if distributed:
+        lock.release()
+        print("UNLOCKED")
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir, profile_batch='100,110')
     reduce_lr_callback = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, min_lr=1e-7)
     early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=25, restore_best_weights=True, verbose=1)
+    class GarbageCollectionCallback(tf.keras.callbacks.Callback):
+        def on_epoch_end(self, epoch, logs=None):
+            gc.collect()
 
-    batch_generator = ArraySequence(data_folder, settings["batch_size"],
-                                     n_augmentations=settings["n_augmentations"],
-                                     brightness_range=settings['brightness_range'],
-                                     poisson=settings["poisson"],
-                                     subset_fraction=settings["subset_fraction"],
-                                     t_size=settings['n_timepoints'])
-    validation_generator = ArraySequence(data_folder, settings["batch_size"],
-                                     n_augmentations=settings["n_augmentations"],
-                                     brightness_range=settings['brightness_range'],
-                                     poisson=settings["poisson"],
-                                     validation=True,
-                                     t_size=settings['n_timepoints'])
-
-    images_callback = LogImages(logdir, batch_generator, validation_generator, freq=2)
+    # batch_generator = ArraySequence(data_folder, settings["batch_size"],
+    #                                  n_augmentations=settings["n_augmentations"],
+    #                                  brightness_range=settings['brightness_range'],
+    #                                  poisson=settings["poisson"],
+    #                                  subset_fraction=settings["subset_fraction"],
+    #                                  t_size=settings['n_timepoints'],
+    #                                  validation=False,
+    #                                  augment = False) # aug handled by Dataset
+    # validation_generator = ArraySequence(data_folder, settings["batch_size"],
+    #                                  n_augmentations=settings["n_augmentations"],
+    #                                  brightness_range=settings['brightness_range'],
+    #                                  poisson=settings["poisson"],
+    #                                  validation=True,
+    #                                  t_size=settings['n_timepoints'])
     
+    # def create_tf_dataset(array_sequence, augment=True, settings=None):
+    #     def apply_tf_augmentation_wrapper(x, y):
+    #         return tf_apply_augmentation(
+    #             x, y,
+    #             x_size=128,
+    #             y_size=128,
+    #             brightness_range=settings["brightness_range"],
+    #             poisson=settings["poisson"],
+    #             performance=False
+    #         )
+    #     # num_parallel_calls = 50
+    #     if settings is None:
+    #         raise ValueError("Settings must be provided to determine the number of timepoints and channels.")
+    #     # Define the output signature based on how timepoints are stacked into channels
+    #     output_signature = (tf.TensorSpec(shape=(None, None, settings['n_timepoints'] * settings['nb_input_channels']), dtype=tf.float32),
+    #                         tf.TensorSpec(shape=(None, None, 1), dtype=tf.float32))
+    #     print("dataset from generator")
+    #     dataset = tf.data.Dataset.from_generator(lambda: array_sequence, output_signature=output_signature)
+    #     dataset = dataset.cache()                        # Cache the batched dataset
+    #     dataset = dataset.repeat()                       # Repeat cached data for multiple epochs
+    #     dataset = dataset.shuffle(buffer_size=10000)
+    #     if augment:
+    #         # Apply augmentations to individual samples before batching
+    #         dataset = dataset.map(
+    #             apply_tf_augmentation_wrapper,
+    #             num_parallel_calls=tf.data.experimental.AUTOTUNE
+    #         )
+    #     # Batch augmented samples
+    #     dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)  
+    #     dataset = dataset.batch(settings["batch_size"])  # Batch after augmentation
+    #     # Ensure correct data types
+    #     # dataset = dataset.map(lambda x, y: (tf.cast(x, tf.float32), tf.cast(y, tf.float32)))
+        # return dataset
 
-    # time.sleep(1)
-    # name = datetime.datetime.now().strftime("%Y%m%d_%H%M")
-    # while Path(folder / (name + "_settings.yaml")).is_file():
-    #     name = datetime.datetime.now().strftime("%Y%m%d_%H%M")
-
+    from deep_events.generator import create_tf_dataset
+    data_folder = Path("D:/Users/stepp/Desktop/data_20250105_1122_brightfield_cos7_t0.2_f1_sFalse_mito_events_n753_sFalse")
+    train_dataset = create_tf_dataset(data_folder, settings["batch_size"], augment=True, t_size=settings["n_timepoints"])
+    validation_dataset = create_tf_dataset(data_folder, settings["batch_size"], augment=False, validation=True, t_size=settings["n_timepoints"])
+    for batch in train_dataset.take(1):
+        print(batch[0].shape)  # Shape of features
+        print(batch[1].shape)  # Shape of labels
+    for batch in train_dataset.take(1):
+        print(batch[0].shape)  # Shape of features
+        print(batch[1].shape)  # Shape of labels
+    # images_callback = LogImages(logdir, batch_generator, validation_generator, freq=2)
+    
     settings["logdir"] = logdir.name
     settings_folder = str(folder / (name + "_settings.yaml"))
     settings['data_folder'] = data_folder
     print(F"SETTINGS LOCATION: {settings_folder}")
     benedict(settings).to_yaml(filepath = folder / (name + "_settings.yaml"))
-    if distributed:
-        lock.release()
-        print("UNLOCKED")
+
 
     n_tries = 0
     max_tries = 10
     while n_tries < max_tries:
-        os.environ['CUDA_VISIBLE_DEVICES'] = gpu[-2]
-        print('val shape', validation_generator.__getitem__(0)[1].shape)
-        model_generator = get_model_generator(settings['model'])
-        model = model_generator(settings, batch_generator.__getitem__(0)[0].shape)
 
-        steps_per_epoch = np.floor(batch_generator.__len__())
+        print('train shape', batch[0].shape)
+        # print('val shape', val_batch[0].shape)
+        model_generator = get_model_generator(settings['model'])
+        model = model_generator(settings, batch[0].shape)
+
+        # steps_per_epoch = np.floor(batch_generator.__len__())
         print(f"NUMBER OF EPOCHS: {settings['epochs']}")
         try:
-            gpu_device = tf.device(gpu)
-            with gpu_device:
-                history = model.fit(batch_generator,
-                                    validation_data = validation_generator,
-                                    batch_size = settings["batch_size"],
-                                    epochs = settings["epochs"],
-                                    steps_per_epoch = steps_per_epoch,
-                                    shuffle=True,
-                                    verbose = 1,
-                                    callbacks = [tensorboard_callback, images_callback, reduce_lr_callback, early_stopping_callback],
-                                    # validation_steps=20
-                                    )
+            # tf.profiler.experimental.start(settings['logdir'])
+            history = model.fit(train_dataset,
+                                validation_data = validation_dataset,
+                                # batch_size = settings["batch_size"],
+                                epochs = settings["epochs"]*10,
+                                # steps_per_epoch = np.ceil((len(batch_generator) * settings["n_augmentations"]) / settings["batch_size"]),
+                                # shuffle=True,
+                                verbose = 1,
+                                callbacks = [tensorboard_callback,  reduce_lr_callback, early_stopping_callback, GarbageCollectionCallback()],# , images_callback],
+                                validation_steps=10,
+                                )
+            # tf.profiler.experimental.stop()
             n_tries = max_tries
         except Exception as e:
             print("------------------------------ COULD NOT TRAIN -----------------------------------------")
             print(e)
-            gpu = gpu.replace(gpu[-2], str((int(gpu[-2])+1)%6))
+            gpu_index = int(gpu)
+            gpu = str((gpu_index + 1) % 6)  # Rotate GPU index (assuming 6 GPUs)
+            os.environ["CUDA_VISIBLE_DEVICES"] = gpu
             time.sleep(10)
             print(f"Try next GPU: {gpu}")
         n_tries += 1
@@ -174,125 +250,6 @@ def train(data_folder: Path = None, folder = None, gpu = 'GPU:2/', settings: dic
     
 
 
-class LogImages(tf.keras.callbacks.Callback):
-    def __init__(self, log_dir, image_generator, val_generator, freq=1, overlay_alpha=0.5, nrows=3, ncols=10, downscale=2):
-        super().__init__()
-        self.log_dir = str(log_dir)
-        self.image_generator = image_generator
-        self.val_generator = val_generator
-        self.freq = freq
-        self.nrows = nrows
-        self.ncols = ncols
-        self.overlay_alpha = overlay_alpha
-        self.downscale = downscale
-        self.idxs = [
-            np.linspace(0, self.image_generator.num_samples - 1, nrows*ncols, dtype=int),
-            np.linspace(0, self.val_generator.num_samples - 1, nrows*ncols, dtype=int),
-        ]
-
-    def on_epoch_end(self, epoch, logs=None):
-        if epoch % self.freq == 0:
-            with tf.summary.create_file_writer(self.log_dir).as_default():
-                for prefix, generator, idxs in zip(['train','eval'], [self.image_generator,self.val_generator], self.idxs):
-                    self.log_images(generator, idxs, prefix, epoch)
-
-    def log_images(self, generator, idxs, prefix, epoch):
-        x_list, y_list = [], []
-        for idx in idxs:
-            x, y = generator.__getitem__(idx)
-            x_list.append(x[0])  
-            y_list.append(y[0])
-        x_batch = np.stack(x_list, axis=0)
-        y_batch = np.stack(y_list, axis=0)
-
-        # Single batch prediction
-        z_batch = self.model.predict(x_batch, verbose=0)
-        ls = []
-        for i in range(len(idxs)):
-            x = x_batch[i, ..., 0]
-            y = y_batch[i]
-            z = z_batch[i]
-            # x, y, z = x_i[0, :, :, 0], y_i[0], z_i[0]
-            xi = self._c2c(x)
-            yl = self._om(xi, y, z, (255,0,0), self.overlay_alpha)
-            ls.append(yl)
-        ls = self._make_montage(np.stack(ls, axis=0))
-        ls = ls.astype(np.float32)/255.
-        tf.summary.image(prefix+"_labels_overlay", ls[None], step=epoch)
-
-    def _c2c(self, img):
-        if len(img.shape) == 2:
-            img = np.expand_dims(img, axis=-1)
-        if img.shape[-1] == 1:
-            img = np.concatenate([img, img, img], axis=-1)
-        # img = self._downsample(img, self.downscale)
-        return self._n2u(img)
-
-    def _n2u(self, img):
-        if img.dtype != np.uint8:
-            if img.max() <= 1.0:
-                img = (img*255).clip(0,255)
-            else:
-                img = np.clip(img, 0, 255)
-            img = img.astype(np.uint8)
-        return img
-
-    def _om(self, orig, mask, pred, color=(255,0,0), alpha=0.5):
-        if len(mask.shape) == 3 and mask.shape[-1] > 1:
-            mask = np.mean(mask, axis=-1)
-        if len(pred.shape) == 3 and pred.shape[-1] > 1:
-            pred = np.mean(pred, axis=-1)
-        mask = self._n2u(mask)[:, :, 0]
-        pred = self._n2u(pred)[:, :, 0]
-        
-        # Convert mask from [0..255] to [0..2]
-        mask_f = mask.astype(np.float32) / 128.0
-        pred_f = pred.astype(np.float32) /128.0
-        
-        orig_f = orig.astype(np.float32)
-        cf  = np.array(color, dtype=np.float32)
-        cfg = np.array((0,255,0), dtype=np.float32)
-        
-        # Red overlay for mask
-        c = cf * mask_f[..., None]  # shape (H,W,3), each pixel scaled by mask_f
-        # Green overlay for pred
-        cp = cfg * pred_f[..., None]
-        
-        # Weighted sum
-        out = (1 - alpha)*orig_f + alpha*c + alpha*cp
-        out = np.clip(out, 0, 255).astype(np.uint8)
-        return out
-        # mask = self._n2u(mask)[:, :, 0]
-        # pred = self._n2u(pred)[:, :, 0]
-        # c = np.zeros_like(orig, dtype=np.float32)
-        # cf = np.array(color, dtype=np.float32)
-        # r = (mask > 20)
-        # if r.max():
-        #     c[r] = np.array([cf *x for x in mask[r]])
-        # cp = np.zeros_like(orig, dtype=np.float32)
-        # colorp = np.array((0, 255, 0), dtype=np.float32)
-        # p = (pred > 20)
-        # if p.max():
-        #     cp[p] = np.array([colorp *x for x in pred[p]])
-        # of = orig.astype(np.float32)
-        # o = (1.0 - alpha)*of + alpha*c + alpha*cp
-        # return np.clip(o, 0, 255).astype(np.uint8)
-
-    def _downsample(self, img, factor):
-        return img[::factor, ::factor, :]
-
-    def _make_montage(self, imgs):
-        _, h, w, c = imgs.shape
-        out = np.zeros((self.nrows*h, self.ncols*w, c), dtype=imgs.dtype)
-        for idx, im in enumerate(imgs):
-            if idx >= self.nrows*self.ncols: break
-            r = idx // self.ncols
-            cc = idx % self.ncols
-            if idx == 0:
-                im[:20, :20, 0] = np.ones((20,20))*255
-                im[:20, :20, 1] = np.ones((20,20))*255
-            out[r*h:(r+1)*h, cc*w:(cc+1)*w] = im
-        return out
 
 
 

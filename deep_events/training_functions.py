@@ -230,6 +230,21 @@ def get_loss_function(settings: dict = None):
     else:
         NotImplementedError(f"{loss} has not been implemented as loss function in this framework.")
 
+def get_model_generator(model_name: str = 'simple_recurrent'):
+    from deep_events import lstm_models
+    if model_name == 'unet':
+        return create_model
+    elif model_name == 'simple_recurrent':
+        return lstm_models.create_recurrent_model
+    elif model_name == 'double_lstm':
+        return lstm_models.create_unet_with_two_convlstm
+    elif model_name == 'bottleneck_lstm':
+        return lstm_models.create_bottleneck_convlstm_model
+    elif model_name == 'deep_temporal':
+        return lstm_models.create_deep_temporal_unet
+    else:
+        raise NotImplementedError()
+
 def train_model(model, input_data, output_data, batch_size, validtrain_split_ratio):
     # Split dataset into [test] and [train+valid]
     max_epochs = 20  # maxmimum number of epochs to be iterated
@@ -257,5 +272,10 @@ if __name__ == '__main__':
         "first_conv_size": 12,
         "initial_learning_rate": 1e-4,
         "loss": "binary_crossentropy"
-    }
+    }    
+    from generator import ArraySequence
+    from pathlib import Path
+    data_folder = Path(r"X:\Scientific_projects\deep_events_WS\data\original_data\training_data\data_20241227_1500_brightfield_cos7_n1_f1_mito_events")
+    seq = ArraySequence(data_folder, 32, t_size=5)
     model = create_model(settings, data_shape, printSummary=True)
+    model.fit_generator(seq, workers=10)

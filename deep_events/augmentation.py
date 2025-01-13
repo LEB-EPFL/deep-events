@@ -1,5 +1,86 @@
+import os
+os.environ["PYTHONWARNINGS"] = "ignore::UserWarning:tensorflow_addons.utils.tfa_eol_msg"
+
 import tensorflow as tf
 import tensorflow_addons as tfa
+
+import numpy as np
+
+def tf_apply_augmentation(x, y, x_size=128, y_size=128, brightness_range=(0.9, 1.1), poisson=0.0, performance=False):
+    """
+    TensorFlow-based augmentation function for image and label pairs.
+    
+    Parameters:
+        x: Tensor of shape (height, width, channels)
+        y: Tensor of shape (height, width, 1) or (height, width, channels)
+        x_size: Target crop size for height and width
+        y_size: Target crop size for height and width
+        brightness_range: Tuple specifying the brightness multiplier range
+        poisson: Poisson noise intensity
+        performance: If True, skips cropping and elastic transformations for speed
+    
+    Returns:
+        Augmented tensors x and y
+    """
+    
+    # Random rotation
+    # angle = tf.random.uniform([], -30, 30, dtype=tf.float32)  # Degrees
+    # angle_rad = angle * (3.141592653589793 / 180.0)
+    # x = tfa.image.rotate(x, angle_rad, interpolation="BILINEAR")
+    # y = tfa.image.rotate(y, angle_rad, interpolation="NEAREST")
+    
+    # Random width and height shifts (applied by affine transformation)
+    # if not performance:
+    #     shift_w = tf.random.uniform([], -20, 20, dtype=tf.float32)
+    #     shift_h = tf.random.uniform([], -20, 20, dtype=tf.float32)
+    #     x = tfa.image.translate(x, [shift_w, shift_h])
+    #     y = tfa.image.translate(y, [shift_w, shift_h])
+
+    # Random cropping (if not performance mode)
+    if not performance:
+        crop_pos_x = tf.random.uniform([], 0, 40, dtype=tf.int32) 
+        crop_pos_y = tf.random.uniform([], 0, 40, dtype=tf.int32) 
+        x = tf.image.crop_to_bounding_box(x, crop_pos_x, crop_pos_y, x_size, y_size)
+        y = tf.image.crop_to_bounding_box(y, crop_pos_x, crop_pos_y, x_size, y_size)
+        # if tf.random.uniform([], 0, 1, dtype=tf.float32) < 0.01:
+            # tf.print("CROPPED", tf.shape(x))
+        
+    # Random flipping
+    # tf.print("SIZE HERE", tf.shape(x))
+    x = tf.image.random_flip_left_right(x)
+    x = tf.image.random_flip_up_down(x)
+    y = tf.image.random_flip_left_right(y)
+    y = tf.image.random_flip_up_down(y)
+
+    # Brightness adjustment
+    brightness_factor = tf.random.uniform([], brightness_range[0], brightness_range[1])
+    x = x * brightness_factor
+
+    # Apply Poisson noise (optional)
+    if poisson > 0.01:
+        intensity_scale = 100 / poisson
+        poisson_noisy = tf.random.poisson([], x * intensity_scale) / intensity_scale
+        gaussian_std = 0.01 * poisson
+        gaussian_noise = tf.random.normal(tf.shape(x), stddev=gaussian_std)
+        x = tf.clip_by_value(poisson_noisy + gaussian_noise, 0.0, 1.0)
+    
+    # Gamma correction
+    gamma = tf.random.uniform([], 0.8, 1.2)
+    x = tf.pow(x, gamma)
+    
+    # Add a random shift to pixel values
+    shift_val = tf.random.uniform([], -0.1, 0.1)
+    x = tf.clip_by_value(x + shift_val, 0.0, 1.0)
+
+    # Optional elastic transformation (simplified)
+    # if not performance:
+    #     dx = tf.random.normal([x_size, y_size], mean=0.0, stddev=3.0) * 10.0
+    #     dy = tf.random.normal([x_size, y_size], mean=0.0, stddev=3.0) * 10.0
+    #     displacement = tf.stack([dx, dy], axis=-1)
+    #     x = tfa.image.dense_image_warp(tf.expand_dims(x, axis=0), tf.expand_dims(displacement, axis=0))[0]
+    #     y = tfa.image.dense_image_warp(tf.expand_dims(y, axis=0), tf.expand_dims(displacement, axis=0))[0]
+    
+    return x, y
 
 class RandomFlip(tf.keras.layers.Layer):
     def call(self, x):

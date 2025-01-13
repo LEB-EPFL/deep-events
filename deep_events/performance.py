@@ -394,13 +394,14 @@ if __name__ == "__main__":
     # folders.extend(list(main_folder.glob('20250103_0159*')))
     # folders.extend(list(main_folder.glob('20250103_0838*')))
     # folders.extend(list(main_folder.glob('20250103_1819*')))
-    folders.extend(list(main_folder.glob('20250107_0506*')))
+    folders.extend(list(main_folder.glob('20250108_1838*')))
     # folder = Path(r"Y:\SHARED\_Scientific projects\ADA_WS_JCL\Phase_PDA\training_data\20231126_1914_zeiss_s1_iFalse_mitochondria") # "Z:/SHARED/_Scientific projects/ADA_WS_JCL/Phase_PDA/training_data/20231121_1606_zeiss_s1_iFalse_mitochondria")
     for folder in folders:
         print(folder)
         models = list(folder.glob("*_model.h5"))
-        for mod in models[0]:
+        for mod in models:
             main(folder/mod, write_yaml=True, plot=True, save_hist=True)
+            time.sleep(3)
     # visual_eval(folders[0], list(folders[0].glob("*_model.h5"))[0])
 
     # 259 30 422 437 0.64
