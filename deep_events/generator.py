@@ -31,7 +31,7 @@ def apply_augmentation(self, x, y, x_size=128, y_size=128, performance=False):
     bright = np.random.default_rng().uniform(self.brightness_range[0], self.brightness_range[1], size=(1))
     crop_pos = (x.shape[-3] - x_size)//2
     if len(x.shape) > 3:
-        for c in x.shape[-1]:
+        for c in range(x.shape[-1]):
             x[..., c] = self.generator.apply_transform(x[..., c], params)
             if not performance:
                 x[..., c] = x[..., crop_pos:crop_pos+x_size, crop_pos:crop_pos+x_size, c]
@@ -168,6 +168,8 @@ class ArraySequence(Sequence):
         with tifffile.TiffFile(self.images_file) as tif_input, tifffile.TiffFile(self.gt_file) as tif_gt:
             self.images_array = tif_input.asarray()
             self.gt_array = tif_gt.asarray()
+        print('SHAPE in Sequence', self.images_array.shape, 'validation', validation)
+
         self.num_samples = self.images_array.shape[0]
 
         #Correct dimensions for tensorflow
@@ -217,6 +219,7 @@ class ArraySequence(Sequence):
             # print('last_frame', last_frame)
 
             x_frames = list(range(-self.t_size+last_frame+1, last_frame+1))
+
             if np.random.random() < 0.1 and self.t_size > 1 and not self.validation and len(x_frames) > 1 and not self.performance:
                 # in 10% of cases drop a frame
                 to_drop = np.random.randint(0, len(x_frames)-1)
@@ -227,24 +230,12 @@ class ArraySequence(Sequence):
             while y_all.max() > 0.5 and y.max() < 0.5:
                 y = y_all[..., x_frames[-1] + j]
                 j += 1
-                # fig, axs = plt.subplots(1, 3)
-                # fig.set_size_inches(15, 5)
-                # axs[0].imshow(x[..., x_frames[-1]])
-                # axs[1].imshow(y, clim=(0, 1))
-                # axs[2].imshow(x[..., -1])
-                # print(x_frames)
-                # print(x.shape)
-                # plt.show()
             x = x[..., x_frames]
             y = np.expand_dims(y, -1)
             if self.augment and not self.validation:
                 x, y = self.apply_augmentation(x, y)
             elif self.performance:
                 x, y = self.apply_augmentation(x, y)
-            # else:
-            #     x_size = 128
-            #     x = x[56:56+x_size, 56:56+x_size, :]
-            #     y = y[56:56+x_size, 56:56+x_size, :]
 
             batch_x.append(x)
             batch_y.append(y)

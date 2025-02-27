@@ -32,7 +32,9 @@ def extract_events(db_file, settings: dict):
         folder_dict['auto_negatives'] = auto_negatives
 
     if images_identifier != "":
-        tif_identifier = r'*' + images_identifier 
+        tif_identifier = r'*' + images_identifier
+    else:
+        tif_identifier = images_identifier
     if isinstance(channel_contrast, list):
         for contrast in channel_contrast:
             extract_events(db_file, folder, events_folder, images_identifier, contrast, label, event_content, add_post_frames)
@@ -95,9 +97,9 @@ def extract_events(db_file, settings: dict):
         crop_tifs(tif_file, gaussians_file, add_post_frames, tif_files, label, folder_dict, folder, events_folder, event_dict)
 
 def crop_zarrs(zarr_loc, gaussians_file, add_post_frames, tif_files, label, folder_dict, folder, events_folder, event_dict):
-    print('Cropping', zarr_loc, '\n', Path(zarr_loc)/gaussians_file)
     reader = Reader(parse_url(zarr_loc))
     images = list(reader())[0].data[0]
+    print('Cropping', zarr_loc, '\n', Path(zarr_loc)/gaussians_file, '\n', images.shape)
     reader = Reader(parse_url(Path(zarr_loc)/gaussians_file))
     gaussians = list(reader())[0].data[0].copy()
     del reader
