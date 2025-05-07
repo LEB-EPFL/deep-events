@@ -9,9 +9,7 @@ from deep_events.database.convenience import glob_zarr
 
 # folder = "//lebsrv2.epfl.ch/LEB_SHARED/SHARED/_Lab members/Juan/230511_PDA_TrainingSet_iSIM"
 # folder = "Z:/_Lab members/Emily/"
-folder = Path("//sb-nas1.rcp.epfl.ch/LEB/Scientific_projects/deep_events_WS/data/original_data/20230628_cos7_bf_zeiss")
-folder = Path("//lebnas1.epfl.ch/microsc125/deep_events/experiments/exploration/20240228_phaseEDA")
-folder = Path("//sb-nas1.rcp.epfl.ch/LEB/Scientific_projects/lipid_droplets_EBD/test_plin5/20231214_mitotracker_ld_eda")
+folder = Path("//sb-nas1.rcp.epfl.ch/LEB/Scientific_projects/Pearling_JCL/02_Experiments/20250307_pda")
 
     #%%
 def prepare_all_folder(folder: str):
@@ -28,7 +26,7 @@ def prepare_all_folder(folder: str):
 
     # Do the yaml file from the information in files and folder names
     for file in all_files:
-        extract_yaml.recursive_folder(file)
+        extract_yaml.recursive_folder(os.path.dirname(file))
         extract_yaml.set_defaults(os.path.dirname(file))
         minimal_present = extract_yaml.check_minimal(os.path.dirname(file))
         if not minimal_present:
@@ -52,7 +50,6 @@ def prepare_all_folder(folder: str):
     print("ome_sources", ome_sources)
 
     # Get the OME fields from the tif_files
-
     for tif in ome_sources:
         print(str(tif))
         ome_to_yaml.extract_ome(tif)

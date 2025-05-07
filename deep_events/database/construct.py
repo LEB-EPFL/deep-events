@@ -12,7 +12,9 @@ def main(folder = MAIN_PATH, collection='mito_events'): #pragma: no cover
     reconstruct_from_folder(folder, collection)
 
 
-def reconstruct_from_folder(folder: Path, collection: str):
+def reconstruct_from_folder(folder: Path|str, collection: str):
+    if isinstance(folder, str):
+        folder = Path(folder)
     # Initialize database connection
     coll = get_collection(collection)
     print(folder)

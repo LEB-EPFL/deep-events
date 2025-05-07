@@ -106,7 +106,11 @@ def csv_to_lines(FOLDER, WIDTH, csv_pattern):
     csv_files = glob_zarr(Path(FOLDER), csv_pattern + "*.csv")
     for csv_file in tqdm(csv_files):
         # get newest tif file
-        tif_file = max(csv_file.parent.glob('*.ome.tif'), key=lambda x: x.stat().st_mtime)
+        try:
+            tif_file = max(csv_file.parent.glob('*.ome.tif'), key=lambda x: x.stat().st_mtime)
+        except ValueError:
+            print("No ome.tif file, looking for .tif")
+            tif_file = max(csv_file.parent.glob('*.tif*'), key=lambda x: x.stat().st_mtime)
         lines = get_lines(csv_file)
         shape = get_shape_from_tif(tif_file)
         line_images = draw_lines(lines, shape, WIDTH)

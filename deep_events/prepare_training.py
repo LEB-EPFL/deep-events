@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 import matplotlib.pyplot as plt
 
-from sklearn.model_selection import train_test_split
+# from sklearn.model_selection import train_test_split
 import tifffile
 
 from deep_events.database.construct import reconstruct_from_folder
@@ -55,10 +55,14 @@ def prepare_for_prompt(folder: Path, prompt: dict, collection: str, test_size = 
         del prompt["subset"]
     if "collection" in prompt.keys():
         del prompt['collection']
+    if "backend" in prompt.keys():
+        del prompt["backend"]
     subset = False
 
     coll = get_collection(collection)
-    print(prompt)
+    print(prompt, collection)
+    print('total_events', len(list(coll.find({}))))
+    print('first event', list(coll.find({}))[0])
     filtered_list = list(coll.find(prompt))
     db_files = []
     print(len(filtered_list))

@@ -11,6 +11,9 @@ import xmltodict
 def extract_ome(file: str):
     "Get all the first tif file in a folder and get OME metadata from it, transfer to yaml"
     folder_dict = get_dict(os.path.dirname(file))
+    if folder_dict.get('ome', False):
+        print("OME metadata already present, skipping")
+        return
     with tifffile.TiffFile(file) as tif:
         try:
             fps = extract_fps(tif)

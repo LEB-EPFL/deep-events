@@ -2,6 +2,7 @@
 from pathlib import Path
 from benedict import benedict
 import re
+import time
 import os
 from deep_events.database.folder_benedict import get_dict, save_dict, set_dict_entry, handle_folder_dict
 
@@ -16,16 +17,16 @@ KEYS_PATH = os.path.dirname(os.path.realpath(__file__)) + "/keys.yaml"
 keys = benedict(KEYS_PATH)
 
 
-def recursive_folder(file: Path):
-    folder_dict = get_dict(os.path.dirname(file))
-    print(folder_dict)
+def recursive_folder(folder: Path):
+    folder_dict = get_dict(folder)
     folder_dict['type'] = 'original'
-    subpath = file
+    subpath = folder
     while subpath != os.path.dirname(subpath):
         folder_dict = set_manual(folder_dict, subpath)
         folder_dict = extract_foldername(folder_dict, subpath)
         subpath = os.path.dirname(subpath)
     save_dict(folder_dict)
+    time.sleep(0.5)
 
 
 def check_minimal(folder: Path, print_missing: bool = True):
@@ -65,7 +66,6 @@ def set_defaults(folder_dict: Union[dict, str, Path]):
     "Get default settings from file and set them to the local yaml"
     if isinstance(folder_dict, str) or isinstance(folder_dict, Path):
         folder_dict = benedict(folder_dict)
-    print("folder_dict", folder_dict)
     default_keys = benedict(KEYS_PATH)['defaults']
 
     for key, value in default_keys.items():
@@ -80,7 +80,7 @@ def set_manual(folder_dict: Union[dict, str, Path], folder):
     try:
         manual_entries = benedict(os.path.join(folder, "db_manual.yaml"))
         for key, value in manual_entries.items():
-            # folder_dict[key] = value
+            folder_dict[key] = value
             if not key in folder_dict.keys():
                 folder_dict = set_dict_entry(folder_dict, key, value)
     except (KeyError, ValueError) as e:
@@ -102,8 +102,7 @@ def extract_foldername(folder_dict: Union[dict, str, Path], folder):
             pass
 
     if not 'original_folder' in folder_dict.keys():
-        folder_dict['original_folder'] = os.path.basename(folder)
-
+        folder_dict['original_folder'] = folder
 
     for key in keys.keys():
         # Check if this field is already set.
@@ -128,16 +127,16 @@ def extract_foldername(folder_dict: Union[dict, str, Path], folder):
 def extract_folders(path: Path):
     folders = glob_zarr(path, r'*.ome.tif*')
     zarr_folders = glob_zarr(path, r'*.ome.zarr')
-    print(zarr_folders)
+    # tif_folders = glob_zarr(path, r'*.tif')
     zarr_folders = [folder / 'p0' for folder in zarr_folders]
     folders.extend(zarr_folders)
+    # folders.extend(tif_folders)
     print(folders)
     folders = [Path(folder).parents[0] for folder in folders]
     for folder in folders:
         print(folder)
         # pbar.set_description(str(folder))
         recursive_folder(folder)
-
         set_defaults(folder)
 
 if __name__ == "__main__": # pragma: no cover

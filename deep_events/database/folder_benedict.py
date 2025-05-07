@@ -7,7 +7,6 @@ from benedict import benedict
 
 def handle_folder_dict(func):
     def wrapper(folder_dict, *args, **kwargs):
-
         if not isinstance(folder_dict, dict):
             folder_dict = get_dict(folder_dict)
         folder_dict = func(folder_dict, *args, **kwargs)
