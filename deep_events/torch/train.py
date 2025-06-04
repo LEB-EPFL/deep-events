@@ -16,7 +16,7 @@ import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from torch.amp import autocast
-from torch.cuda.amp import GradScaler
+from torch.amp import GradScaler
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, 
