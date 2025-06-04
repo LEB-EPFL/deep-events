@@ -141,4 +141,6 @@ def extract_folders(path: Path):
 
 if __name__ == "__main__": # pragma: no cover
     # extract_folders(MAIN_PATH)# %%
-    extract_folders(Path('X:/Scientific_projects/deep_events_WS/data/phaseEDA/20240719_drp1emerald'))
+    #20250604_cos7_zeiss_test/
+    from deep_events.database.prepare_yaml import prepare_all_folder
+    prepare_all_folder(Path('D:/Users/stepp/Desktop/test/'))

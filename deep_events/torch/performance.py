@@ -498,12 +498,12 @@ def main(model_dir: Union[Path, str] = None, write_yaml: bool = True, plot: bool
     
     # Get number of frames
     frames = settings.get('n_timepoints', 1)
-    if frames == 1 and '_n' in str(training_folder):
-        try:
-            frames = int(str(training_folder).split('_n')[1][0])
-            logger.info(f'n timepoints from folder name: {frames}')
-        except (ValueError, IndexError):
-            pass
+    # if frames == 1 and '_n' in str(training_folder):
+    #     try:
+    #         frames = int(str(training_folder).split('_n')[1][0])
+    #         logger.info(f'n timepoints from folder name: {frames}')
+    #     except (ValueError, IndexError):
+    #         pass
     
     # For general evaluation
     if general_eval:
@@ -546,6 +546,9 @@ def main(model_dir: Union[Path, str] = None, write_yaml: bool = True, plot: bool
         eval_event_frames = []
         no_details = True
     
+    with open(data_folder/ 'db_prompt.yaml', 'r') as f:
+        db_prompt = yaml.safe_load(f)
+    
     n_repeats = 3
     
     # Create arrays to store masks and images
@@ -555,8 +558,8 @@ def main(model_dir: Union[Path, str] = None, write_yaml: bool = True, plot: bool
     # Collect data from DataLoader
     for i in tqdm(range(len(eval_seq) * n_repeats)):
         idx = i % len(eval_seq)
-        
-        for f in range(-5, 0):
+        start = -5 if db_prompt.get('max_n_timepoints', 5) == 5 else -1
+        for f in range(start, 0):
             # Set last_frame if available
             if hasattr(eval_seq, 'last_frame'):
                 eval_seq.last_frame = f
@@ -600,7 +603,7 @@ def main(model_dir: Union[Path, str] = None, write_yaml: bool = True, plot: bool
     
     # Reshape for evaluation
     try:
-        pred = pred.reshape(len(eval_seq) * n_repeats, 5, *mask.shape)
+        pred = pred.reshape(len(eval_seq) * n_repeats, -start, *mask.shape)
         masks = np.squeeze(masks)
     except Exception as e:
         logger.warning(f"Error reshaping predictions: {e}")
@@ -738,16 +741,17 @@ def performance_for_folder(folder: Path, general_eval=True, older_than=0):
     models = list(folder.rglob("*_model.pt"))
     
     for model in models:
-        try:
-            if older_than > 0:
-                model_date = int(model.parts[-1][:len(str(older_than))])
-                if model_date < older_than:
-                    continue
-            
-            logger.info('\033[1m' + str(model) + '\033[0m')
-            main(model, general_eval=general_eval)
-        except Exception as e:
-            logger.error(f"Error evaluating model {model}: {e}")
+        # try:
+        # In produciton might be better not to let this crash, but for debugging it is
+        if older_than > 0:
+            model_date = int(model.parts[-1][:len(str(older_than))])
+            if model_date < older_than:
+                continue
+        
+        logger.info('\033[1m' + str(model) + '\033[0m')
+        main(model, general_eval=general_eval)
+        # except Exception as e:
+        #     logger.error(f"Error evaluating model {model}: {e}")
 
 def visual_eval(training_folder, model_name=None):
     """
@@ -832,18 +836,18 @@ if __name__ == "__main__":
     # performance_for_folder(Path("path/to/models/folder"))
     
     # Example configurations for batch evaluation
-    main_folder = Path("x:/Scientific_projects/deep_events_WS/data/original_data/training_data/")
+    main_folder = Path("x:/Scientific_projects/Smart_Pearling_GT_AK_WS_JCL/Ready_for_training/training_data")
     dirs = []
     
     # Example: Evaluate specific model folders
-    dirs.extend(list(main_folder.glob('20250312_1022*')))
+    dirs.extend(list(main_folder.glob('20250604_1137*')))
     # dirs.extend(list(main_folder.glob('20250206_*')))
     
     for folder in dirs:
         models = list(folder.glob("*_model.pt"))
         for mod in models:
             print(mod)
-            try:
-                f1 = main(folder/mod, write_yaml=True, plot=True, save_hist=True, eval_func=whole_ev_eval)
-            except Exception as e:
-                logger.error(f"Error evaluating {mod}: {e}")
+            # try:
+            f1 = main(folder/mod, write_yaml=True, plot=True, save_hist=True, eval_func=whole_ev_eval)
+            # except Exception as e:
+            #     logger.error(f"Error evaluating {mod}: {e}")

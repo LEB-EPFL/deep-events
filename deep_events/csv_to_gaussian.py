@@ -55,7 +55,7 @@ def csv_to_gaussian(folder, SIGMA, csv_file_pattern=''):
         
         if isinstance(meta.get('scale_csv', False), dict):
             for key, value in meta.get('scale_csv').items():
-                if csv_file_pattern in key:
+                if key in csv_file_pattern:
                     scale_value = get_scale_value(meta, value)
         else:
             scale_value = get_scale_value(meta, meta.get('scale_csv', False))
