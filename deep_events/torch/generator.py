@@ -334,6 +334,9 @@ class ArraySequence(Dataset):
         self.performance = performance
         self.device = device
         self.elastic_transform = elastic_transform
+
+        if self.t_size == 1:
+            self.last_frame = True
         
         # Load data from TIFF files
         if validation:
