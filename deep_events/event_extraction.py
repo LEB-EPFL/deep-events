@@ -144,16 +144,31 @@ def box_from_pos(x, y, size):
 
 
 def box_edge_check(box, img_size):
-    if box[0] < 0:
-        box[2] = box[2] - box[0]
-        box[0]=0
+    # if box[0] < 0:
+    #     box[2] = box[2] - box[0]
+    #     box[0]=0
+    # if box[1] < 0:
+    #     box[3] = box[3] - box[1]
+    #     box[1] = 0
+    # if box[2] > img_size[0]:                           #safety conditions in case pics are at the lower edges
+    #     box[0] = img_size[0] - (box[2] - box[0])
+    #     box[2] = img_size[0]
+    # if box[3] > img_size[1]:
+    #     box[1] = img_size[1] - (box[3] - box[1])
+    #     box[3] = img_size[1]
+    # print(box)
+
     if box[1] < 0:
         box[3] = box[3] - box[1]
-        box[1] = 0
-    if box[2] > img_size[0]:                           #safety conditions in case pics are at the lower edges
-        box[0] = img_size[0] - (box[2] - box[0])
-        box[2] = img_size[0]
-    if box[3] > img_size[1]:
-        box[1] = img_size[1] - (box[3] - box[1])
-        box[3] = img_size[1]
+        box[1]=0
+    if box[0] < 0:
+        box[2] = box[2] - box[0]
+        box[0] = 0
+    if box[3] > img_size[0]:                           #safety conditions in case pics are at the lower edges
+        box[1] = img_size[0] - (box[3] - box[1])
+        box[3] = img_size[0]
+    if box[2] > img_size[1]:
+        box[0] = img_size[1] - (box[2] - box[0])
+        box[2] = img_size[1]
+    print(box)
     return box
