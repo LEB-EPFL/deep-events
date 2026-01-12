@@ -30,6 +30,8 @@ Briefly:
 
 ## **Necessary before starting training**
 
+# Insert tree
+
 - A folder *my_parent_data_folder* containing:
     - **[optional] General Additional Metadata**
     To assign metadata to all original data contained in *my_parent_data_folder*, we can define it in a .yaml file called *db_manual.yaml*. E.g., we can set the cell line and the microscope used:
@@ -72,88 +74,38 @@ Briefly:
             | **0** | 1.0 | 1.0 | 167.37746 | 370.6451 |
     
 
-## **Procedure**
+## **Minimal working example**
 
-This whole procedure to prepare the data for the model training can be found in the script deep-events\deep_events\example.ipynb. The following are the different tasks in this notebook.
+Please refer to the jupyter notebook *deep-events\deep_events\example.ipynb*. Here we show the output follder structure and examples of generated files.
 
-1. **Set the desired parameters**
 
-```python
-FOLDERS = [Path("my_parent_data_folder")]
-csv_file_pattern = 'csv_name'
-img_types = [r'*.ome.tif*']
-ground_truth_types = [csv_file_pattern + '_points']
-```
+- The generated *db.yaml* file looks as follows:
+    ```yaml
+    augmented: false
 
-1. **Generate the necessary metadata** 
-Here, we read the .ome.tiff metadata, the optional general metadata contained in *my_parent_data_folder/db_manual.yaml*, and the optional specific metadata contained in any *my_data/db_manual.yaml*  to generate the *db.yaml* file - containing all necessary metadata for further steps. The *db.yaml* file should look something like the following: 
+    # from the general db_manual.yaml
+    cell_line:
+    - cos7
 
-```yaml
-augmented: false
+    date: '230424'
 
-# from the general db_manual.yaml
-cell_line:
-- cos7
+    # from the general db_manual.yaml
+    microscope:
+    - zeiss
 
-date: '230424'
+    # from the folder-specific db_manual.yaml
+    ome:
+    size_t: 100.0
+    size_x: 2048
+    size_y: 2048
 
-# from the general db_manual.yaml
-microscope:
-- zeiss
+    original_folder: 230424_siCtrl_001
+    original_path: \\original\\path
+    scale_csv: true
+    type: original
+    typically_use: true
+    ```
 
-# from the folder-specific db_manual.yaml
-ome:
-  size_t: 100.0
-  size_x: 2048
-  size_y: 2048
-
-original_folder: 230424_siCtrl_001
-original_path: \\original\\path
-scale_csv: true
-type: original
-typically_use: true
-```
-
-1. **Generate the ground truth images**
-Here, we take the information from the .csv files and generate the ground truth images that will later be used to train the network. 
-
-```python
-for folder in FOLDERS:
-    SIGMA_G = 5
-    csv_to_gaussian(folder, SIGMA_G, csv_file_pattern)
-```
-
-1. **Generate the events folder, with data cropped in space and time**
-The event folder will be structured so that it can be used for training
-
-```python
-# Generate the event folder to be used to populate the DataBase
-for gt_type in ground_truth_types:
-settings = {
-'img_identifier': "",
-'gt_identifier': "ground_truth_" + gt_type,
-'db_name': "db.yaml",
-'channel_contrast': "",
-'label': "",
-'add_post_frames': 0,
-'auto_negatives': 0,
-}
-
-event_folder = f"event_data_{gt_type}"
-event_folders = [event_folder]
-
-gaussian_to_training_events(FOLDERS, event_folders, img_types, settings)
-```
-
-1. **Create the database needed for actually training**
-Here, we update a MongoDB database with the events later used for training. Please refer to the related section in this readme file to check how to create it. The database can be later queried to filter training data as desired. The database is deleted (at least for the automatic annotations) every time we run *reconstruct_from_folder*. 
-
-```python
-reconstruct_from_folder(
-"[e](https://sb-nas1.rcp.epfl.ch/LEB/Scientific_projects/Smart_Pearling_GT_AK_WS_JCL/Ready_for_training/event_data_pearls_lines)vent_folder", # the event folder just created
-'event_data_points' # collection name in the database
-)
-```
 
 ## Training
 
