@@ -10,8 +10,23 @@ This repository explains how to prepare the acquired microscopy data to train a 
 The dataflow is described in the figure above and you can see expamples in scheduled_settings/prepare_data.
 
 To start:
-- Create and activate a python environment with the packages indicated in the file *requirements.txt*
-- Install a MongoDB Database. To do so, follow the instruction at [https://www.mongodb.com/docs/manual/installation/](https://www.mongodb.com/docs/manual/installation/)
+1. Create and activate a python environment from *requirements.lock*. The suggested way to do so is by using *uv* - please refer to the [original instructions](https://docs.astral.sh/uv/getting-started/installation/).\
+Briefly:
+    ```bash
+    # install uv
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+    # Create a python 3.10 virtual environment with uv. From the repository root:
+    uv venv --python 3.10
+
+    # Activate it:
+    source .venv/bin/activate   # macOS/Linux
+    .venv\Scripts\activate      # Windows
+
+    # Install from requirements.lock:
+    uv pip install -r requirements.lock
+    ``` 
+2. Install a MongoDB Database, referring to the [original instructions.](https://www.mongodb.com/docs/manual/installation/)
 
 ## **Necessary before starting training**
 
@@ -50,16 +65,16 @@ To start:
             - Index: the index of the point-like annotation
             - axis-0, axis-1, axis-2, axis-3: the frame, ch, y, x of the line annotation
     
-    | **index** | **axis-0** | **axis-1** | **axis-2** | **axis-3** |
-    | --- | --- | --- | --- | --- |
-    | **0** | 1.0 | 1.0 | 139.20894 | 384.0587 |
-    | **0** | 1.0 | 1.0 | 153.96388 | 376.01056 |
-    | **0** | 1.0 | 1.0 | 167.37746 | 370.6451 |
+            | **index** | **axis-0** | **axis-1** | **axis-2** | **axis-3** |
+            | --- | --- | --- | --- | --- |
+            | **0** | 1.0 | 1.0 | 139.20894 | 384.0587 |
+            | **0** | 1.0 | 1.0 | 153.96388 | 376.01056 |
+            | **0** | 1.0 | 1.0 | 167.37746 | 370.6451 |
     
 
 ## **Procedure**
 
-This whole procedure to prepare the data for the model training can be found in the script deep-events\deep_events\[main.py](http://main.py/). The following are the different tasks in this script.
+This whole procedure to prepare the data for the model training can be found in the script deep-events\deep_events\example.ipynb. The following are the different tasks in this notebook.
 
 1. **Set the desired parameters**
 
