@@ -10,27 +10,12 @@ This repository explains how to prepare the acquired microscopy data to train a 
 The dataflow is described in the figure above and you can see expamples in scheduled_settings/prepare_data.
 
 To start:
-1. Create and activate a python environment from *requirements.lock*. The suggested way to do so is by using *uv* - please refer to the [original instructions](https://docs.astral.sh/uv/getting-started/installation/).\
-Briefly:
-    ```bash
-    # install uv
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-
-    # Create a python 3.10 virtual environment with uv. From the repository root:
-    uv venv --python 3.10
-
-    # Activate it:
-    source .venv/bin/activate   # macOS/Linux
-    .venv\Scripts\activate      # Windows
-
-    # Install from requirements.lock:
-    uv pip install -r requirements.lock
-    ``` 
+1. Install the Python dependencies inside a virtual environment with `uv`: `uv sync`
 2. Install a MongoDB Database, referring to the [original instructions.](https://www.mongodb.com/docs/manual/installation/)
 
-## **Necessary before starting training**
+## Getting Started
 
-# Insert tree
+### Prepare Images and Annotations for Training Data Generation
 
 - A folder *my_parent_data_folder* containing:
     - **[optional] General Additional Metadata**
@@ -74,7 +59,7 @@ Briefly:
             | **0** | 1.0 | 1.0 | 167.37746 | 370.6451 |
     
 
-## **Minimal working example**
+### Generate Training Data
 
 Please refer to the jupyter notebook *deep-events\deep_events\example.ipynb*. Here we show the output follder structure and examples of generated files.
 
@@ -107,7 +92,7 @@ Please refer to the jupyter notebook *deep-events\deep_events\example.ipynb*. He
     ```
 
 
-## Training
+### Training
 
 In order to train, follow these steps:
 
