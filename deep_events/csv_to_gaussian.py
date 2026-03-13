@@ -92,6 +92,7 @@ def csv_to_gaussian(folder, SIGMA, csv_file_pattern=''):
 
 
         poi(csv,in_name,sigma,size,framenum, size, None, group)
+        print("Done with", csv_name)
 
 
 if __name__ == "__main__":

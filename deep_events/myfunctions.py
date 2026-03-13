@@ -1,10 +1,6 @@
-# from PIL import Image
-# import pandas as pd
 import numpy as np
 from pathlib import Path
 import os
-import tensorflow_probability as tfp
-import tensorflow as tf
 from tqdm import tqdm
 import tifffile
 from bson.objectid import ObjectId
@@ -169,6 +165,8 @@ def save_im(index_list, outputname, foldname, dataar):
     tifffile.imwrite(savepath, (dataar).astype(np.uint16), photometric='minisblack')
 
 def get_gaussian(mu, sigma, size):
+    import tensorflow_probability as tfp
+    import tensorflow as tf
     mu = ((mu[1]+0.5-0.5*size[1])/(size[1]*0.5), (mu[0]+0.5-0.5*size[0])/(size[0]*0.5))
     sigma = (sigma[0]/size[0], sigma[1]/size[1])
     mvn = tfp.distributions.MultivariateNormalDiag(loc=mu, scale_diag=sigma)
@@ -177,6 +175,18 @@ def get_gaussian(mu, sigma, size):
     coords = tf.reshape(tf.stack(tf.meshgrid(x,y),axis=-1),(-1,2)).numpy()
     gauss = mvn.prob(coords)
     return tf.reshape(gauss, size)
+
+
+def get_gaussian_numpy(mu, sigma, size):
+    mu_norm = ((mu[1]+0.5-0.5*size[1])/(size[1]*0.5), (mu[0]+0.5-0.5*size[0])/(size[0]*0.5))
+    sigma_norm = (sigma[0]/size[0], sigma[1]/size[1])
+    x = np.linspace(-1, 1, size[0])
+    y = np.linspace(-1, 1, size[1])
+    xx, yy = np.meshgrid(x, y)
+    coords = np.stack([xx.ravel(), yy.ravel()], axis=-1)
+    norm = 1.0 / (2 * np.pi * sigma_norm[0] * sigma_norm[1])
+    gauss = norm * np.exp(-0.5 * np.sum((coords - np.array(mu_norm))**2 / np.array(sigma_norm)**2, axis=-1))
+    return gauss.reshape(size)
 
 
 def image_crop_negative(l,list_of_divisions, data, img, g_state, outputname, foldname, SAVING_SCHEME="None",
@@ -294,8 +304,7 @@ def poi(datacsv, input_name, sigma_trial, size_trial,total_frames, shape=(2048, 
         fission_ycoord = datacsv.loc[row_number, 'axis-1']
         fission_xcoord = datacsv.loc[row_number, 'axis-2']
         fission_coords = (fission_ycoord,fission_xcoord)
-        gaussian_points = get_gaussian(fission_coords,sigma_trial,size_trial)                                     #gets gaussian points at a single frame
-        gaussian_points = gaussian_points.numpy()                                                               #convers tensor into numpy array
+        gaussian_points = get_gaussian_numpy(fission_coords,sigma_trial,size_trial)                                #gets gaussian points at a single frame
         gaussian_points = gaussian_points/np.max(gaussian_points)                                               #divides by the max
         gaussian_points[gaussian_points < 0.1] = 0                                                              #sets background to zero
         gaussian_points = gaussian_points/np.max(gaussian_points)                                               #divides by max again

@@ -1,8 +1,7 @@
-#%%
 from deep_events.database.extract_yaml import MAIN_PATH
-from deep_events.database import get_collection, get_cluster
+from deep_events.database import get_collection#, get_cluster
 from pathlib import Path
-from pymongo import MongoClient
+#from pymongo import MongoClient
 from benedict import benedict
 import tifffile
 import os
