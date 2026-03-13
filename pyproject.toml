@@ -1,6 +1,45 @@
-[build-system]
-requires = [
-    "setuptools>=42",
-    "wheel",
+[project]
+name = "deep-events"
+version = "0.1.0"
+description = "Deep-Events"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    # Core scientific
+    "numpy>=1.23.5",
+    "scipy>=1.9.3",
+    "pandas>=1.5.2",
+    "matplotlib>=3.6.2",
+    # Image processing
+    "opencv-python>=4.6.0.66",
+    "scikit-image>=0.19.3",
+    "Pillow>=9.3.0",
+    "tifffile>=2022.10.10",
+    "shapely",
+    # Deep learning (PyTorch)
+    "torch",
+    # Database / config
+    "pymongo>=4.3.3",
+    "python-benedict>=0.27.1",
+    "xmltodict>=0.13.0",
+    "pyyaml>=6.0",
+    # File formats
+    "ome-zarr",
+    "zarr",
+    # Utilities
+    "tqdm>=4.64.1",
+    "psutil>=5.9.4",
+    # Visualization
+    "napari>=0.4.17",
+    "streamlit",
+    "altair",
+    # External models
+    "MitoSplit-Net",
 ]
-build-backend = "setuptools.build_meta"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+MitoSplit-Net = { url = "https://github.com/LEB-EPFL/MitoSplit-Net/archive/main.zip" }
